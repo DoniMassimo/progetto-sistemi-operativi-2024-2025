@@ -2,3 +2,4 @@ commit-style
 personal_try/
 build/
 bin/
+compile_commands.json
