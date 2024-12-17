@@ -12,6 +12,7 @@ extern int START_SEM_COUNT;
 extern char REL_DIR[];
 extern int START_SEM_ID;
 extern int SEM_SEATS_ID;
+extern key_t* WORKER_MESS_QUEUE;
 
 typedef enum
 {
@@ -24,6 +25,14 @@ typedef enum
   SERV_NUM          // numero di servizi erogati
 } Services;
 
+typedef struct
+{
+  Services mtype;
+  int resp_mqueue_id;
+  int status;
+} Messagge;
+
 extern void config_load();
 extern void config_init();
+
 #endif

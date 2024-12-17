@@ -26,12 +26,12 @@ void assign_count_array(int* count_ar, int ar_size, int count)
 void init_resources()
 {
   int ope_res = init_sem_zero(START_SEM_ID, 0);
-  if (start_sem_id < 0) { FUNC_PERROR(); }
-  int assigned_seats[SERV_NUM];
-  assign_count_array(assigned_seats, SERV_NUM, NOF_WORKER_SEATS);
+  if (-1 == ope_res) { FUNC_PERROR(); }
+  int assigned_serv_seats[SERV_NUM];
+  assign_count_array(assigned_serv_seats, SERV_NUM, NOF_WORKER_SEATS);
   for (int i = 0; i < SERV_NUM; i++)
   {
-    int ope_res = set_sem_val(SEM_SEATS_ID, i, assigned_seats[i]);
+    int ope_res = set_sem_val(SEM_SEATS_ID, i, assigned_serv_seats[i]);
     if (ope_res < 0) { FUNC_PERROR(); }
   }
 }
@@ -91,6 +91,7 @@ int main(int argc, char* argv[])
   init_resources();
   init_processes();
   int ope_res = set_sem_val(START_SEM_ID, 0, START_SEM_COUNT);
+  wait(NULL);
   if (ope_res < 0) { FUNC_PERROR(); }
   return 0;
 }

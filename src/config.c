@@ -12,6 +12,7 @@ char REL_DIR[MAX_PATH_LEN];
 
 key_t START_SEM_ID;
 key_t SEM_SEATS_ID;
+key_t* WORKER_MESS_QUEUE;
 
 void config_load()
 {
@@ -21,7 +22,7 @@ void config_load()
   START_SEM_COUNT = NOF_WORKERS + NOF_USERS;
 }
 
-void config_ipcid()
+void config_ipc_sem()
 {
   key_t sem_key = ftok(".", 65);
   START_SEM_ID = semget(sem_key, 1, 0666 | IPC_CREAT);
@@ -31,8 +32,16 @@ void config_ipcid()
   if (SEM_SEATS_ID < 0) { FUNC_PERROR(); }
 }
 
+void config_ipc_mes()
+{
+  WORKER_MESS_QUEUE = (key_t*)malloc(sizeof(key_t) * NOF_WORKER_SEATS);
+  if (NULL == WORKER_MESS_QUEUE) { FUNC_PERROR(); }
+  for (int i = 0; i < NOF_WORKER_SEATS; i++) { WORKER_MESS_QUEUE[i] = -1; }
+}
+
 void config_init()
 {
   config_load();
-  config_ipcid();
+  config_ipc_sem();
+  config_ipc_mes();
 }
