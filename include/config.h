@@ -8,11 +8,6 @@ extern int NOF_WORKERS;
 extern int WORKER_SEETS;
 extern int NOF_USERS;
 extern int NOF_WORKER_SEATS;
-extern int START_SEM_COUNT;
-extern char REL_DIR[];
-extern int START_SEM_ID;
-extern int SEM_SEATS_ID;
-extern key_t* WORKER_MESS_QUEUE;
 
 typedef enum
 {
@@ -23,16 +18,8 @@ typedef enum
   PURCH_FIN_PROD,   // Acquisto prodotti finanziari
   PURCH_WATCH_BRAC, // Acquisto orologi e braccialetti
   SERV_NUM          // numero di servizi erogati
-} Services;
-
-typedef struct
-{
-  Services mtype;
-  int resp_mqueue_id;
-  int status;
-} Messagge;
+} Service;
 
 extern void config_load();
-extern void config_init();
 
 #endif

@@ -3,3 +3,4 @@ personal_try/
 build/
 bin/
 compile_commands.json
+.cache/
