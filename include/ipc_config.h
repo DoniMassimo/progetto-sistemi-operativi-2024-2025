@@ -7,14 +7,5 @@
 #define MAX_EXE_LEN 64
 
 extern char REL_DIR[];
-extern int SEM_START_ID;
-extern int SEM_SEATS_ID;
-extern int SEM_DAY_STARTED;
-extern int SEM_SHM_SEATS_INFO_ID;
-extern int SHM_SEATS_INFO_ID;
-extern int SHM_SEATS_INDEX_ID;
-
-extern void ipc_config_init()
-extern void ipc_config_config_id()
 
 #endif

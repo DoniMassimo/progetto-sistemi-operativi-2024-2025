@@ -7,7 +7,7 @@ int NOF_WORKER_SEATS;
 int START_SEM_COUNT;
 size_t N_NANO_SECS;
 
-void config_load()
+void config_load(void)
 {
   NOF_WORKERS = 10;
   NOF_USERS = 0;

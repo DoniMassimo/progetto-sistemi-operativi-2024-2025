@@ -3,7 +3,7 @@
 
 #include "config.h"
 
-void seats_init_resources();
+void seats_init_resources(int* assigned_serv_seats);
 int seats_try_take_seat(Service ser_type);
 
 typedef struct

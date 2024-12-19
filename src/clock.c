@@ -1,15 +1,15 @@
 #include <stdio.h>
 #include <time.h>
-#include "ipc_config.h"
 #include "config.h"
-#include "clock.h"
 #include "macros.h"
+#include "sem.h"
+#include "sem_utils.h"
 
-int main()
+int main(void)
 {
   config_load();
   if (-1 == lock_sem(SEM_START_ID, 0)) { FUNC_PERROR(); }
-  init_sem_one(SEM_DAY_STARTED, 0);
+  init_sem_one(SEM_DAY_STARTED_ID, 0);
   struct timespec req;
   req.tv_sec = 0;
   req.tv_nsec = (long int)N_NANO_SECS;

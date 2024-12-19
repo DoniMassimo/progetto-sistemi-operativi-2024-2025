@@ -1,11 +1,16 @@
+#include <stdio.h>
+#include <sys/ipc.h>
 #include <sys/msg.h>
 #include <sys/shm.h>
-#include "utils.h"
-#include "macros.h"
+#include <sys/types.h>
 #include "config.h"
 #include "ipc_config.h"
-#include "sem_utils.h"
+#include "macros.h"
 #include "seats.h"
+#include "sem.h"
+#include "sem_utils.h"
+#include "shm.h"
+#include "utils.h"
 
 void seats_init_resources(int* assigned_serv_seats)
 {
@@ -24,7 +29,7 @@ void seats_init_resources(int* assigned_serv_seats)
   if (-1 == shmdt(shm_sindex_ptr)) { FUNC_PERROR(); }
 }
 
-int get_bounds_serv(int* bounds, Service serv)
+void get_bounds_serv(int* bounds, Service serv)
 {
   int* shm_sindex_ptr = (int*)shmat(SHM_SEATS_INDEX_ID, NULL, 0);
   if ((void*)-1 == (void*)shm_sindex_ptr) { FUNC_PERROR(); }

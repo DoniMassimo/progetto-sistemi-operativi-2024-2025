@@ -1,12 +1,12 @@
 CC = gcc
 all: bin/manager_main bin/employee_main bin/clock
-CFLAGS = -g -Wall -Wextra -Wpedantic -Wconversion -D_GNU_SOURCE -Iinclude/
+CFLAGS = -g -Wall -Wextra -Wpedantic -Wconversion -Wstrict-prototypes -Wsign-conversion -D_GNU_SOURCE -Iinclude/
 
 INCLUDES = include/*.h
 
 COMMON_DEPS = $(INCLUDES)
 
-PROJ_DEPS = build/utils.o build/config.o build/ipc_config.o
+PROJ_DEPS = build/utils.o build/config.o build/ipc_config.o build/sem.o build/shm.o build/ftok_key.o
 
 build/%.o: src/%.c $(COMMON_DEPS)
 	$(CC) $(CFLAGS) -c $< -o $@
@@ -16,8 +16,6 @@ bin/manager_main: build/manager_main.o build/sem_utils.o build/seats.o $(PROJ_DE
 
 bin/employee_main: build/employee_main.o build/sem_utils.o build/seats.o $(PROJ_DEPS)
 	$(CC) $(CFLAGS) -o bin/employee_main build/employee_main.o build/sem_utils.o build/seats.o $(PROJ_DEPS)
-
-
 
 bin/clock: build/clock.o build/sem_utils.o $(PROJ_DEPS)
 	$(CC) $(CFLAGS) -o bin/clock build/clock.o build/sem_utils.o $(PROJ_DEPS)

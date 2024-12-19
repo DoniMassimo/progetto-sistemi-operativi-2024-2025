@@ -1,6 +1,8 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
+#include <stddef.h>
+
 #define MAX_PATH_LEN 256
 #define MAX_EXE_LEN 64
 
@@ -21,6 +23,6 @@ typedef enum
   SERV_NUM          // numero di servizi erogati
 } Service;
 
-extern void config_load();
+extern void config_load(void);
 
 #endif
