@@ -11,6 +11,6 @@ typedef struct
   int is_busy;
   int empoyee_mqueue_id;
   int seats_taken;
-} SeatsInfo;
+} SeatInfo;
 
 #endif

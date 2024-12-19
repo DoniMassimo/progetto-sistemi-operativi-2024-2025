@@ -19,7 +19,7 @@ int main(int argc, char* argv[])
   char* endptr;
   int assigned_service = (int)strtol(argv[1], &endptr, 10);
   if (*endptr != '\0') { FUNC_MSG_ERROR("Cant convert argv[1] to int."); }
-  int sem_op_res = lock_sem(START_SEM_ID, 0);
+  int sem_op_res = lock_sem(SEM_START_ID, 0);
   if (-1 == sem_op_res) { FUNC_MSG_PERROR("sem empl"); }
   printf("em inizia %d\n", assigned_service);
   fflush(stdout);

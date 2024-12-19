@@ -7,42 +7,44 @@
 #include "sem_utils.h"
 #include "seats.h"
 
-void seats_init_resources()
+void seats_init_resources(int* assigned_serv_seats)
 {
-  int ope_res = init_sem_zero(START_SEM_ID, 0);
-  if (-1 == ope_res) { FUNC_PERROR(); }
-  int assigned_serv_seats[SERV_NUM];
-  utils_assign_count_array(assigned_serv_seats, SERV_NUM, NOF_WORKER_SEATS);
+  int* shm_sindex_ptr = (int*)shmat(SHM_SEATS_INDEX_ID, NULL, 0);
+  if ((int*)-1 == (int*)shm_sindex_ptr) { FUNC_PERROR(); }
+  int seats_count = 0;
   for (int i = 0; i < SERV_NUM; i++)
   {
     int seats_num = assigned_serv_seats[i];
+    seats_count = seats_count + seats_num;
+    if (i < SERV_NUM - 1) { shm_sindex_ptr[i] = seats_count; }
     Service ser = (Service)i;
     int ope_res = set_sem_val(SEM_SEATS_ID, ser, seats_num);
     if (-1 == ope_res) { FUNC_PERROR(); }
-    ipc_config_shmem_seats_info(sizeof(SeatsInfo), (size_t)seats_num, ser);
   }
+  if (-1 == shmdt(shm_sindex_ptr)) { FUNC_PERROR(); }
 }
 
-int get_nof_seats_for_serv(Service ser_type)
+int get_bounds_serv(int* bounds, Service serv)
 {
-  int* shm_nof_seats_ptr = (int*)shmat(SHM_NOF_SEATS_ID, NULL, 0);
-  if ((void*)-1 == (void*)shm_nof_seats_ptr) { FUNC_PERROR(); }
-  int nof_seats = shm_nof_seats_ptr[ser_type];
-  if (-1 == shmdt(shm_nof_seats_ptr)) { FUNC_PERROR(); }
-  return nof_seats;
+  int* shm_sindex_ptr = (int*)shmat(SHM_SEATS_INDEX_ID, NULL, 0);
+  if ((void*)-1 == (void*)shm_sindex_ptr) { FUNC_PERROR(); }
+  bounds[0] = (0 == serv) ? 0 : shm_sindex_ptr[serv - 1];
+  bounds[1] = (serv == SERV_NUM - 1) ? NOF_WORKER_SEATS : shm_sindex_ptr[serv];
+  if (-1 == shmdt(shm_sindex_ptr)) { FUNC_PERROR(); }
 }
 
-int seats_try_take_seat(Service ser_type)
+int seats_try_take_seat(Service serv)
 {
-  if (-1 == lock_sem(SEM_SEATS_ID, 0)) { FUNC_PERROR(); }
-  SeatsInfo* shm_sinfo_ptr = (SeatsInfo*)shmat(SHM_SEATS_INFO_ID[ser_type], NULL, 0);
+  if (-1 == lock_sem(SEM_SEATS_ID, serv)) { FUNC_PERROR(); }
+  SeatInfo* shm_sinfo_ptr = (SeatInfo*)shmat(SHM_SEATS_INFO_ID, NULL, 0);
   if ((void*)-1 == (void*)shm_sinfo_ptr) { FUNC_PERROR(); }
-  int nof_seats_serv = get_nof_seats_for_serv(ser_type);
+  int sinfo_serv_bounds[2];
+  get_bounds_serv(sinfo_serv_bounds, serv);
   if (-1 == lock_sem(SEM_SHM_SEATS_INFO_ID, 0)) { FUNC_PERROR(); }
   int msgid = -2;
-  for (int i = 0; i < nof_seats_serv; i++)
+  for (int i = sinfo_serv_bounds[0]; i < sinfo_serv_bounds[1]; i++)
   {
-    SeatsInfo* seats_info = &shm_sinfo_ptr[i];
+    SeatInfo* seats_info = &shm_sinfo_ptr[i];
     if (0 == seats_info->seats_taken)
     {
       seats_info->seats_taken = 1;
@@ -59,5 +61,6 @@ int seats_try_take_seat(Service ser_type)
   if (-1 == release_sem(SEM_SHM_SEATS_INFO_ID, 0)) { FUNC_PERROR(); }
   if (-2 == msgid) { FUNC_MSG_ERROR("Expecting to find free seats."); }
   if (-1 == shmdt(shm_sinfo_ptr)) { FUNC_PERROR(); }
+  fflush(stdout);
   return msgid;
 }

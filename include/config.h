@@ -5,9 +5,10 @@
 #define MAX_EXE_LEN 64
 
 extern int NOF_WORKERS;
-extern int WORKER_SEETS;
 extern int NOF_USERS;
 extern int NOF_WORKER_SEATS;
+extern int START_SEM_COUNT;
+extern size_t N_NANO_SECS;
 
 typedef enum
 {
