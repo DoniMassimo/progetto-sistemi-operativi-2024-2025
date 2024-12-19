@@ -12,6 +12,7 @@
 char REL_DIR[MAX_PATH_LEN];
 int SEM_START_ID;
 int SEM_SEATS_ID;
+int SEM_DAY_STARTED;
 int SEM_SHM_SEATS_INFO_ID;
 int SHM_SEATS_INFO_ID;
 int SHM_SEATS_INDEX_ID;
@@ -28,6 +29,11 @@ void init_sem()
   SEM_SHM_SEATS_INFO_ID = semget(sem_shme_seats_key, 1, 0666 | IPC_CREAT);
   if (SEM_SHM_SEATS_INFO_ID < 0) { FUNC_PERROR(); }
   init_sem_one(SEM_SHM_SEATS_INFO_ID, 0);
+  key_t sem_day_started_key = ftok(".", 40);
+  if (-1 == sem_day_started_key) { FUNC_PERROR(); }
+  SEM_DAY_STARTED = semget(sem_day_started_key, 1, 0666 | IPC_CREAT);
+  if (SEM_DAY_STARTED < 0) { FUNC_PERROR(); }
+  init_sem_zero(SEM_DAY_STARTED, 0);
 }
 
 void init_shm()
@@ -79,13 +85,13 @@ void config_shmid()
   if (-1 == SHM_SEATS_INDEX_ID) { FUNC_PERROR(); }
 }
 
-void ipc_config_init_manager()
+void ipc_config_init()
 {
   init_sem();
   init_shm();
 }
 
-void ipc_config_init_worker()
+void ipc_config_config_id()
 {
   config_semid();
   config_shmid();

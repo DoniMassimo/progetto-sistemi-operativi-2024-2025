@@ -80,7 +80,7 @@ int main(int argc, char* argv[])
   if (1 != argc) { MSG_ERROR("agrc error"); }
   utils_get_relative_path(argv[0], REL_DIR);
   config_load();
-  ipc_config_init_manager();
+  ipc_config_init();
   int assigned_serv_seats[SERV_NUM];
   utils_assign_count_array(assigned_serv_seats, SERV_NUM, NOF_WORKER_SEATS);
   seats_init_resources(assigned_serv_seats);

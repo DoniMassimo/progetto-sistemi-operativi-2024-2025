@@ -8,6 +8,8 @@
 int main()
 {
   config_load();
+  if (-1 == lock_sem(SEM_START_ID, 0)) { FUNC_PERROR(); }
+  init_sem_one(SEM_DAY_STARTED, 0);
   struct timespec req;
   req.tv_sec = 0;
   req.tv_nsec = (long int)N_NANO_SECS;
