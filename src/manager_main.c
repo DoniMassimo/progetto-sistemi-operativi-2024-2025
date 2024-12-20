@@ -11,6 +11,7 @@
 #include "ftok_key.h"
 #include "shm.h"
 #include "sem.h"
+#include "msg.h"
 
 void init_workers(void)
 {
@@ -80,6 +81,7 @@ void setup(void)
   ftok_key_init();
   sem_init();
   shm_init();
+  msg_init();
   int assigned_serv_seats[SERV_NUM];
   utils_assign_count_array(assigned_serv_seats, SERV_NUM, NOF_WORKER_SEATS);
   seats_init_resources(assigned_serv_seats);

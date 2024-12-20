@@ -9,6 +9,7 @@
 #include "sem_utils.h"
 #include "shm.h"
 #include "utils.h"
+#include "msg.h"
 
 int assigned_service;
 
@@ -21,6 +22,7 @@ void setup(char arg_1[])
   ftok_key_init();
   sem_config();
   shm_config();
+  msg_config();
 }
 
 void start(void)

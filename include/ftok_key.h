@@ -10,7 +10,7 @@ extern key_t SHM_SEATS_INDEX_KEY;
 extern key_t SHM_SEATS_INFO_KEY;
 
 // each “seats” has a message queue that connects “user” with “worker”
-extern key_t* MSQ_SEATS_QUEUE_KEY;
+extern key_t* MSG_SEATS_QUEUE_KEY;
 
 void ftok_key_init(void);
 
