@@ -1,4 +1,4 @@
-#include <sys/types.h> 
+#include <sys/types.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
@@ -74,10 +74,8 @@ void init_processes(void)
   // init_users();
 }
 
-int main(int argc, char* argv[])
+void setup(void)
 {
-  if (1 != argc) { MSG_ERROR("agrc error"); }
-  utils_get_relative_path(argv[0], REL_DIR);
   config_load();
   ftok_key_init();
   sem_init();
@@ -86,7 +84,19 @@ int main(int argc, char* argv[])
   utils_assign_count_array(assigned_serv_seats, SERV_NUM, NOF_WORKER_SEATS);
   seats_init_resources(assigned_serv_seats);
   init_processes();
+}
+
+void start(void)
+{
   int ope_res = set_sem_val(SEM_START_ID, 0, START_SEM_COUNT);
   if (ope_res < 0) { FUNC_PERROR(); }
+}
+
+int main(int argc, char* argv[])
+{
+  if (1 != argc) { MSG_ERROR("agrc error"); }
+  utils_get_relative_path(argv[0], REL_DIR);
+  setup();
+  start();
   return 0;
 }
