@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include "config.h"
 #include "ftok_key.h"
-#include "ipc_config.h"
 #include "macros.h"
 #include "seats.h"
 #include "sem.h"
@@ -33,8 +32,7 @@ void start(void)
 
 void core(void)
 {
-  int sem_op_res = seats_try_take_seat(assigned_service);
-  if (-1 == sem_op_res) { FUNC_MSG_PERROR("sem empl"); }
+  int msg_queue_id = seats_try_take_seat(assigned_service);
   printf("servizio trovato %d\n", assigned_service);
   fflush(stdout);
 }

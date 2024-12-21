@@ -11,7 +11,7 @@ int* MSG_SEATS_QUEUE_ID = NULL;
 void MSG_SEATS_QUEUE_ID_init(void)
 {
   MSG_SEATS_QUEUE_ID = (int*)malloc(sizeof(int) * (size_t)NOF_WORKER_SEATS);
-  if (NULL == NOF_WORKER_SEATS) { FUNC_PERROR(); }
+  if (NULL == MSG_SEATS_QUEUE_ID) { FUNC_PERROR(); }
   for (int i = 0; i < NOF_WORKER_SEATS; i++)
   {
     MSG_SEATS_QUEUE_ID[i] = msgget(MSG_SEATS_QUEUE_KEY[i], 0666 | IPC_CREAT);
@@ -22,7 +22,7 @@ void MSG_SEATS_QUEUE_ID_init(void)
 void MSG_SEATS_QUEUE_ID_config(void)
 {
   MSG_SEATS_QUEUE_ID = (int*)malloc(sizeof(int) * (size_t)NOF_WORKER_SEATS);
-  if (NULL == NOF_WORKER_SEATS) { FUNC_PERROR(); }
+  if (NULL == MSG_SEATS_QUEUE_ID) { FUNC_PERROR(); }
   for (int i = 0; i < NOF_WORKER_SEATS; i++)
   {
     MSG_SEATS_QUEUE_ID[i] = msgget(MSG_SEATS_QUEUE_KEY[i], 0666);

@@ -2,9 +2,12 @@
 #define CONFIG_H
 
 #include <stddef.h>
+#include "config.h"
 
 #define MAX_PATH_LEN 256
 #define MAX_EXE_LEN 64
+
+extern char REL_DIR[];
 
 extern int NOF_WORKERS;
 extern int NOF_USERS;

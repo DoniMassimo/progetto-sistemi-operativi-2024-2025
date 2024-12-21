@@ -1,5 +1,8 @@
 #include <stdio.h>
 #include "config.h"
+#include "config.h"
+
+char REL_DIR[MAX_PATH_LEN];
 
 int NOF_WORKERS;
 int NOF_USERS;
@@ -15,3 +18,4 @@ void config_load(void)
   START_SEM_COUNT = NOF_WORKERS + NOF_USERS + 1;
   N_NANO_SECS = 1000000;
 }
+

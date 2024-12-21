@@ -6,17 +6,19 @@
 #include "utils.h"
 #include "macros.h"
 #include "config.h"
-#include "ipc_config.h"
 #include "sem_utils.h"
 #include "ftok_key.h"
 #include "shm.h"
 #include "sem.h"
 #include "msg.h"
 
-void init_workers(void)
+pid_t* init_workers(void)
 {
+  pid_t* workers_pid = (pid_t*)malloc(sizeof(pid_t) * (size_t)NOF_WORKERS);
+  if (NULL == workers_pid) { FUNC_PERROR(); }
   int assigned_worker[SERV_NUM];
   utils_assign_count_array(assigned_worker, SERV_NUM, NOF_WORKERS);
+  int worker_count = 0;
   for (int i = 0; i < SERV_NUM; i++)
   {
     for (int j = 0; j < assigned_worker[i]; j++)
@@ -33,8 +35,10 @@ void init_workers(void)
         char* args[] = {dir, i_str, NULL};
         if (execv(args[0], args) == -1) { FUNC_PERROR(); }
       }
+      else { workers_pid[worker_count++] = pid; }
     }
   }
+  return workers_pid;
 }
 
 void init_users(void)

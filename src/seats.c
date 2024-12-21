@@ -4,12 +4,12 @@
 #include <sys/shm.h>
 #include <sys/types.h>
 #include "config.h"
-#include "ipc_config.h"
 #include "macros.h"
 #include "seats.h"
 #include "sem.h"
 #include "sem_utils.h"
 #include "shm.h"
+#include "msg.h"
 #include "utils.h"
 
 void seats_init_resources(int* assigned_serv_seats)
@@ -53,13 +53,8 @@ int seats_try_take_seat(Service serv)
     if (0 == seats_info->seats_taken)
     {
       seats_info->seats_taken = 1;
-      char str[MAX_PATH_LEN + MAX_EXE_LEN];
-      utils_join_str(str, REL_DIR, "employee_main");
-      key_t msgkey = ftok(str, 65);
-      if (-1 == msgkey) { FUNC_PERROR(); }
-      msgid = msgget(msgkey, 0666 | IPC_CREAT);
-      if (-1 == msgid) { FUNC_PERROR(); }
-      seats_info->empoyee_mqueue_id = msgid;
+      seats_info->empoyee_mqueue_id = MSG_SEATS_QUEUE_ID[i];
+      msgid = MSG_SEATS_QUEUE_ID[i];
       break;
     }
   }

@@ -5,6 +5,8 @@
 #include "sem.h"
 #include "sem_utils.h"
 
+int min_count = 0;
+
 int main(void)
 {
   config_load();
@@ -13,7 +15,6 @@ int main(void)
   struct timespec req;
   req.tv_sec = 0;
   req.tv_nsec = (long int)N_NANO_SECS;
-  int min_count = 0;
   while (min_count < (60 * 8))
   {
     min_count++;
