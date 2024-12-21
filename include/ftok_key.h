@@ -5,12 +5,16 @@ extern key_t SEM_START_KEY;
 extern key_t SEM_SEATS_KEY;
 extern key_t SEM_SHM_SEATS_INFO_KEY;
 extern key_t SEM_DAY_STARTED_KEY;
+extern key_t SEM_DAY_END_KEY;
+extern key_t SEM_PROC_READY_KEY;
+extern key_t* SEM_NOTIFY_WORKER_KEYS;
+extern key_t SHM_WORKERS_PID_KEY;
 
 extern key_t SHM_SEATS_INDEX_KEY;
 extern key_t SHM_SEATS_INFO_KEY;
 
 // each “seats” has a message queue that connects “user” with “worker”
-extern key_t* MSG_SEATS_QUEUE_KEY;
+extern key_t* MSG_SEATS_QUEUE_KEYS;
 
 void ftok_key_init(void);
 

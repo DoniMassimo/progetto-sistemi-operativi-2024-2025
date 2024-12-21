@@ -6,36 +6,36 @@
 #include "macros.h"
 #include "msg.h"
 
-int* MSG_SEATS_QUEUE_ID = NULL;
+int* MSG_SEATS_QUEUE_IDS = NULL;
 
-void MSG_SEATS_QUEUE_ID_init(void)
+void MSG_SEATS_QUEUE_IDS_init(void)
 {
-  MSG_SEATS_QUEUE_ID = (int*)malloc(sizeof(int) * (size_t)NOF_WORKER_SEATS);
-  if (NULL == MSG_SEATS_QUEUE_ID) { FUNC_PERROR(); }
+  MSG_SEATS_QUEUE_IDS = (int*)malloc(sizeof(int) * (size_t)NOF_WORKER_SEATS);
+  if (NULL == MSG_SEATS_QUEUE_IDS) { FUNC_PERROR(); }
   for (int i = 0; i < NOF_WORKER_SEATS; i++)
   {
-    MSG_SEATS_QUEUE_ID[i] = msgget(MSG_SEATS_QUEUE_KEY[i], 0666 | IPC_CREAT);
-    if (-1 == MSG_SEATS_QUEUE_ID[i]) { FUNC_PERROR(); }
+    MSG_SEATS_QUEUE_IDS[i] = msgget(MSG_SEATS_QUEUE_KEYS[i], 0666 | IPC_CREAT);
+    if (-1 == MSG_SEATS_QUEUE_IDS[i]) { FUNC_PERROR(); }
   }
 }
 
-void MSG_SEATS_QUEUE_ID_config(void)
+void MSG_SEATS_QUEUE_IDS_config(void)
 {
-  MSG_SEATS_QUEUE_ID = (int*)malloc(sizeof(int) * (size_t)NOF_WORKER_SEATS);
-  if (NULL == MSG_SEATS_QUEUE_ID) { FUNC_PERROR(); }
+  MSG_SEATS_QUEUE_IDS = (int*)malloc(sizeof(int) * (size_t)NOF_WORKER_SEATS);
+  if (NULL == MSG_SEATS_QUEUE_IDS) { FUNC_PERROR(); }
   for (int i = 0; i < NOF_WORKER_SEATS; i++)
   {
-    MSG_SEATS_QUEUE_ID[i] = msgget(MSG_SEATS_QUEUE_KEY[i], 0666);
-    if (-1 == MSG_SEATS_QUEUE_ID[i]) { FUNC_PERROR(); }
+    MSG_SEATS_QUEUE_IDS[i] = msgget(MSG_SEATS_QUEUE_KEYS[i], 0666);
+    if (-1 == MSG_SEATS_QUEUE_IDS[i]) { FUNC_PERROR(); }
   }
 }
 
 void msg_init(void)
 {
-  MSG_SEATS_QUEUE_ID_init();
+  MSG_SEATS_QUEUE_IDS_init();
 }
 
 void msg_config(void)
 {
-  MSG_SEATS_QUEUE_ID_config();
+  MSG_SEATS_QUEUE_IDS_config();
 }

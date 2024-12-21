@@ -3,6 +3,7 @@
 #include <sys/msg.h>
 #include <sys/shm.h>
 #include <sys/types.h>
+#include <errno.h>
 #include "config.h"
 #include "macros.h"
 #include "seats.h"
@@ -38,29 +39,31 @@ void get_bounds_serv(int* bounds, Service serv)
   if (-1 == shmdt(shm_sindex_ptr)) { FUNC_PERROR(); }
 }
 
-int seats_try_take_seat(Service serv)
+int seats_try_take_seat(Service serv, Signal* recived_signal, SeatInfo* seat_info)
 {
-  if (-1 == lock_sem(SEM_SEATS_ID, serv)) { FUNC_PERROR(); }
+  if (-1 == lock_sem(SEM_SEATS_ID, serv) && errno != EINTR) { FUNC_PERROR(); }
+  if (DAY_ENDED == *recived_signal) { return 2; }
   SeatInfo* shm_sinfo_ptr = (SeatInfo*)shmat(SHM_SEATS_INFO_ID, NULL, 0);
   if ((void*)-1 == (void*)shm_sinfo_ptr) { FUNC_PERROR(); }
   int sinfo_serv_bounds[2];
   get_bounds_serv(sinfo_serv_bounds, serv);
   if (-1 == lock_sem(SEM_SHM_SEATS_INFO_ID, 0)) { FUNC_PERROR(); }
   int msgid = -2;
+  SeatInfo ret_seat_info = {0};
   for (int i = sinfo_serv_bounds[0]; i < sinfo_serv_bounds[1]; i++)
   {
-    SeatInfo* seats_info = &shm_sinfo_ptr[i];
-    if (0 == seats_info->seats_taken)
+    if (0 == shm_sinfo_ptr[i].seats_taken)
     {
-      seats_info->seats_taken = 1;
-      seats_info->empoyee_mqueue_id = MSG_SEATS_QUEUE_ID[i];
-      msgid = MSG_SEATS_QUEUE_ID[i];
+      shm_sinfo_ptr[i].seats_taken = 1;
+      shm_sinfo_ptr[i].empoyee_mqueue_id = MSG_SEATS_QUEUE_IDS[i];
+      shm_sinfo_ptr[i].notify_worker_sem_id = SEM_NOTIFY_WORKER_IDS[i];
+      msgid = MSG_SEATS_QUEUE_IDS[i];
+      *seat_info = shm_sinfo_ptr[i];
       break;
     }
   }
   if (-1 == release_sem(SEM_SHM_SEATS_INFO_ID, 0)) { FUNC_PERROR(); }
   if (-2 == msgid) { FUNC_MSG_ERROR("Expecting to find free seats."); }
   if (-1 == shmdt(shm_sinfo_ptr)) { FUNC_PERROR(); }
-  fflush(stdout);
-  return msgid;
+  return 1;
 }

@@ -2,6 +2,9 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
+#include <signal.h>
+#include <sys/wait.h>
+#include <sys/shm.h>
 #include "seats.h"
 #include "utils.h"
 #include "macros.h"
@@ -12,10 +15,10 @@
 #include "sem.h"
 #include "msg.h"
 
-pid_t* init_workers(void)
+void init_workers(void)
 {
-  pid_t* workers_pid = (pid_t*)malloc(sizeof(pid_t) * (size_t)NOF_WORKERS);
-  if (NULL == workers_pid) { FUNC_PERROR(); }
+  pid_t* workers_pid = shmat(SHM_WORKERS_PID_ID, NULL, 0);
+  if ((pid_t*)-1 == (pid_t*)workers_pid) { FUNC_PERROR(); }
   int assigned_worker[SERV_NUM];
   utils_assign_count_array(assigned_worker, SERV_NUM, NOF_WORKERS);
   int worker_count = 0;
@@ -23,6 +26,7 @@ pid_t* init_workers(void)
   {
     for (int j = 0; j < assigned_worker[i]; j++)
     {
+      fflush(stdout);
       pid_t pid = fork();
       if (-1 == pid) { FUNC_PERROR(); }
       else if (0 == pid)
@@ -33,12 +37,13 @@ pid_t* init_workers(void)
         strcpy(dir, REL_DIR);
         strcat(dir, "employee_main");
         char* args[] = {dir, i_str, NULL};
+        fflush(stdout);
         if (execv(args[0], args) == -1) { FUNC_PERROR(); }
       }
       else { workers_pid[worker_count++] = pid; }
     }
   }
-  return workers_pid;
+  if (-1 == shmdt(workers_pid)) { FUNC_PERROR(); }
 }
 
 void init_users(void)
@@ -75,7 +80,7 @@ void init_clock(void)
 void init_processes(void)
 {
   init_workers();
-  // init_clock();
+  init_clock();
   // init_users();
 }
 
@@ -94,8 +99,13 @@ void setup(void)
 
 void start(void)
 {
-  int ope_res = set_sem_val(SEM_START_ID, 0, START_SEM_COUNT);
-  if (ope_res < 0) { FUNC_PERROR(); }
+  if (-1 == lock_sem_val(SEM_PROC_READY_ID, 0, NOF_WORKERS)) { FUNC_PERROR(); }
+  if (-1 == set_sem_val(SEM_START_ID, 0, START_SEM_COUNT)) { FUNC_PERROR(); }
+}
+
+void core(void)
+{
+  if (-1 == lock_sem(SEM_DAY_END_ID, 0)) { FUNC_PERROR(); }
 }
 
 int main(int argc, char* argv[])
@@ -103,6 +113,10 @@ int main(int argc, char* argv[])
   if (1 != argc) { MSG_ERROR("agrc error"); }
   utils_get_relative_path(argv[0], REL_DIR);
   setup();
-  start();
+  while (1)
+  {
+    start();
+    core();
+  }
   return 0;
 }

@@ -9,6 +9,7 @@
 
 int SHM_SEATS_INFO_ID;
 int SHM_SEATS_INDEX_ID;
+int SHM_WORKERS_PID_ID;
 
 void SHM_SEATS_INFO_init(void)
 {
@@ -46,14 +47,34 @@ void SHM_SEATS_INDEX_config(void)
   if (-1 == SHM_SEATS_INDEX_ID) { FUNC_PERROR(); }
 }
 
+void SHM_WORKERS_PID_init(void)
+{
+  size_t workers_pid_size = sizeof(pid_t) * (size_t)NOF_WORKERS;
+  SHM_WORKERS_PID_ID = shmget(SHM_WORKERS_PID_KEY, workers_pid_size, 0666 | IPC_CREAT);
+  if (-1 == SHM_WORKERS_PID_ID) { FUNC_PERROR(); }
+  pid_t* workers_pid_ptr = shmat(SHM_WORKERS_PID_ID, NULL, 0);
+  if ((pid_t*)-1 == (pid_t*)workers_pid_ptr) { FUNC_PERROR(); }
+  memset(workers_pid_ptr, 0, workers_pid_size);
+  if (-1 == shmdt(workers_pid_ptr)) { FUNC_PERROR(); }
+}
+
+void SHM_WORKERS_PID_config(void)
+{
+  size_t workers_pid_size = sizeof(pid_t) * (size_t)NOF_WORKERS;
+  SHM_WORKERS_PID_ID = shmget(SHM_WORKERS_PID_KEY, workers_pid_size, 0666);
+  if (-1 == SHM_WORKERS_PID_ID) { FUNC_PERROR(); }
+}
+
 void shm_init(void)
 {
   SHM_SEATS_INFO_init();
   SHM_SEATS_INDEX_init();
+  SHM_WORKERS_PID_init();
 }
 
 void shm_config(void)
 {
   SHM_SEATS_INFO_config();
   SHM_SEATS_INDEX_config();
+  SHM_WORKERS_PID_config();
 }

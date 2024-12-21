@@ -1,5 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <signal.h>
+#include <unistd.h>
+#include <sys/sem.h>
+#include <errno.h>
 #include "config.h"
 #include "ftok_key.h"
 #include "macros.h"
@@ -11,6 +15,21 @@
 #include "msg.h"
 
 int assigned_service;
+Signal recived_signal = NOSIGNAL;
+
+void handle_sigusr1(int signo, siginfo_t* info, void* context)
+{
+  recived_signal = info->si_value.sival_int;
+}
+
+void signal_setup(void)
+{
+  struct sigaction sa;
+  sa.sa_sigaction = handle_sigusr1;
+  sigemptyset(&sa.sa_mask);
+  sa.sa_flags = SA_SIGINFO;
+  if (sigaction(SIGUSR1, &sa, NULL) == -1) { FUNC_PERROR(); }
+}
 
 void setup(char arg_1[])
 {
@@ -22,19 +41,32 @@ void setup(char arg_1[])
   sem_config();
   shm_config();
   msg_config();
+  signal_setup();
 }
 
 void start(void)
 {
-  int sem_op_res = lock_sem(SEM_START_ID, 0);
-  if (-1 == sem_op_res) { FUNC_MSG_PERROR("sem empl"); }
+  if (-1 == release_sem(SEM_PROC_READY_ID, 0)) { FUNC_PERROR(); }
+  if (-1 == lock_sem(SEM_START_ID, 0)) { FUNC_MSG_PERROR("sem empl"); }
 }
 
 void core(void)
 {
-  int msg_queue_id = seats_try_take_seat(assigned_service);
-  printf("servizio trovato %d\n", assigned_service);
-  fflush(stdout);
+  SeatInfo seat_info = {0};
+  int status = seats_try_take_seat(assigned_service, &recived_signal, &seat_info);
+  if (2 == status && DAY_ENDED == recived_signal)
+  {
+    printf("inter day end mentre cercavo posto\n");
+    fflush(stdout);
+    return;
+  }
+  if (-1 == lock_sem(seat_info.notify_worker_sem_id, 0) && errno != EINTR) { FUNC_PERROR(); }
+  if (DAY_ENDED == recived_signal)
+  {
+    printf("inter day end mentre aspettavo user\n");
+    fflush(stdout);
+    return;
+  }
 }
 
 int main(int argc, char* argv[])
