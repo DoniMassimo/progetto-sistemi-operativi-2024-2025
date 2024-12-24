@@ -68,7 +68,7 @@ void core(void)
   {
     printf("inter day end mentre aspettavo user: %d\n", seat_index);
     fflush(stdout);
-    seats_release_seat(assigned_service, seat_index);
+    //seats_release_seat(assigned_service, seat_index);
     return;
   }
 }
