@@ -39,6 +39,8 @@ void start(void)
 
 void core(void)
 {
+  printf("giorno iniziato\n");
+  fflush(stdout);
   int min_count = 0;
   struct timespec req;
   req.tv_sec = 0;
@@ -49,6 +51,7 @@ void core(void)
     if (nanosleep(&req, NULL) == -1) { FUNC_MSG_PERROR("clock"); }
   }
   send_signal_day_end();
+  release_sem(SEM_DAY_END_ID, 0);
   printf("giorno finito\n");
   fflush(stdout);
 }

@@ -53,18 +53,22 @@ void start(void)
 void core(void)
 {
   SeatInfo seat_info = {0};
-  int status = seats_try_take_seat(assigned_service, &recived_signal, &seat_info);
-  if (2 == status && DAY_ENDED == recived_signal)
+  int seat_index = seats_try_take_seat(assigned_service, &recived_signal, &seat_info);
+  if (-2 == seat_index && DAY_ENDED == recived_signal)
   {
     printf("inter day end mentre cercavo posto\n");
     fflush(stdout);
     return;
   }
-  if (-1 == lock_sem(seat_info.notify_worker_sem_id, 0) && errno != EINTR) { FUNC_PERROR(); }
+  if (-1 == lock_sem(seat_info.notify_worker_sem_id, 0) && DAY_ENDED != recived_signal)
+  {
+    FUNC_PERROR();
+  }
   if (DAY_ENDED == recived_signal)
   {
-    printf("inter day end mentre aspettavo user\n");
+    printf("inter day end mentre aspettavo user: %d\n", seat_index);
     fflush(stdout);
+    seats_release_seat(assigned_service, seat_index);
     return;
   }
 }
@@ -74,7 +78,10 @@ int main(int argc, char* argv[])
   if (2 != argc) { MSG_ERROR("agrc error"); }
   utils_get_relative_path(argv[0], REL_DIR);
   setup(argv[1]);
-  start();
-  core();
+  while (1)
+  {
+    start();
+    core();
+  }
   return 0;
 }
