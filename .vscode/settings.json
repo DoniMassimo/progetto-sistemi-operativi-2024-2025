@@ -1,0 +1,11 @@
+{
+    "files.associations": {
+        "shm.h": "c",
+        "sem.h": "c",
+        "sem_utils.h": "c",
+        "config.h": "c",
+        "seats.h": "c",
+        "msg.h": "c",
+        "macros.h": "c"
+    }
+}

@@ -23,8 +23,8 @@ bin/clock: build/clock.o build/sem_utils.o $(PROJ_DEPS)
 bin/user_main: build/user_main.o build/sem_utils.o $(PROJ_DEPS)
 	$(CC) $(CFLAGS) -o bin/user_main build/user_main.o build/sem_utils.o $(PROJ_DEPS)
 
-bin/ticket_dispenser_main: build/ticket_dispenser_main.o build/sem_utils.o $(PROJ_DEPS)
-	$(CC) $(CFLAGS) -o bin/ticket_dispenser_main build/ticket_dispenser_main.o build/sem_utils.o $(PROJ_DEPS)
+bin/ticket_dispenser_main: build/ticket_dispenser_main.o build/sem_utils.o build/seats.o $(PROJ_DEPS)
+	$(CC) $(CFLAGS) -o bin/ticket_dispenser_main build/ticket_dispenser_main.o build/sem_utils.o build/seats.o $(PROJ_DEPS)
 
 clean:
 	rm -f build/* bin/*
