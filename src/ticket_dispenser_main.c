@@ -15,7 +15,7 @@
 #include "shm.h"
 #include "sem.h"
 #include "msg.h"
-
+#define int_max 2147483647
 typedef struct
 {
   int status;
@@ -65,33 +65,50 @@ void core(void)
 {
   while (1)
   {
-    fflush(stdout);
-    if (-1 == lock_sem(SEM_NOTIFY_DISPENSER_ID, 0) && DAY_ENDED != recived_signal)
-    {
-      FUNC_PERROR();
-    }
-    else if (DAY_ENDED == recived_signal)
-    {
-      printf("ticket disp -> interrotto da sengnale\n");
-      fflush(stdout);
-      recived_signal = NOSIGNAL;
-      return;
-    }
-    // msget
+    if (-1 == lock_sem(SEM_NOTIFY_DISPENSER_ID, 0)) { FUNC_PERROR(); }
+    // msgrcv
+    DispenserMsg msg;
+    if(msgrcv(MSG_TICKET_DISPENSER_ID, &msg, sizeof(Ticket), 0, 0) == -1) { FUNC_PERROR(); }
+    printf("message received: %s\n, msg.ticket.status");
+
     SeatInfo* shm_sinfo_ptr = (SeatInfo*)shmat(SHM_SEATS_INFO_ID, NULL, 0);
     if ((SeatInfo*)-1 == (SeatInfo*)shm_sinfo_ptr) { FUNC_PERROR(); }
     // controllo se ce il servizio
+    int bounds[2];
+    get_bounds_serv(bounds, msg.ticket.status);
+
+    int service_available = 0;
+    int seat_index = -1;
+    int min_nof_user_waiting = int_max;
+    for(int i = bounds[0]; i < bounds[1]; i++)
+    {
+      if(shm_sinfo_ptr[i].nof_user_wainting < min_nof_user_waiting)
+      {
+        min_nof_user_waiting = shm_sinfo_ptr[i].nof_user_wainting;
+        seat_index = i;
+        service_available = 1;
+      }
+    }
     if (-1 == shmdt(shm_sinfo_ptr)) { FUNC_PERROR(); }
-    // msgsnd
+    
+    if(service_available)
+    {
+      if(-1 == msgsnd(msg.ticket.com_mqueue_id, &msg, sizeof(Ticket), 0)) { FUNC_PERROR(); }
+      printf("message sent: %s\n, msg.ticket.status");
+    }
+    else
+    {
+      printf("service not available: %s\n, msg.ticket.status");
+    }
   }
 }
 
 int main(int argc, char* argv[])
 {
   setup();
-  while (1)
-  {
-    start();
-    core();
-  }
+  start();
+  printf("ticket disp\n");
+  fflush(stdout);
+  core();
+  return 0;
 }
