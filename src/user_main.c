@@ -43,15 +43,13 @@ void setup(void)
 
 void start(void)
 {
-  printf("start user\n");
-  fflush(stdout);
   if (-1 == release_sem(SEM_PROC_READY_ID, 0)) { FUNC_PERROR(); }
-  if (-1 == lock_sem(SEM_START_ID, 0)) { FUNC_MSG_PERROR("sem empl"); }
+  if (-1 == lock_sem(SEM_START_ID, 0)) { FUNC_PERROR(); }
 }
 
 void core(void)
 {
-  printf("giorno user\n");
+  printf("user -> core user\n");
   fflush(stdout);
 }
 

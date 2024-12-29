@@ -18,6 +18,7 @@ key_t SEM_NOTIFY_DISPENSER_KEY = -1;
 key_t SHM_SEATS_INDEX_KEY = -1;
 key_t SHM_SEATS_INFO_KEY = -1;
 key_t SHM_WORKERS_PID_KEY = -1;
+key_t SHM_TICKET_DISPENSER_PID_KEY = -1;
 
 key_t* MSG_SEATS_QUEUE_KEYS = NULL;
 key_t MSG_TICKET_DISPENSER_KEY = -1;
@@ -55,6 +56,8 @@ void shm_key_init(void)
   if (-1 == SHM_SEATS_INFO_KEY) { FUNC_PERROR(); }
   SHM_WORKERS_PID_KEY = ftok(".", key_count++);
   if (-1 == SHM_WORKERS_PID_KEY) { FUNC_PERROR(); }
+  SHM_TICKET_DISPENSER_PID_KEY = ftok(".", key_count++);
+  if (-1 == SHM_TICKET_DISPENSER_PID_KEY) { FUNC_PERROR(); }
 }
 
 void msg_key_init(void)

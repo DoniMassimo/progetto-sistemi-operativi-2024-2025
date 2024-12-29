@@ -65,8 +65,18 @@ void core(void)
 {
   while (1)
   {
-
-  if (-1 == lock_sem(SEM_NOTIFY_DISPENSER_ID, 0)) { FUNC_PERROR(); }
+    fflush(stdout);
+    if (-1 == lock_sem(SEM_NOTIFY_DISPENSER_ID, 0) && DAY_ENDED != recived_signal)
+    {
+      FUNC_PERROR();
+    }
+    else if (DAY_ENDED == recived_signal)
+    {
+      printf("ticket disp -> interrotto da sengnale\n");
+      fflush(stdout);
+      recived_signal = NOSIGNAL;
+      return;
+    }
     // msget
     SeatInfo* shm_sinfo_ptr = (SeatInfo*)shmat(SHM_SEATS_INFO_ID, NULL, 0);
     if ((SeatInfo*)-1 == (SeatInfo*)shm_sinfo_ptr) { FUNC_PERROR(); }
@@ -79,7 +89,9 @@ void core(void)
 int main(int argc, char* argv[])
 {
   setup();
-  start();
-  printf("ticket disp\n");
-  fflush(stdout);
+  while (1)
+  {
+    start();
+    core();
+  }
 }

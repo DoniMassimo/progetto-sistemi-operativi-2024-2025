@@ -79,6 +79,8 @@ void init_clock(void)
 
 void init_ticket_dispenser(void)
 {
+  pid_t* ticket_disp_pid = shmat(SHM_TICKET_DISPENSER_PID_ID, NULL, 0);
+  if ((pid_t*)-1 == (pid_t*)ticket_disp_pid) { FUNC_PERROR(); }
   pid_t pid = fork();
   if (-1 == pid) { FUNC_PERROR(); }
   else if (0 == pid)
@@ -89,6 +91,8 @@ void init_ticket_dispenser(void)
     char* args[] = {dir, NULL};
     if (execv(args[0], args) == -1) { FUNC_PERROR(); }
   }
+  else { *ticket_disp_pid = pid; }
+  if (-1 == shmdt(ticket_disp_pid)) { FUNC_PERROR(); }
 }
 
 void init_processes(void)
@@ -130,6 +134,8 @@ int main(int argc, char* argv[])
   setup();
   while (1)
   {
+    printf("##################################################\n");
+    fflush(stdout);
     start();
     core();
   }

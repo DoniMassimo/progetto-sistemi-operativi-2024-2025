@@ -7,9 +7,10 @@
 #include "seats.h"
 #include "shm.h"
 
-int SHM_SEATS_INFO_ID;
-int SHM_SEATS_INDEX_ID;
-int SHM_WORKERS_PID_ID;
+int SHM_SEATS_INFO_ID = -1;
+int SHM_SEATS_INDEX_ID = -1;
+int SHM_WORKERS_PID_ID = -1;
+int SHM_TICKET_DISPENSER_PID_ID = -1;
 
 void SHM_SEATS_INFO_init(void)
 {
@@ -65,11 +66,27 @@ void SHM_WORKERS_PID_config(void)
   if (-1 == SHM_WORKERS_PID_ID) { FUNC_PERROR(); }
 }
 
+void SHM_TICKET_DISPENSER_PID_init(void)
+{
+  size_t ticket_disp_pid_size = sizeof(pid_t);
+  SHM_TICKET_DISPENSER_PID_ID =
+      shmget(SHM_TICKET_DISPENSER_PID_KEY, ticket_disp_pid_size, 0666 | IPC_CREAT);
+  if (-1 == SHM_TICKET_DISPENSER_PID_ID) { FUNC_PERROR(); }
+}
+
+void SHM_TICKET_DISPENSER_PID_config(void)
+{
+  size_t ticket_disp_pid_size = sizeof(pid_t);
+  SHM_TICKET_DISPENSER_PID_ID = shmget(SHM_TICKET_DISPENSER_PID_KEY, ticket_disp_pid_size, 0666);
+  if (-1 == SHM_TICKET_DISPENSER_PID_ID) { FUNC_PERROR(); }
+}
+
 void shm_init(void)
 {
   SHM_SEATS_INFO_init();
   SHM_SEATS_INDEX_init();
   SHM_WORKERS_PID_init();
+  SHM_TICKET_DISPENSER_PID_init();
 }
 
 void shm_config(void)
@@ -77,4 +94,5 @@ void shm_config(void)
   SHM_SEATS_INFO_config();
   SHM_SEATS_INDEX_config();
   SHM_WORKERS_PID_config();
+  SHM_TICKET_DISPENSER_PID_config();
 }

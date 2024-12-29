@@ -6,6 +6,7 @@
 #include "ftok_key.h"
 #include "macros.h"
 #include "sem.h"
+#include "msg.h"
 #include "shm.h"
 #include "sem_utils.h"
 
@@ -13,13 +14,16 @@ void send_signal_day_end()
 {
   pid_t* shm_wpid_ptr = shmat(SHM_WORKERS_PID_ID, NULL, 0);
   if ((pid_t*)-1 == (pid_t*)shm_wpid_ptr) { FUNC_PERROR(); }
+  pid_t* ticket_disp_pid_ptr = shmat(SHM_TICKET_DISPENSER_PID_ID, NULL, 0);
+  if ((pid_t*)-1 == (pid_t*)ticket_disp_pid_ptr) { FUNC_PERROR(); }
+  union sigval value;
+  value.sival_int = DAY_ENDED;
   for (int i = 0; i < NOF_WORKERS; i++)
   {
-    pid_t proc_pid = shm_wpid_ptr[i];
-    union sigval value;
-    value.sival_int = DAY_ENDED;
-    if (sigqueue(proc_pid, SIGUSR1, value) == -1) { FUNC_PERROR(); }
+    if (sigqueue(shm_wpid_ptr[i], SIGUSR1, value) == -1) { FUNC_PERROR(); }
   }
+  if (sigqueue(*ticket_disp_pid_ptr, SIGUSR1, value) == -1) { FUNC_PERROR(); }
+  if (-1 == shmdt(ticket_disp_pid_ptr)) { FUNC_PERROR(); }
   if (-1 == shmdt(shm_wpid_ptr)) { FUNC_PERROR(); }
 }
 
@@ -27,6 +31,7 @@ void setup(void)
 {
   config_load();
   ftok_key_init();
+  msg_config();
   sem_config();
   shm_config();
 }
@@ -35,12 +40,13 @@ void start(void)
 {
   if (-1 == release_sem(SEM_PROC_READY_ID, 0)) { FUNC_PERROR(); }
   if (-1 == lock_sem(SEM_START_ID, 0)) { FUNC_PERROR(); }
+  printf("clock -> iniziato\n");
+  fflush(stdout);
   init_sem_one(SEM_DAY_STARTED_ID, 0);
 }
 
 void core(void)
 {
-  printf("giorno iniziato\n");
   fflush(stdout);
   int min_count = 0;
   struct timespec req;
@@ -53,7 +59,7 @@ void core(void)
   }
   send_signal_day_end();
   release_sem(SEM_DAY_END_ID, 0);
-  printf("giorno finito\n");
+  printf("clock -> giorno finito\n");
   fflush(stdout);
 }
 
