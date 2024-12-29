@@ -33,6 +33,7 @@ void setup(void)
 
 void start(void)
 {
+  if (-1 == release_sem(SEM_PROC_READY_ID, 0)) { FUNC_PERROR(); }
   if (-1 == lock_sem(SEM_START_ID, 0)) { FUNC_PERROR(); }
   init_sem_one(SEM_DAY_STARTED_ID, 0);
 }

@@ -56,6 +56,7 @@ void core(void)
   int seat_index = seats_try_take_seat(assigned_service, &recived_signal, &seat_info);
   if (-2 == seat_index && DAY_ENDED == recived_signal)
   {
+    recived_signal = NOSIGNAL;
     printf("inter day end mentre cercavo posto\n");
     fflush(stdout);
     return;
@@ -66,9 +67,10 @@ void core(void)
   }
   if (DAY_ENDED == recived_signal)
   {
-    printf("inter day end mentre aspettavo user: %d\n", seat_index);
+    recived_signal = NOSIGNAL;
+    printf("inter day end mentre aspettavo user\n");
     fflush(stdout);
-    //seats_release_seat(assigned_service, seat_index);
+    seats_release_seat(assigned_service, seat_index);
     return;
   }
 }

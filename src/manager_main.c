@@ -35,7 +35,7 @@ void init_workers(void)
         sprintf(i_str, "%d", i);
         char dir[MAX_PATH_LEN + MAX_EXE_LEN];
         strcpy(dir, REL_DIR);
-        strcat(dir, "employee_main");
+        strcat(dir, "worker_main");
         char* args[] = {dir, i_str, NULL};
         fflush(stdout);
         if (execv(args[0], args) == -1) { FUNC_PERROR(); }
@@ -77,11 +77,26 @@ void init_clock(void)
   }
 }
 
+void init_ticket_dispenser(void)
+{
+  pid_t pid = fork();
+  if (-1 == pid) { FUNC_PERROR(); }
+  else if (0 == pid)
+  {
+    char dir[MAX_PATH_LEN + MAX_EXE_LEN];
+    strcpy(dir, REL_DIR);
+    strcat(dir, "ticket_dispenser_main");
+    char* args[] = {dir, NULL};
+    if (execv(args[0], args) == -1) { FUNC_PERROR(); }
+  }
+}
+
 void init_processes(void)
 {
   init_workers();
   init_clock();
-  // init_users();
+  init_users();
+  init_ticket_dispenser();
 }
 
 void setup(void)
@@ -99,7 +114,7 @@ void setup(void)
 
 void start(void)
 {
-  if (-1 == lock_sem_val(SEM_PROC_READY_ID, 0, NOF_WORKERS)) { FUNC_PERROR(); }
+  if (-1 == lock_sem_val(SEM_PROC_READY_ID, 0, START_SEM_COUNT)) { FUNC_PERROR(); }
   if (-1 == set_sem_val(SEM_START_ID, 0, START_SEM_COUNT)) { FUNC_PERROR(); }
 }
 

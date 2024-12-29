@@ -13,12 +13,14 @@ key_t SEM_DAY_STARTED_KEY = -1;
 key_t SEM_DAY_END_KEY = -1;
 key_t SEM_PROC_READY_KEY = -1;
 key_t* SEM_NOTIFY_WORKER_KEYS = NULL;
+key_t SEM_NOTIFY_DISPENSER_KEY = -1;
 
 key_t SHM_SEATS_INDEX_KEY = -1;
 key_t SHM_SEATS_INFO_KEY = -1;
 key_t SHM_WORKERS_PID_KEY = -1;
 
 key_t* MSG_SEATS_QUEUE_KEYS = NULL;
+key_t MSG_TICKET_DISPENSER_KEY = -1;
 
 void sem_key_init(void)
 {
@@ -41,6 +43,8 @@ void sem_key_init(void)
   }
   SEM_DAY_END_KEY = ftok(".", key_count++);
   if (-1 == SEM_DAY_END_KEY) { FUNC_PERROR(); }
+  SEM_NOTIFY_DISPENSER_KEY = ftok(".", key_count++);
+  if (-1 == SEM_NOTIFY_DISPENSER_KEY) { FUNC_PERROR(); }
 }
 
 void shm_key_init(void)
@@ -62,6 +66,8 @@ void msg_key_init(void)
     MSG_SEATS_QUEUE_KEYS[i] = ftok(".", key_count++);
     if (-1 == MSG_SEATS_QUEUE_KEYS[i]) { FUNC_PERROR(); }
   }
+  MSG_TICKET_DISPENSER_KEY = ftok(".", key_count++);
+  if (-1 == MSG_TICKET_DISPENSER_KEY) { FUNC_PERROR(); }
 }
 
 void ftok_key_init(void)

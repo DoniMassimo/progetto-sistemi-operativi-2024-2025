@@ -7,6 +7,7 @@
 #include "msg.h"
 
 int* MSG_SEATS_QUEUE_IDS = NULL;
+int MSG_TICKET_DISPENSER_ID = -1;
 
 void MSG_SEATS_QUEUE_IDS_init(void)
 {
@@ -30,12 +31,26 @@ void MSG_SEATS_QUEUE_IDS_config(void)
   }
 }
 
+void MSG_TICKET_DISPENSER_ID_init(void)
+{
+  MSG_TICKET_DISPENSER_ID = msgget(MSG_TICKET_DISPENSER_KEY, 0666 | IPC_CREAT);
+  if (-1 == MSG_TICKET_DISPENSER_ID) { FUNC_PERROR(); }
+}
+
+void MSG_TICKET_DISPENSER_ID_config(void)
+{
+  MSG_TICKET_DISPENSER_ID = msgget(MSG_TICKET_DISPENSER_KEY, 0666);
+  if (-1 == MSG_TICKET_DISPENSER_ID) { FUNC_PERROR(); }
+}
+
 void msg_init(void)
 {
   MSG_SEATS_QUEUE_IDS_init();
+  MSG_TICKET_DISPENSER_ID_init();
 }
 
 void msg_config(void)
 {
   MSG_SEATS_QUEUE_IDS_config();
+  MSG_TICKET_DISPENSER_ID_config();
 }

@@ -30,7 +30,7 @@ void seats_init_resources(int* assigned_serv_seats)
     if (-1 == ope_res) { FUNC_PERROR(); }
     for (int j = seats_count - seats_num; j < seats_count; j++)
     {
-      shm_sinfo_ptr[i].empoyee_mqueue_id = MSG_SEATS_QUEUE_IDS[i];
+      shm_sinfo_ptr[i].com_mqueue_id = MSG_SEATS_QUEUE_IDS[i];
       shm_sinfo_ptr[i].notify_worker_sem_id = SEM_NOTIFY_WORKER_IDS[i];
     }
   }
