@@ -5,6 +5,7 @@
 #include <signal.h>
 #include <sys/wait.h>
 #include <sys/shm.h>
+#include <sys/sem.h>
 #include "seats.h"
 #include "utils.h"
 #include "macros.h"
@@ -134,7 +135,8 @@ int main(int argc, char* argv[])
   setup();
   while (1)
   {
-    printf("##################################################\n");
+    printf("##################################################: %d\n",
+           semctl(SEM_START_ID, 0, GETVAL));
     fflush(stdout);
     start();
     core();

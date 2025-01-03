@@ -41,6 +41,15 @@ int lock_sem(int semid, int sem_num)
   return semop(semid, &sops, 1);
 }
 
+int lock_sem_nowait(int semid, int sem_num)
+{
+  struct sembuf sops;
+  sops.sem_num = (short unsigned int)sem_num;
+  sops.sem_op = -1;
+  sops.sem_flg = IPC_NOWAIT;
+  return semop(semid, &sops, 1);
+}
+
 int lock_sem_val(int semid, int sem_num, int val)
 {
   if (val <= 0) {FUNC_MSG_ERROR("val cant be negative.\n");}

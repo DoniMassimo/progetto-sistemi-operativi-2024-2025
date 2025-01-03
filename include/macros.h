@@ -3,8 +3,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define FUNC_PERROR() \
-  perror(__func__);   \
+#define FUNC_PERROR()                                                     \
+  fprintf(stderr, "\nError in file: %s, function: %s, error msg: ", __FILE__, __func__); \
+  perror("");                                                             \
   exit(EXIT_FAILURE);
 
 #define FUNC_MSG_PERROR(msg)    \

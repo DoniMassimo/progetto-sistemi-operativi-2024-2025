@@ -12,6 +12,7 @@
 #include "shm.h"
 #include "msg.h"
 #include "utils.h"
+#include "sig_utils.h"
 
 void seats_init_resources(int* assigned_serv_seats)
 {
@@ -30,8 +31,8 @@ void seats_init_resources(int* assigned_serv_seats)
     if (-1 == ope_res) { FUNC_PERROR(); }
     for (int j = seats_count - seats_num; j < seats_count; j++)
     {
-      shm_sinfo_ptr[i].com_mqueue_id = MSG_SEATS_QUEUE_IDS[i];
-      shm_sinfo_ptr[i].notify_worker_sem_id = SEM_NOTIFY_WORKER_IDS[i];
+      shm_sinfo_ptr[j].com_mqueue_id = MSG_SEATS_QUEUE_IDS[j];
+      shm_sinfo_ptr[j].notify_worker_sem_id = SEM_NOTIFY_WORKER_IDS[j];
     }
   }
   if (-1 == shmdt(shm_sindex_ptr)) { FUNC_PERROR(); }
@@ -51,6 +52,8 @@ int seats_try_take_seat(Service serv, Signal* recived_signal, SeatInfo* seat_inf
 {
   if (-1 == lock_sem(SEM_SEATS_ID, serv) && errno != EINTR) { FUNC_PERROR(); }
   if (DAY_ENDED == *recived_signal) { return -2; }
+  SigMasks sig_mask = {0};
+  block_user_signal(&sig_mask);
   SeatInfo* shm_sinfo_ptr = (SeatInfo*)shmat(SHM_SEATS_INFO_ID, NULL, 0);
   if ((void*)-1 == (void*)shm_sinfo_ptr) { FUNC_PERROR(); }
   int sinfo_serv_bounds[2];
@@ -71,6 +74,7 @@ int seats_try_take_seat(Service serv, Signal* recived_signal, SeatInfo* seat_inf
   if (-1 == release_sem(SEM_SHM_SEATS_INFO_ID, 0)) { FUNC_PERROR(); }
   if (-1 == seat_index) { FUNC_MSG_ERROR("Expecting to find free seats."); }
   if (-1 == shmdt(shm_sinfo_ptr)) { FUNC_PERROR(); }
+  unlock_user_signal(&sig_mask);
   return seat_index;
 }
 

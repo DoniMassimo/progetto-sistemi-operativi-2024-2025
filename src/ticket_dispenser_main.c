@@ -65,7 +65,6 @@ void core(void)
 {
   while (1)
   {
-    fflush(stdout);
     if (-1 == lock_sem(SEM_NOTIFY_DISPENSER_ID, 0) && DAY_ENDED != recived_signal)
     {
       FUNC_PERROR();

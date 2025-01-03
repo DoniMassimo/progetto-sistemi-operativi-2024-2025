@@ -20,6 +20,8 @@ Signal recived_signal = NOSIGNAL;
 void handle_sigusr1(int signo, siginfo_t* info, void* context)
 {
   recived_signal = info->si_value.sival_int;
+  printf("worker -> sengale ricevuto\n");
+  fflush(stdout);
 }
 
 void signal_setup(void)
@@ -54,17 +56,15 @@ void core(void)
 {
   SeatInfo seat_info = {0};
   int seat_index = seats_try_take_seat(assigned_service, &recived_signal, &seat_info);
-  if (-2 == seat_index && DAY_ENDED == recived_signal)
+  if (DAY_ENDED == recived_signal)
   {
     recived_signal = NOSIGNAL;
     printf("worker -> interrotto mentre cercavo posto\n");
     fflush(stdout);
+    if (seat_index >= 0) { seats_release_seat(assigned_service, seat_index); }
     return;
   }
-  if (-1 == lock_sem(seat_info.notify_worker_sem_id, 0) && DAY_ENDED != recived_signal)
-  {
-    FUNC_PERROR();
-  }
+  if (-1 == lock_sem(seat_info.notify_worker_sem_id, 0) && errno != EINTR) { FUNC_PERROR(); }
   if (DAY_ENDED == recived_signal)
   {
     recived_signal = NOSIGNAL;
@@ -73,6 +73,7 @@ void core(void)
     seats_release_seat(assigned_service, seat_index);
     return;
   }
+  // handle user request
 }
 
 int main(int argc, char* argv[])
