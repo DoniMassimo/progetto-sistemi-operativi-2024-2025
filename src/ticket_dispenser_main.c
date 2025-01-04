@@ -53,12 +53,20 @@ void core(void)
     if (-1 == lock_sem(SEM_NOTIFY_DISPENSER_ID, 0)) { FUNC_PERROR(); }
     if (-1 == msgrcv(MSG_NOTIFY_DISPENSER_ID, &com_struct, sizeof(Content), DAY_ENDED, IPC_NOWAIT))
     {
-      FUNC_PERROR();
+      if (ENOMSG != errno) { FUNC_PERROR(); }
     }
     else
     {
       printf("ticket -> finisco giornata\n");
       return;
+    }
+    if (-1 == msgrcv(MSG_NOTIFY_DISPENSER_ID, &com_struct, sizeof(Content), TICKET_REQ, IPC_NOWAIT))
+    {
+      if (ENOMSG != errno) { FUNC_PERROR(); }
+    }
+    else
+    {
+      // eroga ticker
     }
     // msget
     // SeatInfo* shm_sinfo_ptr = (SeatInfo*)shmat(SHM_SEATS_INFO_ID, NULL, 0);
