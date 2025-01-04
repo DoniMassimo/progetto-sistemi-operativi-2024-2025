@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <time.h>
 #include <sys/shm.h>
+#include <sys/msg.h>
 #include <signal.h>
 #include "config.h"
 #include "ftok_key.h"
@@ -9,23 +10,7 @@
 #include "msg.h"
 #include "shm.h"
 #include "sem_utils.h"
-
-void send_signal_day_end()
-{
-  pid_t* shm_wpid_ptr = shmat(SHM_WORKERS_PID_ID, NULL, 0);
-  if ((pid_t*)-1 == (pid_t*)shm_wpid_ptr) { FUNC_PERROR(); }
-  pid_t* ticket_disp_pid_ptr = shmat(SHM_TICKET_DISPENSER_PID_ID, NULL, 0);
-  if ((pid_t*)-1 == (pid_t*)ticket_disp_pid_ptr) { FUNC_PERROR(); }
-  union sigval value;
-  value.sival_int = DAY_ENDED;
-  for (int i = 0; i < NOF_WORKERS; i++)
-  {
-    if (sigqueue(shm_wpid_ptr[i], SIGUSR1, value) == -1) { FUNC_PERROR(); }
-  }
-  if (sigqueue(*ticket_disp_pid_ptr, SIGUSR1, value) == -1) { FUNC_PERROR(); }
-  if (-1 == shmdt(ticket_disp_pid_ptr)) { FUNC_PERROR(); }
-  if (-1 == shmdt(shm_wpid_ptr)) { FUNC_PERROR(); }
-}
+#include "struct.h"
 
 void setup(void)
 {
@@ -45,6 +30,19 @@ void start(void)
   init_sem_one(SEM_DAY_STARTED_ID, 0);
 }
 
+void send_msg_day_ended(void)
+{
+  ComStruct com_struct;
+  com_struct.mtype = DAY_ENDED;
+  for (int i = 0; i < NOF_WORKERS; i++)
+  {
+    if (-1 == msgsnd(MSG_NOTIFY_WORKER_IDS[i], &com_struct, sizeof(Content), 0)) { FUNC_PERROR(); }
+  }
+  release_all_sem(SEM_NOTIFY_WORKER_ID, NOF_WORKERS);
+  if (-1 == msgsnd(MSG_NOTIFY_DISPENSER_ID, &com_struct, sizeof(Content), 0)) { FUNC_PERROR(); }
+  release_sem(SEM_NOTIFY_DISPENSER_ID, 0);
+}
+
 void core(void)
 {
   fflush(stdout);
@@ -57,8 +55,8 @@ void core(void)
     min_count++;
     if (nanosleep(&req, NULL) == -1) { FUNC_MSG_PERROR("clock"); }
   }
-  send_signal_day_end();
   release_sem(SEM_DAY_END_ID, 0);
+  send_msg_day_ended();
   printf("clock -> giorno finito\n");
   fflush(stdout);
 }

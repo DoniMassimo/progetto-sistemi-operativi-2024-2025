@@ -28,12 +28,6 @@ typedef enum
   SERV_NUM          // numero di servizi erogati
 } Service;
 
-typedef enum
-{
-  NOSIGNAL,
-  DAY_ENDED,
-} Signal;
-
 extern void config_load(void);
 
 #endif

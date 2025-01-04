@@ -12,7 +12,7 @@ int SEM_DAY_END_ID = -1;
 int SEM_SEATS_ID = -1;
 int SEM_SHM_SEATS_INFO_ID = -1;
 int SEM_PROC_READY_ID = -1;
-int* SEM_NOTIFY_WORKER_IDS = NULL;
+int SEM_NOTIFY_WORKER_ID = -1;
 int SEM_NOTIFY_DISPENSER_ID = -1;
 
 void SEM_START_ID_init(void)
@@ -91,27 +91,17 @@ void SEM_PROC_READY_ID_config(void)
   if (SEM_PROC_READY_ID < 0) { FUNC_PERROR(); }
 }
 
-void SEM_NOTIFY_WORKER_IDS_init(void)
+void SEM_NOTIFY_WORKER_ID_init(void)
 {
-  SEM_NOTIFY_WORKER_IDS = (int*)malloc(sizeof(int) * (size_t)NOF_WORKERS);
-  if (NULL == SEM_NOTIFY_WORKER_IDS) { FUNC_PERROR(); }
-  for (int i = 0; i < NOF_WORKERS; i++)
-  {
-    SEM_NOTIFY_WORKER_IDS[i] = semget(SEM_NOTIFY_WORKER_KEYS[i], 1, 0666 | IPC_CREAT);
-    if (-1 == SEM_NOTIFY_WORKER_IDS[i]) { FUNC_PERROR(); }
-    init_sem_zero(SEM_NOTIFY_WORKER_IDS[i], 0);
-  }
+  SEM_NOTIFY_WORKER_ID = semget(SEM_NOTIFY_WORKER_KEY, NOF_WORKERS, 0666 | IPC_CREAT);
+  if (-1 == SEM_NOTIFY_WORKER_ID) { FUNC_PERROR(); }
+  for (int i = 0; i < NOF_WORKERS; i++) { init_sem_zero(SEM_NOTIFY_WORKER_ID, i); }
 }
 
-void SEM_NOTIFY_WORKER_IDS_config(void)
+void SEM_NOTIFY_WORKER_ID_config(void)
 {
-  SEM_NOTIFY_WORKER_IDS = (int*)malloc(sizeof(int) * (size_t)NOF_WORKERS);
-  if (NULL == SEM_NOTIFY_WORKER_IDS) { FUNC_PERROR(); }
-  for (int i = 0; i < NOF_WORKERS; i++)
-  {
-    SEM_NOTIFY_WORKER_IDS[i] = semget(SEM_NOTIFY_WORKER_KEYS[i], 1, 0666);
-    if (-1 == SEM_NOTIFY_WORKER_IDS[i]) { FUNC_PERROR(); }
-  }
+  SEM_NOTIFY_WORKER_ID = semget(SEM_NOTIFY_WORKER_KEY, NOF_WORKERS, 0666);
+  if (-1 == SEM_NOTIFY_WORKER_ID) { FUNC_PERROR(); }
 }
 
 void SEM_NOTIFY_DISPENSER_ID_init(void)
@@ -135,7 +125,7 @@ void sem_init(void)
   SEM_DAY_STARTED_init();
   SEM_DAY_END_init();
   SEM_PROC_READY_ID_init();
-  SEM_NOTIFY_WORKER_IDS_init();
+  SEM_NOTIFY_WORKER_ID_init();
   SEM_NOTIFY_DISPENSER_ID_init();
 }
 
@@ -147,6 +137,6 @@ void sem_config(void)
   SEM_DAY_STARTED_config();
   SEM_DAY_END_config();
   SEM_PROC_READY_ID_config();
-  SEM_NOTIFY_WORKER_IDS_config();
+  SEM_NOTIFY_WORKER_ID_config();
   SEM_NOTIFY_DISPENSER_ID_config();
 }

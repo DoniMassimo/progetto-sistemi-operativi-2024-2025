@@ -1,11 +1,14 @@
 #ifndef MACROS_H
 #define MACROS_H
+
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
-#define FUNC_PERROR()                                                     \
-  fprintf(stderr, "\nError in file: %s, function: %s, error msg: ", __FILE__, __func__); \
-  perror("");                                                             \
+#define FUNC_PERROR()                                                                       \
+  fprintf(stderr, "\nError in file: %s, function: %s, error msg: %s\n", __FILE__, __func__, \
+          strerror(errno));                                                                 \
   exit(EXIT_FAILURE);
 
 #define FUNC_MSG_PERROR(msg)    \

@@ -34,10 +34,12 @@ void init_workers(void)
       {
         char i_str[20];
         sprintf(i_str, "%d", i);
+        char id[4];
+        sprintf(id, "%d", worker_count);
         char dir[MAX_PATH_LEN + MAX_EXE_LEN];
         strcpy(dir, REL_DIR);
         strcat(dir, "worker_main");
-        char* args[] = {dir, i_str, NULL};
+        char* args[] = {dir, i_str, id, NULL};
         fflush(stdout);
         if (execv(args[0], args) == -1) { FUNC_PERROR(); }
       }
