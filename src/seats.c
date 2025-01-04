@@ -29,11 +29,6 @@ void seats_init_resources(int* assigned_serv_seats)
     Service ser = (Service)i;
     int ope_res = set_sem_val(SEM_SEATS_ID, ser, seats_num);
     if (-1 == ope_res) { FUNC_PERROR(); }
-    for (int j = seats_count - seats_num; j < seats_count; j++)
-    {
-      shm_sinfo_ptr[j].com_mqueue_id = MSG_SEATS_QUEUE_IDS[j];
-      shm_sinfo_ptr[j].notify_worker_sem_id = SEM_NOTIFY_WORKER_IDS[j];
-    }
   }
   if (-1 == shmdt(shm_sindex_ptr)) { FUNC_PERROR(); }
   if (-1 == shmdt(shm_sinfo_ptr)) { FUNC_PERROR(); }
@@ -48,18 +43,16 @@ void get_bounds_serv(int* bounds, Service serv)
   if (-1 == shmdt(shm_sindex_ptr)) { FUNC_PERROR(); }
 }
 
-int seats_try_take_seat(Service serv, Signal* recived_signal, SeatInfo* seat_info)
+int seats_try_take_seat(Service serv, int worker_id)
 {
-  if (-1 == lock_sem(SEM_SEATS_ID, serv) && errno != EINTR) { FUNC_PERROR(); }
-  if (DAY_ENDED == *recived_signal) { return -2; }
-  SigMasks sig_mask = {0};
-  block_user_signal(&sig_mask);
+  int semop_seats_res = lock_sem_nowait(SEM_SEATS_ID, serv);
+  if (-1 == semop_seats_res) { FUNC_PERROR(); }
+  else if (-2 == semop_seats_res) { return -2; }
   SeatInfo* shm_sinfo_ptr = (SeatInfo*)shmat(SHM_SEATS_INFO_ID, NULL, 0);
   if ((void*)-1 == (void*)shm_sinfo_ptr) { FUNC_PERROR(); }
   int sinfo_serv_bounds[2];
   get_bounds_serv(sinfo_serv_bounds, serv);
   if (-1 == lock_sem(SEM_SHM_SEATS_INFO_ID, 0)) { FUNC_PERROR(); }
-  SeatInfo ret_seat_info = {0};
   int seat_index = -1;
   for (int i = sinfo_serv_bounds[0]; i < sinfo_serv_bounds[1]; i++)
   {
@@ -67,15 +60,15 @@ int seats_try_take_seat(Service serv, Signal* recived_signal, SeatInfo* seat_inf
     {
       seat_index = i;
       shm_sinfo_ptr[i].seats_taken = 1;
-      *seat_info = shm_sinfo_ptr[i];
+      shm_sinfo_ptr[i].msg_notify_worker_id = MSG_NOTIFY_WORKER_IDS[worker_id];
+      shm_sinfo_ptr[i].sem_notify_worker_count = worker_id;
       break;
     }
   }
   if (-1 == release_sem(SEM_SHM_SEATS_INFO_ID, 0)) { FUNC_PERROR(); }
   if (-1 == seat_index) { FUNC_MSG_ERROR("Expecting to find free seats."); }
   if (-1 == shmdt(shm_sinfo_ptr)) { FUNC_PERROR(); }
-  unlock_user_signal(&sig_mask);
-  return seat_index;
+  return 0;
 }
 
 void seats_release_seat(Service serv, int seat_index)

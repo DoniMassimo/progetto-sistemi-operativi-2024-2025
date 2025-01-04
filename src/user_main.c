@@ -15,22 +15,6 @@
 #include "sem.h"
 #include "msg.h"
 
-Signal recived_signal = NOSIGNAL;
-
-void handle_sigusr1(int signo, siginfo_t* info, void* context)
-{
-  recived_signal = info->si_value.sival_int;
-}
-
-void signal_setup(void)
-{
-  struct sigaction sa;
-  sa.sa_sigaction = handle_sigusr1;
-  sigemptyset(&sa.sa_mask);
-  sa.sa_flags = SA_SIGINFO;
-  if (sigaction(SIGUSR1, &sa, NULL) == -1) { FUNC_PERROR(); }
-}
-
 void setup(void)
 {
   config_load();
@@ -38,7 +22,6 @@ void setup(void)
   sem_config();
   shm_config();
   msg_config();
-  signal_setup();
 }
 
 void start(void)

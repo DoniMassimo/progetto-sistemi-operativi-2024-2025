@@ -15,12 +15,13 @@
 #include "shm.h"
 #include "sem.h"
 #include "msg.h"
+#include "struct.h"
 
 typedef struct
 {
   int status;
-  int com_mqueue_id;
-  int notify_worker_sem_id;
+  int msg_notify_worker_id;
+  int sem_notify_worker_count;
 } Ticket;
 
 typedef struct
@@ -29,22 +30,6 @@ typedef struct
   Ticket ticket;
 } DispenserMsg;
 
-Signal recived_signal = NOSIGNAL;
-
-void handle_sigusr1(int signo, siginfo_t* info, void* context)
-{
-  recived_signal = info->si_value.sival_int;
-}
-
-void signal_setup(void)
-{
-  struct sigaction sa;
-  sa.sa_sigaction = handle_sigusr1;
-  sigemptyset(&sa.sa_mask);
-  sa.sa_flags = SA_SIGINFO;
-  if (sigaction(SIGUSR1, &sa, NULL) == -1) { FUNC_PERROR(); }
-}
-
 void setup(void)
 {
   config_load();
@@ -52,7 +37,6 @@ void setup(void)
   sem_config();
   shm_config();
   msg_config();
-  signal_setup();
 }
 
 void start(void)
@@ -63,25 +47,25 @@ void start(void)
 
 void core(void)
 {
+  ComStruct com_struct = {0};
   while (1)
   {
-    if (-1 == lock_sem(SEM_NOTIFY_DISPENSER_ID, 0) && DAY_ENDED != recived_signal)
+    if (-1 == lock_sem(SEM_NOTIFY_DISPENSER_ID, 0)) { FUNC_PERROR(); }
+    if (-1 == msgrcv(MSG_NOTIFY_DISPENSER_ID, &com_struct, sizeof(Content), DAY_ENDED, IPC_NOWAIT))
     {
       FUNC_PERROR();
     }
-    else if (DAY_ENDED == recived_signal)
+    else
     {
-      printf("ticket disp -> interrotto da sengnale\n");
-      fflush(stdout);
-      recived_signal = NOSIGNAL;
+      printf("ticket -> finisco giornata\n");
       return;
     }
     // msget
-    SeatInfo* shm_sinfo_ptr = (SeatInfo*)shmat(SHM_SEATS_INFO_ID, NULL, 0);
-    if ((SeatInfo*)-1 == (SeatInfo*)shm_sinfo_ptr) { FUNC_PERROR(); }
-    // controllo se ce il servizio
-    if (-1 == shmdt(shm_sinfo_ptr)) { FUNC_PERROR(); }
-    // msgsnd
+    // SeatInfo* shm_sinfo_ptr = (SeatInfo*)shmat(SHM_SEATS_INFO_ID, NULL, 0);
+    // if ((SeatInfo*)-1 == (SeatInfo*)shm_sinfo_ptr) { FUNC_PERROR(); }
+    //// controllo se ce il servizio
+    // if (-1 == shmdt(shm_sinfo_ptr)) { FUNC_PERROR(); }
+    //  msgsnd
   }
 }
 
