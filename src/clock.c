@@ -25,8 +25,6 @@ void start(void)
 {
   if (-1 == release_sem(SEM_PROC_READY_ID, 0)) { FUNC_PERROR(); }
   if (-1 == lock_sem(SEM_START_ID, 0)) { FUNC_PERROR(); }
-  printf("clock -> iniziato\n");
-  fflush(stdout);
   init_sem_one(SEM_DAY_STARTED_ID, 0);
 }
 
@@ -34,18 +32,22 @@ void send_msg_day_ended(void)
 {
   ComStruct com_struct;
   com_struct.mtype = DAY_ENDED;
+  for (int i = 0; i < NOF_USERS; i++)
+  {
+    if (-1 == msgsnd(MSG_NOTIFY_USER_IDS[i], &com_struct, sizeof(Content), 0)) { FUNC_PERROR(); }
+  }
+  if (-1 == release_all_sem(SEM_NOTIFY_USER_ID, NOF_USERS)) { FUNC_PERROR(); }
   for (int i = 0; i < NOF_WORKERS; i++)
   {
     if (-1 == msgsnd(MSG_NOTIFY_WORKER_IDS[i], &com_struct, sizeof(Content), 0)) { FUNC_PERROR(); }
   }
-  release_all_sem(SEM_NOTIFY_WORKER_ID, NOF_WORKERS);
+  if (-1 == release_all_sem(SEM_NOTIFY_WORKER_ID, NOF_WORKERS)) { FUNC_PERROR(); }
   if (-1 == msgsnd(MSG_NOTIFY_DISPENSER_ID, &com_struct, sizeof(Content), 0)) { FUNC_PERROR(); }
-  release_sem(SEM_NOTIFY_DISPENSER_ID, 0);
+  if (-1 == release_sem(SEM_NOTIFY_DISPENSER_ID, 0)) { FUNC_PERROR(); }
 }
 
 void core(void)
 {
-  fflush(stdout);
   int min_count = 0;
   struct timespec req;
   req.tv_sec = 0;

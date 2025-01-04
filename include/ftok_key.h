@@ -9,6 +9,7 @@ extern key_t SEM_DAY_END_KEY;
 extern key_t SEM_PROC_READY_KEY;
 extern key_t SEM_NOTIFY_WORKER_KEY;
 extern key_t SEM_NOTIFY_DISPENSER_KEY;
+extern key_t SEM_NOTIFY_USER_KEY;
 
 extern key_t SHM_WORKERS_PID_KEY;
 extern key_t SHM_SEATS_INDEX_KEY;
@@ -17,6 +18,7 @@ extern key_t SHM_TICKET_DISPENSER_PID_KEY;
 
 extern key_t* MSG_NOTIFY_WORKER_KEYS;
 extern key_t MSG_NOTIFY_DISPENSER_KEY;
+extern key_t* MSG_NOTIFY_USER_KEYS;
 
 void ftok_key_init(void);
 

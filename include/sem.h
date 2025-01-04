@@ -9,6 +9,7 @@ extern int SEM_SHM_SEATS_INFO_ID;
 extern int SEM_PROC_READY_ID;
 extern int SEM_NOTIFY_WORKER_ID;
 extern int SEM_NOTIFY_DISPENSER_ID;
+extern int SEM_NOTIFY_USER_ID;
 
 void sem_init(void);
 void sem_config(void);

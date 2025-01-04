@@ -25,7 +25,7 @@ void setup(char arg_1[], char arg_2[])
   assigned_service = (int)strtol(arg_1, &endptr, 10);
   if (*endptr != '\0') { FUNC_MSG_ERROR("Cant convert argv[1] to int."); }
   id = (int)strtol(arg_2, &endptr, 10);
-  if (*endptr != '\0') { FUNC_MSG_ERROR("Cant convert argv[1] to int."); }
+  if (*endptr != '\0') { FUNC_MSG_ERROR("Cant convert argv[2] to int."); }
   printf("mio id: %d\n", id);
   config_load();
   ftok_key_init();
@@ -43,14 +43,11 @@ void start(void)
 void core(void)
 {
   int outcome = seats_try_take_seat(assigned_service, id);
-  printf("outcome -> %d %d\n", id, outcome);
-  fflush(stdout);
   ComStruct com_struct = {0};
   int recived_msg = -1;
   while (1)
   {
     if (-1 == lock_sem(SEM_NOTIFY_WORKER_ID, id)) { FUNC_PERROR(); }
-    printf("msg ids: %d\n", MSG_NOTIFY_WORKER_IDS[id]);
     if (-1 ==
         msgrcv(MSG_NOTIFY_WORKER_IDS[id], &com_struct, sizeof(Content), DAY_ENDED, IPC_NOWAIT))
     {

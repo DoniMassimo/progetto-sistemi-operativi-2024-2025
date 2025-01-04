@@ -57,10 +57,12 @@ void init_users(void)
     if (-1 == pid) { FUNC_PERROR(); }
     else if (0 == pid)
     {
+      char id[4];
+      sprintf(id, "%d", i);
       char dir[MAX_PATH_LEN + MAX_EXE_LEN];
       strcpy(dir, REL_DIR);
       strcat(dir, "user_main");
-      char* args[] = {dir, NULL};
+      char* args[] = {dir, id, NULL};
       if (execv(args[0], args) == -1) { FUNC_PERROR(); }
     }
   }

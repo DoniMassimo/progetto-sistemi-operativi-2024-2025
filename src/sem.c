@@ -14,6 +14,7 @@ int SEM_SHM_SEATS_INFO_ID = -1;
 int SEM_PROC_READY_ID = -1;
 int SEM_NOTIFY_WORKER_ID = -1;
 int SEM_NOTIFY_DISPENSER_ID = -1;
+int SEM_NOTIFY_USER_ID = -1;
 
 void SEM_START_ID_init(void)
 {
@@ -117,6 +118,19 @@ void SEM_NOTIFY_DISPENSER_ID_config(void)
   if (SEM_NOTIFY_DISPENSER_ID < 0) { FUNC_PERROR(); }
 }
 
+void SEM_NOTIFY_USER_ID_init(void)
+{
+  SEM_NOTIFY_USER_ID = semget(SEM_NOTIFY_USER_KEY, NOF_USERS, 0666 | IPC_CREAT);
+  if (SEM_NOTIFY_USER_ID < 0) { FUNC_PERROR(); }
+  if (-1 == init_all_sem_zero(SEM_NOTIFY_USER_ID, NOF_USERS)) { FUNC_PERROR(); }
+}
+
+void SEM_NOTIFY_USER_ID_config(void)
+{
+  SEM_NOTIFY_USER_ID = semget(SEM_NOTIFY_USER_KEY, NOF_USERS, 0666);
+  if (SEM_NOTIFY_USER_ID < 0) { FUNC_PERROR(); }
+}
+
 void sem_init(void)
 {
   SEM_START_ID_init();
@@ -127,6 +141,7 @@ void sem_init(void)
   SEM_PROC_READY_ID_init();
   SEM_NOTIFY_WORKER_ID_init();
   SEM_NOTIFY_DISPENSER_ID_init();
+  SEM_NOTIFY_USER_ID_init();
 }
 
 void sem_config(void)
@@ -139,4 +154,5 @@ void sem_config(void)
   SEM_PROC_READY_ID_config();
   SEM_NOTIFY_WORKER_ID_config();
   SEM_NOTIFY_DISPENSER_ID_config();
+  SEM_NOTIFY_USER_ID_config();
 }
