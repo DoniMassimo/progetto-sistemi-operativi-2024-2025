@@ -31,10 +31,20 @@ void setup(char arg_1[])
   msg_config();
 }
 
+void req_test()
+{
+  ComStruct test = {0};
+  test.mtype = TICKET_REQ;
+  test.content.type = 0;
+  test.content.msg_response_id = MSG_NOTIFY_USER_IDS[id];
+  if (-1 == msgsnd(MSG_NOTIFY_DISPENSER_ID, &test, sizeof(Content), 0)) { FUNC_PERROR(); }
+}
+
 void start(void)
 {
   if (-1 == release_sem(SEM_PROC_READY_ID, 0)) { FUNC_PERROR(); }
   if (-1 == lock_sem(SEM_START_ID, 0)) { FUNC_PERROR(); }
+  req_test();
 }
 
 void core(void)
@@ -46,12 +56,21 @@ void core(void)
     if (-1 == lock_sem(SEM_NOTIFY_USER_ID, id)) { FUNC_PERROR(); }
     if (-1 == msgrcv(MSG_NOTIFY_USER_IDS[id], &com_struct, sizeof(Content), DAY_ENDED, IPC_NOWAIT))
     {
-      FUNC_PERROR();
+      if (ENOMSG != errno) { FUNC_PERROR(); }
     }
     else
     {
       printf("user %d -> finisco giornata\n", id);
       return;
+    }
+    if (-1 == msgrcv(MSG_NOTIFY_USER_IDS[id], &com_struct, sizeof(Content), DAY_ENDED, IPC_NOWAIT))
+    {
+      if (ENOMSG != errno) { FUNC_PERROR(); }
+    }
+    else
+    {
+      printf("ticket ricevuto\n");
+      // ticket ricevuto
     }
   }
 }

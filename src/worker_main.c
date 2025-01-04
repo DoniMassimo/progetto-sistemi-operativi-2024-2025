@@ -51,7 +51,8 @@ void core(void)
     if (-1 ==
         msgrcv(MSG_NOTIFY_WORKER_IDS[id], &com_struct, sizeof(Content), DAY_ENDED, IPC_NOWAIT))
     {
-      FUNC_PERROR();
+
+      if (ENOMSG != errno) { FUNC_PERROR(); }
     }
     else
     {

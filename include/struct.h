@@ -6,6 +6,7 @@ typedef enum
   DAY_ENDED = 1,
   SERVICE_REQ,
   TICKET_REQ,
+  TICKET_RESP,
 } MesType;
 
 typedef struct
