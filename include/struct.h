@@ -12,6 +12,7 @@ typedef enum
 typedef struct
 {
   int msg_response_id;
+  int sem_response_count;
   int type;
 } Content;
 

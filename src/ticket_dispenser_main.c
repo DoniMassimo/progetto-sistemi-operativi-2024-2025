@@ -18,19 +18,6 @@
 #include "msg.h"
 #include "struct.h"
 
-typedef struct
-{
-  int status;
-  int msg_notify_worker_id;
-  int sem_notify_worker_count;
-} Ticket;
-
-typedef struct
-{
-  long mtype;
-  Ticket ticket;
-} DispenserMsg;
-
 void setup(void)
 {
   config_load();
@@ -72,7 +59,6 @@ void core(void)
       // controllo se ce il servizio
       int bounds[2];
       get_bounds_serv(bounds, com_struct.content.type);
-
       int service_available = 0;
       int seat_index = -1;
       int min_nof_user_waiting = INT_MAX;
@@ -105,6 +91,10 @@ void core(void)
           FUNC_PERROR();
         }
         printf("service not available\n");
+      }
+      if (-1 == release_sem(SEM_NOTIFY_USER_ID, com_struct.content.sem_response_count))
+      {
+        FUNC_PERROR();
       }
     }
   }

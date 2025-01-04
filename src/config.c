@@ -14,9 +14,9 @@ int P_SERV_MAX;
 
 void config_load(void)
 {
-  NOF_WORKERS = 5;
+  NOF_WORKERS = 1;
   NOF_USERS = 2;
-  NOF_WORKER_SEATS = 3;
+  NOF_WORKER_SEATS = 1;
   START_SEM_COUNT = NOF_WORKERS + NOF_USERS + 2;
   N_NANO_SECS = 1000000;
   P_SERV_MIN = 90;
