@@ -68,12 +68,6 @@ void core(void)
     {
       // eroga ticker
     }
-    // msget
-    // SeatInfo* shm_sinfo_ptr = (SeatInfo*)shmat(SHM_SEATS_INFO_ID, NULL, 0);
-    // if ((SeatInfo*)-1 == (SeatInfo*)shm_sinfo_ptr) { FUNC_PERROR(); }
-    //// controllo se ce il servizio
-    // if (-1 == shmdt(shm_sinfo_ptr)) { FUNC_PERROR(); }
-    //  msgsnd
   }
 }
 
