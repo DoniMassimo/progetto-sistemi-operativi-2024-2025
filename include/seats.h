@@ -6,6 +6,7 @@
 typedef struct
 {
   int is_busy;
+  int nof_user_waiting;
   int seats_taken;
   int msg_notify_worker_id;
   int sem_notify_worker_count;
