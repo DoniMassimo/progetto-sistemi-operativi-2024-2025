@@ -35,45 +35,51 @@ void req_test()
 {
   ComStruct test = {0};
   test.mtype = TICKET_REQ;
-  test.content.type = PAY_POST_BULL;
-  test.content.msg_response_id = MSG_NOTIFY_USER_IDS[id];
-  test.content.sem_response_count = id;
+  test.content.ticket_cont.info = PAY_POST_BULL;
+  test.content.ticket_cont.msg_response_id = MSG_NOTIFY_USER_IDS[id];
+  test.content.ticket_cont.sem_response_count = id;
   if (-1 == msgsnd(MSG_NOTIFY_DISPENSER_ID, &test, sizeof(Content), 0)) { FUNC_PERROR(); }
   release_sem(SEM_NOTIFY_DISPENSER_ID, 0);
 }
 
 void start(void)
 {
+  printf("user %d -> start\n", id);
   if (-1 == release_sem(SEM_PROC_READY_ID, 0)) { FUNC_PERROR(); }
   if (-1 == lock_sem(SEM_START_ID, 0)) { FUNC_PERROR(); }
-  printf("tichiesta inviata\n");
   req_test();
+}
+
+MesType get_notifications(ComStruct* com_struct)
+{
+  if (-1 == lock_sem(SEM_NOTIFY_USER_ID, id)) { FUNC_PERROR(); }
+  if (-1 == msgrcv(MSG_NOTIFY_USER_IDS[id], com_struct, sizeof(Content), DAY_ENDED, IPC_NOWAIT))
+  {
+    if (ENOMSG != errno) { FUNC_PERROR(); }
+  }
+  else { return DAY_ENDED; }
+  if (-1 == msgrcv(MSG_NOTIFY_USER_IDS[id], com_struct, sizeof(Content), TICKET_RESP, IPC_NOWAIT))
+  {
+    if (ENOMSG != errno) { FUNC_PERROR(); }
+  }
+  else { return TICKET_RESP; }
+  FUNC_MSG_ERROR("Expect to find message\n");
 }
 
 void core(void)
 {
   ComStruct com_struct = {0};
-  printf("user id -> %d\n", id);
   while (1)
   {
-    if (-1 == lock_sem(SEM_NOTIFY_USER_ID, id)) { FUNC_PERROR(); }
-    if (-1 == msgrcv(MSG_NOTIFY_USER_IDS[id], &com_struct, sizeof(Content), DAY_ENDED, IPC_NOWAIT))
-    {
-      if (ENOMSG != errno) { FUNC_PERROR(); }
-    }
-    else
+    MesType notification = get_notifications(&com_struct);
+    if (DAY_ENDED == notification)
     {
       printf("user %d -> finisco giornata\n", id);
       return;
     }
-    if (-1 == msgrcv(MSG_NOTIFY_USER_IDS[id], &com_struct, sizeof(Content), TICKET_RESP, IPC_NOWAIT))
+    else if (TICKET_RESP == notification)
     {
-      if (ENOMSG != errno) { FUNC_PERROR(); }
-    }
-    else
-    {
-      printf("ticket ricevuto -> %d\n", com_struct.content.type);
-      // ticket ricevuto
+      printf("ticket resp -> %d\n", com_struct.content.ticket_cont.info);
     }
   }
 }

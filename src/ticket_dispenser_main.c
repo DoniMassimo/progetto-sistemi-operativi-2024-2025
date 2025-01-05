@@ -6,7 +6,6 @@
 #include <sys/wait.h>
 #include <sys/shm.h>
 #include <sys/msg.h>
-#include <limits.h>
 #include "seats.h"
 #include "utils.h"
 #include "macros.h"
@@ -33,66 +32,48 @@ void start(void)
   if (-1 == lock_sem(SEM_START_ID, 0)) { FUNC_MSG_PERROR("t start"); }
 }
 
+MesType get_notifications(ComStruct* com_struct)
+{
+  if (-1 == lock_sem(SEM_NOTIFY_DISPENSER_ID, 0)) { FUNC_PERROR(); }
+  if (-1 == msgrcv(MSG_NOTIFY_DISPENSER_ID, com_struct, sizeof(Content), DAY_ENDED, IPC_NOWAIT))
+  {
+    if (ENOMSG != errno) { FUNC_PERROR(); }
+  }
+  else { return DAY_ENDED; }
+  if (-1 == msgrcv(MSG_NOTIFY_DISPENSER_ID, com_struct, sizeof(Content), TICKET_REQ, IPC_NOWAIT))
+  {
+    if (ENOMSG != errno) { FUNC_PERROR(); }
+  }
+  else { return TICKET_REQ; }
+  FUNC_MSG_ERROR("Expect to find message\n");
+}
+
 void core(void)
 {
   ComStruct com_struct = {0};
   while (1)
   {
-    if (-1 == lock_sem(SEM_NOTIFY_DISPENSER_ID, 0)) { FUNC_PERROR(); }
-    if (-1 == msgrcv(MSG_NOTIFY_DISPENSER_ID, &com_struct, sizeof(Content), DAY_ENDED, IPC_NOWAIT))
-    {
-      if (ENOMSG != errno) { FUNC_PERROR(); }
-    }
-    else
+    MesType notification = get_notifications(&com_struct);
+    if (DAY_ENDED == notification)
     {
       printf("ticket -> finisco giornata\n");
       return;
     }
-    if (-1 == msgrcv(MSG_NOTIFY_DISPENSER_ID, &com_struct, sizeof(Content), TICKET_REQ, IPC_NOWAIT))
+    else if (TICKET_REQ == notification)
     {
-      if (ENOMSG != errno) { FUNC_PERROR(); }
-    }
-    else
-    {
-      SeatInfo* shm_sinfo_ptr = (SeatInfo*)shmat(SHM_SEATS_INFO_ID, NULL, 0);
-      if ((SeatInfo*)-1 == (SeatInfo*)shm_sinfo_ptr) { FUNC_PERROR(); }
-      // controllo se ce il servizio
-      int bounds[2];
-      get_bounds_serv(bounds, com_struct.content.type);
-      int service_available = 0;
-      int seat_index = -1;
-      int min_nof_user_waiting = INT_MAX;
-      for (int i = bounds[0]; i < bounds[1]; i++)
-      {
-        if (shm_sinfo_ptr[i].nof_user_waiting < min_nof_user_waiting)
-        {
-          min_nof_user_waiting = shm_sinfo_ptr[i].nof_user_waiting;
-          seat_index = i;
-          service_available = 1;
-        }
-      }
-      if (-1 == shmdt(shm_sinfo_ptr)) { FUNC_PERROR(); }
+      Service asked_serv = (Service)com_struct.content.ticket_cont.info;
+      SeatInfo seat_info = {0};
+      int service_available = seats_get_less_worker(asked_serv, &seat_info);
       ComStruct resp_struct = {0};
       resp_struct.mtype = TICKET_RESP;
-      if (service_available)
+      if (service_available) { resp_struct.content.ticket_cont.info = 1; }
+      else { resp_struct.content.ticket_cont.info = 0; }
+      if (-1 ==
+          msgsnd(com_struct.content.ticket_cont.msg_response_id, &resp_struct, sizeof(Content), 0))
       {
-        resp_struct.content.type = 1;
-        if (-1 == msgsnd(com_struct.content.msg_response_id, &resp_struct, sizeof(Content), 0))
-        {
-          FUNC_PERROR();
-        }
-        printf("message sent\n");
+        FUNC_PERROR();
       }
-      else
-      {
-        resp_struct.content.type = 0;
-        if (-1 == msgsnd(com_struct.content.msg_response_id, &resp_struct, sizeof(Content), 0))
-        {
-          FUNC_PERROR();
-        }
-        printf("service not available\n");
-      }
-      if (-1 == release_sem(SEM_NOTIFY_USER_ID, com_struct.content.sem_response_count))
+      if (-1 == release_sem(SEM_NOTIFY_USER_ID, com_struct.content.ticket_cont.sem_response_count))
       {
         FUNC_PERROR();
       }

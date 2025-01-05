@@ -13,7 +13,12 @@ typedef struct
 {
   int msg_response_id;
   int sem_response_count;
-  int type;
+  int info;
+} TicketCont;
+
+typedef union
+{
+  TicketCont ticket_cont;
 } Content;
 
 typedef struct

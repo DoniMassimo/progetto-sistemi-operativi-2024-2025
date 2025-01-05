@@ -4,6 +4,7 @@
 #include <sys/shm.h>
 #include <sys/types.h>
 #include <errno.h>
+#include <limits.h>
 #include "config.h"
 #include "macros.h"
 #include "seats.h"
@@ -78,4 +79,28 @@ void seats_release_seat(Service serv, int seat_index)
   shm_sinfo_ptr[seat_index].seats_taken = 0;
   if (-1 == shmdt(shm_sinfo_ptr)) { FUNC_PERROR(); }
   if (-1 == release_sem(SEM_SEATS_ID, serv)) { FUNC_PERROR(); }
+}
+
+int seats_get_less_worker(Service serv, SeatInfo* seat_info)
+{
+  SeatInfo* shm_sinfo_ptr = (SeatInfo*)shmat(SHM_SEATS_INFO_ID, NULL, 0);
+  if ((SeatInfo*)-1 == (SeatInfo*)shm_sinfo_ptr) { FUNC_PERROR(); }
+  int bounds[2];
+  get_bounds_serv(bounds, serv);
+  int service_available = 0;
+  int seat_index = -1;
+  int min_nof_user_waiting = INT_MAX;
+  for (int i = bounds[0]; i < bounds[1]; i++)
+  {
+    if (shm_sinfo_ptr[i].nof_user_waiting < min_nof_user_waiting && shm_sinfo_ptr[i].seats_taken)
+    {
+      min_nof_user_waiting = shm_sinfo_ptr[i].nof_user_waiting;
+      seat_index = i;
+      service_available = 1;
+    }
+  }
+  if (-1 != seat_index) { *seat_info = shm_sinfo_ptr[seat_index]; }
+  if (-1 == shmdt(shm_sinfo_ptr)) { FUNC_PERROR(); }
+  if (-1 == seat_index) { return 0; }
+  else { return 1; }
 }

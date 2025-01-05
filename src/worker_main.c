@@ -36,8 +36,20 @@ void setup(char arg_1[], char arg_2[])
 
 void start(void)
 {
+  printf("worker %d -> start\n", id);
   if (-1 == release_sem(SEM_PROC_READY_ID, 0)) { FUNC_PERROR(); }
   if (-1 == lock_sem(SEM_START_ID, 0)) { FUNC_MSG_PERROR("sem empl"); }
+}
+
+MesType get_notifications(ComStruct* com_struct)
+{
+  if (-1 == lock_sem(SEM_NOTIFY_WORKER_ID, id)) { FUNC_PERROR(); }
+  if (-1 == msgrcv(MSG_NOTIFY_WORKER_IDS[id], com_struct, sizeof(Content), DAY_ENDED, IPC_NOWAIT))
+  {
+    if (ENOMSG != errno) { FUNC_PERROR(); }
+  }
+  else { return DAY_ENDED; }
+  FUNC_MSG_ERROR("Expect to find message\n");
 }
 
 void core(void)
@@ -47,14 +59,8 @@ void core(void)
   int recived_msg = -1;
   while (1)
   {
-    if (-1 == lock_sem(SEM_NOTIFY_WORKER_ID, id)) { FUNC_PERROR(); }
-    if (-1 ==
-        msgrcv(MSG_NOTIFY_WORKER_IDS[id], &com_struct, sizeof(Content), DAY_ENDED, IPC_NOWAIT))
-    {
-
-      if (ENOMSG != errno) { FUNC_PERROR(); }
-    }
-    else
+    MesType notification = get_notifications(&com_struct);
+    if (DAY_ENDED == notification)
     {
       printf("worker %d -> finisco giornata\n", id);
       return;
