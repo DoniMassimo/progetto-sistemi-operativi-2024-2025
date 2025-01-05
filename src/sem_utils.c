@@ -56,7 +56,7 @@ int lock_sem_nowait(int semid, int sem_num)
 
 int lock_sem_val(int semid, int sem_num, int val)
 {
-  if (val <= 0) { FUNC_MSG_ERROR("val cant be negative.\n"); }
+  if (val <= 0) { MSG_ERROR("val cant be negative.\n"); }
   struct sembuf sops;
   sops.sem_num = (short unsigned int)sem_num;
   sops.sem_op = -val;

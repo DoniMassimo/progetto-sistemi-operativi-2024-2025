@@ -67,7 +67,7 @@ int seats_try_take_seat(Service serv, int worker_id)
     }
   }
   if (-1 == release_sem(SEM_SHM_SEATS_INFO_ID, 0)) { FUNC_PERROR(); }
-  if (-1 == seat_index) { FUNC_MSG_ERROR("Expecting to find free seats."); }
+  if (-1 == seat_index) { MSG_ERROR("Expecting to find free seats."); }
   if (-1 == shmdt(shm_sinfo_ptr)) { FUNC_PERROR(); }
   return 0;
 }

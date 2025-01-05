@@ -7,6 +7,7 @@
 #include <sys/shm.h>
 #include <sys/msg.h>
 #include "seats.h"
+#include "log.h"
 #include "utils.h"
 #include "macros.h"
 #include "config.h"
@@ -28,8 +29,8 @@ void setup(void)
 
 void start(void)
 {
-  if (-1 == release_sem(SEM_PROC_READY_ID, 0)) { FUNC_MSG_PERROR("t rel"); }
-  if (-1 == lock_sem(SEM_START_ID, 0)) { FUNC_MSG_PERROR("t start"); }
+  if (-1 == release_sem(SEM_PROC_READY_ID, 0)) { FUNC_PERROR(); }
+  if (-1 == lock_sem(SEM_START_ID, 0)) { FUNC_PERROR(); }
 }
 
 MesType get_notifications(ComStruct* com_struct)
@@ -45,7 +46,7 @@ MesType get_notifications(ComStruct* com_struct)
     if (ENOMSG != errno) { FUNC_PERROR(); }
   }
   else { return TICKET_REQ; }
-  FUNC_MSG_ERROR("Expect to find message\n");
+  MSG_ERROR("Expect to find message\n");
 }
 
 void core(void)
@@ -56,7 +57,7 @@ void core(void)
     MesType notification = get_notifications(&com_struct);
     if (DAY_ENDED == notification)
     {
-      printf("ticket -> finisco giornata\n");
+      log_info("day ended");
       return;
     }
     else if (TICKET_REQ == notification)
@@ -69,11 +70,11 @@ void core(void)
       if (service_available) { resp_struct.content.ticket_cont.info = 1; }
       else { resp_struct.content.ticket_cont.info = 0; }
       if (-1 ==
-          msgsnd(com_struct.content.ticket_cont.msg_response_id, &resp_struct, sizeof(Content), 0))
+          msgsnd(com_struct.content.ticket_cont.msg_id, &resp_struct, sizeof(Content), 0))
       {
         FUNC_PERROR();
       }
-      if (-1 == release_sem(SEM_NOTIFY_USER_ID, com_struct.content.ticket_cont.sem_response_count))
+      if (-1 == release_sem(SEM_NOTIFY_USER_ID, com_struct.content.ticket_cont.sem_count))
       {
         FUNC_PERROR();
       }

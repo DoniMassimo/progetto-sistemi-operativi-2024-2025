@@ -8,6 +8,7 @@
 #include "config.h"
 #include "ftok_key.h"
 #include "macros.h"
+#include "log.h"
 #include "seats.h"
 #include "sem.h"
 #include "sem_utils.h"
@@ -23,10 +24,9 @@ void setup(char arg_1[], char arg_2[])
 {
   char* endptr;
   assigned_service = (int)strtol(arg_1, &endptr, 10);
-  if (*endptr != '\0') { FUNC_MSG_ERROR("Cant convert argv[1] to int."); }
+  if (*endptr != '\0') { MSG_ERROR("Cant convert argv[1] to int."); }
   id = (int)strtol(arg_2, &endptr, 10);
-  if (*endptr != '\0') { FUNC_MSG_ERROR("Cant convert argv[2] to int."); }
-  printf("mio id: %d\n", id);
+  if (*endptr != '\0') { MSG_ERROR("Cant convert argv[2] to int."); }
   config_load();
   ftok_key_init();
   sem_config();
@@ -36,9 +36,8 @@ void setup(char arg_1[], char arg_2[])
 
 void start(void)
 {
-  printf("worker %d -> start\n", id);
   if (-1 == release_sem(SEM_PROC_READY_ID, 0)) { FUNC_PERROR(); }
-  if (-1 == lock_sem(SEM_START_ID, 0)) { FUNC_MSG_PERROR("sem empl"); }
+  if (-1 == lock_sem(SEM_START_ID, 0)) { FUNC_PERROR(); }
 }
 
 MesType get_notifications(ComStruct* com_struct)
@@ -49,7 +48,7 @@ MesType get_notifications(ComStruct* com_struct)
     if (ENOMSG != errno) { FUNC_PERROR(); }
   }
   else { return DAY_ENDED; }
-  FUNC_MSG_ERROR("Expect to find message\n");
+  MSG_ERROR("Expect to find message\n");
 }
 
 void core(void)
@@ -62,7 +61,7 @@ void core(void)
     MesType notification = get_notifications(&com_struct);
     if (DAY_ENDED == notification)
     {
-      printf("worker %d -> finisco giornata\n", id);
+      log_info("worker %d ends day", id);
       return;
     }
   }

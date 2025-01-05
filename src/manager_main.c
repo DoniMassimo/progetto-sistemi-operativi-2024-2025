@@ -6,6 +6,7 @@
 #include <sys/wait.h>
 #include <sys/shm.h>
 #include <sys/sem.h>
+#include "log.h"
 #include "seats.h"
 #include "utils.h"
 #include "macros.h"
@@ -27,7 +28,6 @@ void init_workers(void)
   {
     for (int j = 0; j < assigned_worker[i]; j++)
     {
-      fflush(stdout);
       pid_t pid = fork();
       if (-1 == pid) { FUNC_PERROR(); }
       else if (0 == pid)
@@ -40,7 +40,6 @@ void init_workers(void)
         strcpy(dir, REL_DIR);
         strcat(dir, "worker_main");
         char* args[] = {dir, i_str, id, NULL};
-        fflush(stdout);
         if (execv(args[0], args) == -1) { FUNC_PERROR(); }
       }
       else { workers_pid[worker_count++] = pid; }
@@ -139,9 +138,7 @@ int main(int argc, char* argv[])
   setup();
   while (1)
   {
-    printf("##################################################: %d\n",
-           semctl(SEM_START_ID, 0, GETVAL));
-    fflush(stdout);
+    printf("\n\n");
     start();
     core();
   }

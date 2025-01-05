@@ -5,6 +5,7 @@
 #include <signal.h>
 #include "config.h"
 #include "ftok_key.h"
+#include "log.h"
 #include "macros.h"
 #include "sem.h"
 #include "msg.h"
@@ -55,12 +56,11 @@ void core(void)
   while (min_count < (60 * 8))
   {
     min_count++;
-    if (nanosleep(&req, NULL) == -1) { FUNC_MSG_PERROR("clock"); }
+    if (nanosleep(&req, NULL) == -1) { FUNC_PERROR(); }
   }
   release_sem(SEM_DAY_END_ID, 0);
   send_msg_day_ended();
-  printf("clock -> giorno finito\n");
-  fflush(stdout);
+  log_info("giorno finito");
 }
 
 int main(void)
