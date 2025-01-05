@@ -79,3 +79,19 @@ void msg_config(void)
   MSG_NOTIFY_DISPENSER_ID_config();
   MSG_NOTIFY_USER_IDS_config();
 }
+
+void msg_deallocate(void)
+{
+  for (int i = 0; i < NOF_WORKERS; i++)
+  {
+    if (-1 == msgctl(MSG_NOTIFY_WORKER_IDS[i], IPC_RMID, NULL)) { FUNC_PERROR(); }
+  }
+  free(MSG_NOTIFY_WORKER_IDS);
+  if (-1 == msgctl(MSG_NOTIFY_DISPENSER_ID, IPC_RMID, NULL)) { FUNC_PERROR(); }
+  for (int i = 0; i < NOF_USERS; i++)
+  {
+    if (-1 == msgctl(MSG_NOTIFY_USER_IDS[i], IPC_RMID, NULL)) { FUNC_PERROR(); }
+  }
+  free(MSG_NOTIFY_USER_IDS);
+
+}

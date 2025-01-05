@@ -18,6 +18,19 @@
 #include "msg.h"
 #include "struct.h"
 
+typedef struct
+{
+  int status;
+  int msg_id;
+  int sem_count;
+} Ticket;
+
+typedef struct
+{
+  long mtype;
+  Ticket ticket;
+} DispenserMsg;
+
 void setup(void)
 {
   config_load();
@@ -69,8 +82,7 @@ void core(void)
       resp_struct.mtype = TICKET_RESP;
       if (service_available) { resp_struct.content.ticket_cont.info = 1; }
       else { resp_struct.content.ticket_cont.info = 0; }
-      if (-1 ==
-          msgsnd(com_struct.content.ticket_cont.msg_id, &resp_struct, sizeof(Content), 0))
+      if (-1 == msgsnd(com_struct.content.ticket_cont.msg_id, &resp_struct, sizeof(Content), 0))
       {
         FUNC_PERROR();
       }

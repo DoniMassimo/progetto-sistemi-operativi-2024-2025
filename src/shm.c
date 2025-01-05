@@ -96,3 +96,11 @@ void shm_config(void)
   SHM_WORKERS_PID_config();
   SHM_TICKET_DISPENSER_PID_config();
 }
+
+void shm_deallocate(void)
+{
+  if(-1 == shmctl(SHM_SEATS_INFO_ID, IPC_RMID, NULL)) { FUNC_PERROR(); }
+  if(-1 == shmctl(SHM_SEATS_INDEX_ID, IPC_RMID, NULL)) { FUNC_PERROR(); }
+  if(-1 == shmctl(SHM_WORKERS_PID_ID, IPC_RMID, NULL)) { FUNC_PERROR(); }
+  if(-1 == shmctl(SHM_TICKET_DISPENSER_PID_ID, IPC_RMID, NULL)) { FUNC_PERROR(); }
+}

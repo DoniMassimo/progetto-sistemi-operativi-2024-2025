@@ -156,3 +156,16 @@ void sem_config(void)
   SEM_NOTIFY_DISPENSER_ID_config();
   SEM_NOTIFY_USER_ID_config();
 }
+
+void sem_deallocate(void)
+{
+  if( -1 == semctl(SEM_START_ID, 0, IPC_RMID) ) { FUNC_PERROR(); }
+  if( -1 == semctl(SEM_SEATS_ID, 0, IPC_RMID) ) { FUNC_PERROR(); }
+  if( -1 == semctl(SEM_SHM_SEATS_INFO_ID, 0, IPC_RMID) ) { FUNC_PERROR(); }
+  if( -1 == semctl(SEM_DAY_STARTED_ID, 0, IPC_RMID) ) { FUNC_PERROR(); }
+  if( -1 == semctl(SEM_DAY_END_ID, 0, IPC_RMID) ) { FUNC_PERROR(); }
+  if( -1 == semctl(SEM_PROC_READY_ID, 0, IPC_RMID) ) { FUNC_PERROR(); }
+  if( -1 == semctl(SEM_NOTIFY_WORKER_ID, 0, IPC_RMID) ) { FUNC_PERROR(); }
+  if( -1 == semctl(SEM_NOTIFY_DISPENSER_ID, 0, IPC_RMID) ) { FUNC_PERROR(); }
+  if( -1 == semctl(SEM_NOTIFY_USER_ID, 0, IPC_RMID) ) { FUNC_PERROR(); }
+}

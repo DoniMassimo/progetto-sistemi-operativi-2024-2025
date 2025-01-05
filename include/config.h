@@ -28,6 +28,12 @@ typedef enum
   SERV_NUM          // numero di servizi erogati
 } Service;
 
+typedef struct
+{
+  Service service;
+  int duration;
+}ServiceDuration;
+
 extern void config_load(void);
 
 #endif
