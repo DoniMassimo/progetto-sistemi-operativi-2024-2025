@@ -4,6 +4,7 @@
 #include <sys/msg.h>
 #include <signal.h>
 #include <limits.h>
+#include "calendar.h"
 #include "config.h"
 #include "ftok_key.h"
 #include "macros.h"
@@ -14,16 +15,12 @@
 #include "struct.h"
 #include "sem_utils.h"
 
-#define MINUTES_IN_DAY 1440
-#define MINUTES_IN_HOUR 60
-
-int calendar[MINUTES_IN_DAY] = {0};
-
 ServiceDuration service_duration[SERV_NUM] = {{SEND_PICK_PARC, 15},  {SEND_LET_REG, 12},
                                               {WDRAWALS_DEPOSIT, 9}, {PAY_POST_BULL, 12},
                                               {PURCH_FIN_PROD, 30},  {PURCH_WATCH_BRAC, 30}};
 
-int find_best_time(int* calendar, int requested_time, int serv_duration, Service serv)
+//int find_best_time(int* calendar, int requested_time, int serv_duration, Service serv)
+int find_best_time(int requested_time, Service* serv, int serv_num)
 {
   int best_time = -1;
   int best_time_sum = INT_MAX;
@@ -45,4 +42,3 @@ int find_best_time(int* calendar, int requested_time, int serv_duration, Service
   }
   return best_time;
 }
-
