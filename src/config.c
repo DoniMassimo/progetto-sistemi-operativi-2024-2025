@@ -11,6 +11,7 @@ int START_SEM_COUNT;
 size_t N_NANO_SECS;
 int P_SERV_MIN;
 int P_SERV_MAX;
+int N_REQUESTS;
 
 void config_load(void)
 {
@@ -21,5 +22,5 @@ void config_load(void)
   N_NANO_SECS = 1000000;
   P_SERV_MIN = 100;
   P_SERV_MAX = 100;
+  N_REQUESTS = 3;
 }
-

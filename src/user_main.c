@@ -45,6 +45,18 @@ void req_test()
   release_sem(SEM_NOTIFY_DISPENSER_ID, 0);
 }
 
+int generate_request(Service** requests)
+{
+  int nof_req = (rand() % n) + 1;
+  *requests = (Service*)malloc(sizeof(Service) * nof_req);
+  if (NULL == *requests) { FUNC_PERROR(); }
+  for (int i = 0; i < nof_req; i++)
+  {
+    *requests[i] = (Service)(rand() % SERV_NUM);
+  }
+  return nof_req;
+}
+
 void start(void)
 {
   if (-1 == release_sem(SEM_PROC_READY_ID, 0)) { FUNC_PERROR(); }
