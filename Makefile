@@ -1,5 +1,5 @@
 CC = gcc
-all: bin/manager_main bin/worker_main bin/clock bin/user_main bin/ticket_dispenser_main bin/calendar_main
+all: bin/manager_main bin/worker_main bin/clock bin/user_main bin/ticket_dispenser_main
 CFLAGS = -g -Wall -Wextra -Wpedantic -Wconversion -Wstrict-prototypes -Wsign-conversion -D_GNU_SOURCE -Iinclude/
 
 INCLUDES = include/*.h

@@ -114,3 +114,36 @@ int lock_all_sem(int semid, int sem_count)
   }
   return semop(semid, sops, (short unsigned int)sem_count);
 }
+
+int get_sem_value(int semid, int sem_count)
+{
+  union semun arg;
+  arg.val = 0;
+  return semctl(semid, sem_count, GETVAL, arg);
+}
+
+int lock_reader(SemRW_Id sem_rw)
+{
+  if (-1 == lock_sem(sem_rw.sem_mutex_id, 0)) { FUNC_PERROR(); }
+  if (-1 == release_sem(sem_rw.sem_reader_count_id, 0)) { FUNC_PERROR(); }
+  int num_reader = get_sem_value(sem_rw.sem_reader_count_id, 0);
+  if (-1 == num_reader) { FUNC_PERROR(); }
+  else if (1 == num_reader)
+  {
+    if (-1 == lock_sem(sem_rw.sem_writer_id, 0)) { FUNC_PERROR(); }
+  }
+  if (-1 == release_sem(sem_rw.sem_mutex_id, 0)) { FUNC_PERROR(); }
+}
+
+int release_reader(SemRW_Id sem_rw)
+{
+  if (-1 == lock_sem(sem_rw.sem_mutex_id, 0)) { FUNC_PERROR(); }
+  if (-1 == lock_sem(sem_rw.sem_reader_count_id, 0)) { FUNC_PERROR(); }
+  int num_reader = get_sem_value(sem_rw.sem_reader_count_id, 0);
+  if (-1 == num_reader) { FUNC_PERROR(); }
+  else if (0 == num_reader)
+  {
+    if (-1 == release_sem(sem_rw.sem_writer_id, 0)) { FUNC_PERROR(); }
+  }
+  if (-1 == release_sem(sem_rw.sem_mutex_id, 0)) { FUNC_PERROR(); }
+}

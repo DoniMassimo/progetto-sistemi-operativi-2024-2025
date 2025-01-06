@@ -15,11 +15,13 @@ key_t SEM_PROC_READY_KEY = -1;
 key_t SEM_NOTIFY_WORKER_KEY = -1;
 key_t SEM_NOTIFY_DISPENSER_KEY = -1;
 key_t SEM_NOTIFY_USER_KEY = -1;
+SemRW_Key SEMRW_CALENDAR_STRUCT_KEY = {0};
 
 key_t SHM_SEATS_INDEX_KEY = -1;
 key_t SHM_SEATS_INFO_KEY = -1;
 key_t SHM_WORKERS_PID_KEY = -1;
 key_t SHM_TICKET_DISPENSER_PID_KEY = -1;
+key_t SHM_CALENDAR_KEY = -1;
 
 key_t* MSG_NOTIFY_WORKER_KEYS = NULL;
 key_t MSG_NOTIFY_DISPENSER_KEY = -1;
@@ -47,6 +49,16 @@ void sem_key_init(void)
   if (-1 == SEM_NOTIFY_USER_KEY) { FUNC_PERROR(); }
 }
 
+void semrw_key_init(void)
+{
+  SEMRW_CALENDAR_STRUCT_KEY.sem_mutex_key = ftok(".", key_count++);
+  if (-1 == SEMRW_CALENDAR_STRUCT_KEY.sem_mutex_key) { FUNC_PERROR(); }
+  SEMRW_CALENDAR_STRUCT_KEY.sem_reader_count_key = ftok(".", key_count++);
+  if (-1 == SEMRW_CALENDAR_STRUCT_KEY.sem_reader_count_key) { FUNC_PERROR(); }
+  SEMRW_CALENDAR_STRUCT_KEY.sem_writer_key = ftok(".", key_count++);
+  if (-1 == SEMRW_CALENDAR_STRUCT_KEY.sem_reader_count_key) { FUNC_PERROR(); }
+}
+
 void shm_key_init(void)
 {
   SHM_SEATS_INDEX_KEY = ftok(".", key_count++);
@@ -57,6 +69,8 @@ void shm_key_init(void)
   if (-1 == SHM_WORKERS_PID_KEY) { FUNC_PERROR(); }
   SHM_TICKET_DISPENSER_PID_KEY = ftok(".", key_count++);
   if (-1 == SHM_TICKET_DISPENSER_PID_KEY) { FUNC_PERROR(); }
+  SHM_CALENDAR_KEY = ftok(".", key_count++);
+  if (-1 == SHM_CALENDAR_KEY) { FUNC_PERROR(); }
 }
 
 void msg_key_init(void)
@@ -81,6 +95,7 @@ void msg_key_init(void)
 void ftok_key_init(void)
 {
   sem_key_init();
+  semrw_key_init();
   shm_key_init();
   msg_key_init();
 }

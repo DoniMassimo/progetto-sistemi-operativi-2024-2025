@@ -1,6 +1,13 @@
 #ifndef FTOK_KEY_H
 #define FTOK_KEY_H
 
+typedef struct
+{
+  int sem_mutex_key;
+  int sem_reader_count_key;
+  int sem_writer_key;
+} SemRW_Key;
+
 extern key_t SEM_START_KEY;
 extern key_t SEM_SEATS_KEY;
 extern key_t SEM_SHM_SEATS_INFO_KEY;
@@ -10,11 +17,13 @@ extern key_t SEM_PROC_READY_KEY;
 extern key_t SEM_NOTIFY_WORKER_KEY;
 extern key_t SEM_NOTIFY_DISPENSER_KEY;
 extern key_t SEM_NOTIFY_USER_KEY;
+extern SemRW_Key SEMRW_CALENDAR_STRUCT_KEY;
 
 extern key_t SHM_WORKERS_PID_KEY;
 extern key_t SHM_SEATS_INDEX_KEY;
 extern key_t SHM_SEATS_INFO_KEY;
 extern key_t SHM_TICKET_DISPENSER_PID_KEY;
+extern key_t SHM_CALENDAR_KEY;
 
 extern key_t* MSG_NOTIFY_WORKER_KEYS;
 extern key_t MSG_NOTIFY_DISPENSER_KEY;

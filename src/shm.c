@@ -11,6 +11,7 @@ int SHM_SEATS_INFO_ID = -1;
 int SHM_SEATS_INDEX_ID = -1;
 int SHM_WORKERS_PID_ID = -1;
 int SHM_TICKET_DISPENSER_PID_ID = -1;
+int SHM_CALENDAR_ID = -1;
 
 void SHM_SEATS_INFO_init(void)
 {
@@ -81,12 +82,31 @@ void SHM_TICKET_DISPENSER_PID_config(void)
   if (-1 == SHM_TICKET_DISPENSER_PID_ID) { FUNC_PERROR(); }
 }
 
+void SHM_CALENDAR_ID_init(void)
+{
+  size_t cal_size = sizeof(int) * 60 * 8;
+  SHM_CALENDAR_ID = shmget(SHM_CALENDAR_KEY, cal_size, 0666 | IPC_CREAT);
+  if (-1 == SHM_CALENDAR_ID) { FUNC_PERROR(); }
+  int* shm_cal_ptr = (int*)shmat(SHM_CALENDAR_ID, NULL, 0);
+  if ((int*)-1 == (int*)shm_cal_ptr) { FUNC_PERROR(); }
+  memset(shm_cal_ptr, 0, cal_size);
+  if (-1 == shmdt(shm_cal_ptr)) { FUNC_PERROR(); }
+}
+
+void SHM_CALENDAR_ID_config(void)
+{
+  size_t cal_size = sizeof(int) * 60 * 8;
+  SHM_CALENDAR_ID = shmget(SHM_CALENDAR_KEY, cal_size, 0666);
+  if (-1 == SHM_CALENDAR_ID) { FUNC_PERROR(); }
+}
+
 void shm_init(void)
 {
   SHM_SEATS_INFO_init();
   SHM_SEATS_INDEX_init();
   SHM_WORKERS_PID_init();
   SHM_TICKET_DISPENSER_PID_init();
+  SHM_CALENDAR_ID_init();
 }
 
 void shm_config(void)
@@ -95,12 +115,13 @@ void shm_config(void)
   SHM_SEATS_INDEX_config();
   SHM_WORKERS_PID_config();
   SHM_TICKET_DISPENSER_PID_config();
+  SHM_CALENDAR_ID_config();
 }
 
 void shm_deallocate(void)
 {
-  if(-1 == shmctl(SHM_SEATS_INFO_ID, IPC_RMID, NULL)) { FUNC_PERROR(); }
-  if(-1 == shmctl(SHM_SEATS_INDEX_ID, IPC_RMID, NULL)) { FUNC_PERROR(); }
-  if(-1 == shmctl(SHM_WORKERS_PID_ID, IPC_RMID, NULL)) { FUNC_PERROR(); }
-  if(-1 == shmctl(SHM_TICKET_DISPENSER_PID_ID, IPC_RMID, NULL)) { FUNC_PERROR(); }
+  if (-1 == shmctl(SHM_SEATS_INFO_ID, IPC_RMID, NULL)) { FUNC_PERROR(); }
+  if (-1 == shmctl(SHM_SEATS_INDEX_ID, IPC_RMID, NULL)) { FUNC_PERROR(); }
+  if (-1 == shmctl(SHM_WORKERS_PID_ID, IPC_RMID, NULL)) { FUNC_PERROR(); }
+  if (-1 == shmctl(SHM_TICKET_DISPENSER_PID_ID, IPC_RMID, NULL)) { FUNC_PERROR(); }
 }
