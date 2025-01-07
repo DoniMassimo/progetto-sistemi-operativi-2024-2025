@@ -30,6 +30,7 @@ int find_best_time(int requested_time, Service* serv, int serv_num)
 {
   int best_time = -1;
   int best_time_sum = INT_MAX;
+  int closest_time = INT_MAX;
   lock_reader(SEMRW_CALENDAR_ID);
   int* calendar = (int*)shmat(SHM_CALENDAR_ID, NULL, 0);
   if ((void*)-1 == (void*)calendar) { FUNC_PERROR(); }
@@ -41,12 +42,14 @@ int find_best_time(int requested_time, Service* serv, int serv_num)
     else if (serv_duration + current_minute >= MINUTES_IN_DAY) { continue; }
     else
     {
-      int sum = 0;
+      int sum = 0;     
       for (int j = 0; j < serv_duration; j++) { sum += (int)serv[current_minute + j]; }
-      if (sum < best_time_sum)
+      int time_diff = abs(requested_time - current_minute);
+      if (sum < best_time_sum || (sum == best_time_sum && time_diff < closest_time))
       {
         best_time_sum = sum;
         best_time = current_minute;
+        closest_time = time_diff;
       }
     }
   }
