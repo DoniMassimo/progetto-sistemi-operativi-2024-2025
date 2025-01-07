@@ -84,6 +84,7 @@ void setup_request(void)
   int nof_req = generate_requests(&serv_req);
   int req_time = (int)(rand() % (8 * 60));
   int opt_time = find_best_time(req_time, serv_req, nof_req);
+  log_trace("user -> req_time: %d opt_time: %d", req_time, opt_time);
   //send_clock_reqs(req_time, requests, nof_req);
   free(serv_req);
 }
