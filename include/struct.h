@@ -18,19 +18,6 @@ typedef struct
   int msg_id;
   int sem_count;
   int info;
-} TicketCont;
-
-typedef struct
-{
-  int msg_id;
-  int sem_count;
-  int nof_data;
-} ClockCont;
-
-typedef union
-{
-  TicketCont ticket_cont;
-  ClockCont clock_cont;
 } Content;
 
 typedef struct

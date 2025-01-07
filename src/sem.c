@@ -150,24 +150,27 @@ void SEM_NOTIFY_CLOCK_ID_config(void)
 void SEMRW_CALENDAR_ID_init(void)
 {
   SEMRW_CALENDAR_ID.sem_mutex_id =
-      semget(SEMRW_CALENDAR_STRUCT_KEY.sem_mutex_key, 0, 0666 | IPC_CREAT);
+      semget(SEMRW_CALENDAR_STRUCT_KEY.sem_mutex_key, 1, 0666 | IPC_CREAT);
+  init_sem_one(SEMRW_CALENDAR_ID.sem_mutex_id, 0);
   if (-1 == SEMRW_CALENDAR_ID.sem_mutex_id) { FUNC_PERROR(); }
   SEMRW_CALENDAR_ID.sem_reader_count_id =
-      semget(SEMRW_CALENDAR_STRUCT_KEY.sem_reader_count_key, 0, 0666 | IPC_CREAT);
+      semget(SEMRW_CALENDAR_STRUCT_KEY.sem_reader_count_key, 1, 0666 | IPC_CREAT);
+  init_sem_zero(SEMRW_CALENDAR_ID.sem_reader_count_id, 0);
   if (-1 == SEMRW_CALENDAR_ID.sem_reader_count_id) { FUNC_PERROR(); }
   SEMRW_CALENDAR_ID.sem_writer_id =
-      semget(SEMRW_CALENDAR_STRUCT_KEY.sem_writer_key, 0, 0666 | IPC_CREAT);
+      semget(SEMRW_CALENDAR_STRUCT_KEY.sem_writer_key, 1, 0666 | IPC_CREAT);
   if (-1 == SEMRW_CALENDAR_ID.sem_writer_id) { FUNC_PERROR(); }
+  init_sem_one(SEMRW_CALENDAR_ID.sem_writer_id, 0);
 }
 
 void SEMRW_CALENDAR_ID_config(void)
 {
-  SEMRW_CALENDAR_ID.sem_mutex_id = semget(SEMRW_CALENDAR_STRUCT_KEY.sem_mutex_key, 0, 0666);
+  SEMRW_CALENDAR_ID.sem_mutex_id = semget(SEMRW_CALENDAR_STRUCT_KEY.sem_mutex_key, 1, 0666);
   if (-1 == SEMRW_CALENDAR_ID.sem_mutex_id) { FUNC_PERROR(); }
   SEMRW_CALENDAR_ID.sem_reader_count_id =
-      semget(SEMRW_CALENDAR_STRUCT_KEY.sem_reader_count_key, 0, 0666);
+      semget(SEMRW_CALENDAR_STRUCT_KEY.sem_reader_count_key, 1, 0666);
   if (-1 == SEMRW_CALENDAR_ID.sem_reader_count_id) { FUNC_PERROR(); }
-  SEMRW_CALENDAR_ID.sem_writer_id = semget(SEMRW_CALENDAR_STRUCT_KEY.sem_writer_key, 0, 0666);
+  SEMRW_CALENDAR_ID.sem_writer_id = semget(SEMRW_CALENDAR_STRUCT_KEY.sem_writer_key, 1, 0666);
   if (-1 == SEMRW_CALENDAR_ID.sem_writer_id) { FUNC_PERROR(); }
 }
 
@@ -182,6 +185,7 @@ void sem_init(void)
   SEM_NOTIFY_WORKER_ID_init();
   SEM_NOTIFY_DISPENSER_ID_init();
   SEM_NOTIFY_USER_ID_init();
+  SEMRW_CALENDAR_ID_init();
 }
 
 void sem_config(void)
@@ -195,6 +199,7 @@ void sem_config(void)
   SEM_NOTIFY_WORKER_ID_config();
   SEM_NOTIFY_DISPENSER_ID_config();
   SEM_NOTIFY_USER_ID_config();
+  SEMRW_CALENDAR_ID_config();
 }
 
 void sem_deallocate(void)

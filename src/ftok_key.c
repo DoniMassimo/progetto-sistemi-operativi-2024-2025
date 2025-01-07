@@ -60,7 +60,7 @@ void semrw_key_init(void)
   SEMRW_CALENDAR_STRUCT_KEY.sem_reader_count_key = ftok(".", key_count++);
   if (-1 == SEMRW_CALENDAR_STRUCT_KEY.sem_reader_count_key) { FUNC_PERROR(); }
   SEMRW_CALENDAR_STRUCT_KEY.sem_writer_key = ftok(".", key_count++);
-  if (-1 == SEMRW_CALENDAR_STRUCT_KEY.sem_reader_count_key) { FUNC_PERROR(); }
+  if (-1 == SEMRW_CALENDAR_STRUCT_KEY.sem_writer_key) { FUNC_PERROR(); }
 }
 
 void shm_key_init(void)

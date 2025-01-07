@@ -33,11 +33,11 @@ void setup(void)
   shm_config();
 }
 
-void add_user_notific(ClockCom* user_notify, size_t* curr_nof_user_notfc)
+void add_user_notific(ClockCom* clock_com, size_t* curr_nof_user_notfc)
 {
-  size_t data_count = user_notify->times_size / sizeof(int);
-  int* ptr_times = (int*)user_notify->data;
-  Service* ptr_serv_req = (Service*)(user_notify->data + user_notify->times_size);
+  size_t data_count = clock_com->times_size / sizeof(int);
+  int* ptr_times = (int*)clock_com->data;
+  Service* ptr_serv_req = (Service*)(clock_com->data + clock_com->times_size);
   for (size_t i = 0; i < data_count; i++)
   {
     if (*curr_nof_user_notfc >= user_notf_size)
@@ -48,8 +48,8 @@ void add_user_notific(ClockCom* user_notify, size_t* curr_nof_user_notfc)
     }
     user_notific[*curr_nof_user_notfc].time = ptr_times[i];
     user_notific[*curr_nof_user_notfc].serv = ptr_serv_req[i];
-    user_notific[*curr_nof_user_notfc].sem_count = user_notify->sem_count;
-    user_notific[*curr_nof_user_notfc].msg_id = user_notify->msg_id;
+    user_notific[*curr_nof_user_notfc].sem_count = clock_com->sem_count;
+    user_notific[*curr_nof_user_notfc].msg_id = clock_com->msg_id;
     (*curr_nof_user_notfc)++;
   }
 }
@@ -73,18 +73,17 @@ void setup_user_times(void)
   if (NULL == user_notific) { FUNC_PERROR(); }
   user_notf_size = 2;
   size_t max_content_size = sizeof(ClockCom) + (sizeof(Service) + sizeof(int)) * (size_t)N_REQUESTS;
-  ClockCom* com_struct = (ClockCom*)malloc(max_content_size);
-  if (NULL == com_struct) { FUNC_PERROR(); }
+  ClockCom* clock_com = (ClockCom*)malloc(max_content_size);
+  if (NULL == clock_com) { FUNC_PERROR(); }
   size_t curr_nof_user_notfc = 0;
   int user_set = 0;
   while (user_set < NOF_USERS)
   {
-    if (-1 ==
-        msgrcv(MSG_NOTIFY_CLOCK_ID, com_struct, max_content_size - sizeof(long), CLOCK_REQ, 0))
+    if (-1 == msgrcv(MSG_NOTIFY_CLOCK_ID, clock_com, max_content_size - sizeof(long), CLOCK_REQ, 0))
     {
       FUNC_PERROR();
     }
-    add_user_notific(com_struct, &curr_nof_user_notfc);
+    add_user_notific(clock_com, &curr_nof_user_notfc);
     user_set++;
   }
   struct msqid_ds msq_stat;
