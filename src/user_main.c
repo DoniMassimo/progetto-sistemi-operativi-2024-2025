@@ -44,11 +44,6 @@ int generate_requests(Service** requests)
   return nof_req;
 }
 
-void random_time(int times[], int nof_req)
-{
-  for (int i = 0; i < nof_req; i++) { times[i] = (int)(rand() % (8 * 60)); }
-}
-
 void send_clock_reqs(int req_times[], Service* serv_req, int nof_req)
 {
   log_trace("user -> nof_req: %d", nof_req);
@@ -73,6 +68,13 @@ void send_clock_reqs(int req_times[], Service* serv_req, int nof_req)
   if (-1 == msgsnd(MSG_NOTIFY_CLOCK_ID, request, content_size - sizeof(long), 0)) { FUNC_PERROR(); }
 }
 
+void calc_times_from_serv(int** all_req_times, Service* serv_req, int req_time, int nof_req)
+{
+  *all_req_times = (int*)malloc(sizeof(int) * (size_t)nof_req);
+  if (NULL == *all_req_times) { FUNC_PERROR(); }
+  for (int i = 0; i < nof_req; i++) { (*all_req_times)[i] = get_serv_duration(serv_req[i], 1); }
+}
+
 void setup_request(void)
 {
   if ((rand() % 100) + 1 > P_SERV)
@@ -85,7 +87,8 @@ void setup_request(void)
   int req_time = (int)(rand() % (8 * 60));
   int opt_time = find_best_time(req_time, serv_req, nof_req);
   log_trace("user -> req_time: %d opt_time: %d", req_time, opt_time);
-  //send_clock_reqs(req_time, requests, nof_req);
+  int* all_req_times = NULL;
+  // send_clock_reqs(req_time, requests, nof_req);
   free(serv_req);
 }
 
