@@ -63,4 +63,21 @@ int find_best_time(int requested_time, Service* serv, int serv_num)
   if (-1 == release_sem(SEMRW_CALENDAR_ID.sem_writer_id, 0)) { FUNC_PERROR(); }
   log_trace("serv_dur: %d, req_time: %d, best_time: %d", serv_duration, requested_time, best_time);
   return best_time;
+  
+
+  return 0;
 }
+
+void clear_calendar()
+{
+  lock_writer(SEMRW_CALENDAR_ID);
+  int* calendar = (int*)shmat(SHM_CALENDAR_ID, NULL, 0);
+  if ((void*)-1 == (void*)calendar) { FUNC_PERROR(); }
+  memset(calendar, 0, MINUTES_IN_DAY * sizeof(int));  
+  if (-1 == shmdt(calendar)) { FUNC_PERROR(); }
+  release_writer(SEMRW_CALENDAR_ID);
+}
+
+
+  
+
