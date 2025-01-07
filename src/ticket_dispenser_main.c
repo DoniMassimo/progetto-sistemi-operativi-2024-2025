@@ -75,18 +75,18 @@ void core(void)
     }
     else if (TICKET_REQ == notification)
     {
-      Service asked_serv = (Service)com_struct.content.ticket_cont.info;
+      Service asked_serv = (Service)com_struct.content.info;
       SeatInfo seat_info = {0};
       int service_available = seats_get_less_worker(asked_serv, &seat_info);
       ComStruct resp_struct = {0};
       resp_struct.mtype = TICKET_RESP;
-      if (service_available) { resp_struct.content.ticket_cont.info = 1; }
-      else { resp_struct.content.ticket_cont.info = 0; }
-      if (-1 == msgsnd(com_struct.content.ticket_cont.msg_id, &resp_struct, sizeof(Content), 0))
+      if (service_available) { resp_struct.content.info = 1; }
+      else { resp_struct.content.info = 0; }
+      if (-1 == msgsnd(com_struct.content.msg_id, &resp_struct, sizeof(Content), 0))
       {
         FUNC_PERROR();
       }
-      if (-1 == release_sem(SEM_NOTIFY_USER_ID, com_struct.content.ticket_cont.sem_count))
+      if (-1 == release_sem(SEM_NOTIFY_USER_ID, com_struct.content.sem_count))
       {
         FUNC_PERROR();
       }

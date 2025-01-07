@@ -7,6 +7,7 @@
 #include <sys/shm.h>
 #include <sys/msg.h>
 #include "seats.h"
+#include "calendar.h"
 #include "log.h"
 #include "utils.h"
 #include "macros.h"
@@ -79,12 +80,13 @@ void setup_request(void)
     send_clock_reqs(NULL, NULL, 0);
     return;
   }
-  Service* requests = NULL;
-  int nof_req = generate_requests(&requests);
-  int req_times[nof_req];
-  random_time(req_times, nof_req);
-  send_clock_reqs(req_times, requests, nof_req);
-  free(requests);
+  Service* serv_req = NULL;
+  int nof_req = generate_requests(&serv_req);
+  int req_time = (int)(rand() % (8 * 60));
+  int opt_time = find_best_time(req_time, serv_req, nof_req);
+  log_trace("user -> req_time: %d opt_time: %d", req_time, opt_time);
+  //send_clock_reqs(req_time, requests, nof_req);
+  free(serv_req);
 }
 
 void start(void)
@@ -125,7 +127,7 @@ void core(void)
     }
     else if (TICKET_RESP == notification)
     {
-      int ticket_outcome = com_struct.content.ticket_cont.info;
+      int ticket_outcome = com_struct.content.info;
       log_info("ticket request outcome: %d", ticket_outcome);
     }
   }
@@ -133,6 +135,7 @@ void core(void)
 
 int main(int argc, char* argv[])
 {
+  srand((unsigned int)(time(NULL) + getpid()));
   if (2 != argc) { MSG_ERROR("agrc error"); }
   setup(argv[1]);
   while (1)
