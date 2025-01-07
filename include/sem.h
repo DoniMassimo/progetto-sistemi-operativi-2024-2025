@@ -12,6 +12,7 @@ extern int SEM_PROC_READY_ID;
 extern int SEM_NOTIFY_WORKER_ID;
 extern int SEM_NOTIFY_DISPENSER_ID;
 extern int SEM_NOTIFY_USER_ID;
+extern int SEM_NOTIFY_CLOCK_ID;
 extern SemRW_Id SEMRW_CALENDAR_ID;
 
 void sem_init(void);

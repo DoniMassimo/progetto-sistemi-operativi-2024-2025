@@ -1,5 +1,5 @@
 CC = gcc
-all: bin/manager_main bin/worker_main bin/clock bin/user_main bin/ticket_dispenser_main
+all: bin/manager_main bin/worker_main bin/clock_main bin/user_main bin/ticket_dispenser_main
 CFLAGS = -g -Wall -Wextra -Wpedantic -Wconversion -Wstrict-prototypes -Wsign-conversion -D_GNU_SOURCE -Iinclude/
 
 INCLUDES = include/*.h
@@ -17,8 +17,8 @@ bin/manager_main: build/manager_main.o build/sem_utils.o build/seats.o $(PROJ_DE
 bin/worker_main: build/worker_main.o build/sem_utils.o build/seats.o $(PROJ_DEPS)
 	$(CC) $(CFLAGS) -o bin/worker_main build/worker_main.o build/sem_utils.o build/seats.o $(PROJ_DEPS)
 
-bin/clock: build/clock.o build/sem_utils.o $(PROJ_DEPS)
-	$(CC) $(CFLAGS) -o bin/clock build/clock.o build/sem_utils.o $(PROJ_DEPS)
+bin/clock_main: build/clock_main.o build/sem_utils.o $(PROJ_DEPS)
+	$(CC) $(CFLAGS) -o bin/clock_main build/clock_main.o build/sem_utils.o $(PROJ_DEPS)
 
 bin/user_main: build/user_main.o build/sem_utils.o $(PROJ_DEPS)
 	$(CC) $(CFLAGS) -o bin/user_main build/user_main.o build/sem_utils.o $(PROJ_DEPS)

@@ -15,6 +15,7 @@ key_t SEM_PROC_READY_KEY = -1;
 key_t SEM_NOTIFY_WORKER_KEY = -1;
 key_t SEM_NOTIFY_DISPENSER_KEY = -1;
 key_t SEM_NOTIFY_USER_KEY = -1;
+key_t SEM_NOTIFY_CLOCK_KEY = -1;
 SemRW_Key SEMRW_CALENDAR_STRUCT_KEY = {0};
 
 key_t SHM_SEATS_INDEX_KEY = -1;
@@ -26,6 +27,7 @@ key_t SHM_CALENDAR_KEY = -1;
 key_t* MSG_NOTIFY_WORKER_KEYS = NULL;
 key_t MSG_NOTIFY_DISPENSER_KEY = -1;
 key_t* MSG_NOTIFY_USER_KEYS = NULL;
+key_t MSG_NOTIFY_CLOCK_KEY = -1;
 
 void sem_key_init(void)
 {
@@ -47,6 +49,8 @@ void sem_key_init(void)
   if (-1 == SEM_NOTIFY_DISPENSER_KEY) { FUNC_PERROR(); }
   SEM_NOTIFY_USER_KEY = ftok(".", key_count++);
   if (-1 == SEM_NOTIFY_USER_KEY) { FUNC_PERROR(); }
+  SEM_NOTIFY_CLOCK_KEY = ftok(".", key_count++);
+  if (-1 == SEM_NOTIFY_CLOCK_KEY) { FUNC_PERROR(); }
 }
 
 void semrw_key_init(void)
@@ -83,6 +87,7 @@ void msg_key_init(void)
     if (-1 == MSG_NOTIFY_WORKER_KEYS[i]) { FUNC_PERROR(); }
   }
   MSG_NOTIFY_USER_KEYS = (key_t*)malloc(sizeof(key_t) * (size_t)NOF_USERS);
+  if (NULL == MSG_NOTIFY_USER_KEYS) { FUNC_PERROR(); }
   for (int i = 0; i < NOF_USERS; i++)
   {
     MSG_NOTIFY_USER_KEYS[i] = ftok(".", key_count++);
@@ -90,6 +95,8 @@ void msg_key_init(void)
   }
   MSG_NOTIFY_DISPENSER_KEY = ftok(".", key_count++);
   if (-1 == MSG_NOTIFY_DISPENSER_KEY) { FUNC_PERROR(); }
+  MSG_NOTIFY_CLOCK_KEY = ftok(".", key_count++);
+  if (-1 == MSG_NOTIFY_CLOCK_KEY) { FUNC_PERROR(); }
 }
 
 void ftok_key_init(void)

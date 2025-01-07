@@ -16,6 +16,7 @@ int SEM_PROC_READY_ID = -1;
 int SEM_NOTIFY_WORKER_ID = -1;
 int SEM_NOTIFY_DISPENSER_ID = -1;
 int SEM_NOTIFY_USER_ID = -1;
+int SEM_NOTIFY_CLOCK_ID = -1;
 SemRW_Id SEMRW_CALENDAR_ID = {0};
 
 void SEM_START_ID_init(void)
@@ -133,6 +134,19 @@ void SEM_NOTIFY_USER_ID_config(void)
   if (SEM_NOTIFY_USER_ID < 0) { FUNC_PERROR(); }
 }
 
+void SEM_NOTIFY_CLOCK_ID_init(void)
+{
+  SEM_NOTIFY_CLOCK_ID = semget(SEM_NOTIFY_CLOCK_KEY, 1, 0666 | IPC_CREAT);
+  if (SEM_NOTIFY_CLOCK_ID < 0) { FUNC_PERROR(); }
+  if (-1 == init_sem_zero(SEM_NOTIFY_CLOCK_ID, 0)) { FUNC_PERROR(); }
+}
+
+void SEM_NOTIFY_CLOCK_ID_config(void)
+{
+  SEM_NOTIFY_CLOCK_ID = semget(SEM_NOTIFY_CLOCK_KEY, 1, 0666);
+  if (SEM_NOTIFY_CLOCK_ID < 0) { FUNC_PERROR(); }
+}
+
 void SEMRW_CALENDAR_ID_init(void)
 {
   SEMRW_CALENDAR_ID.sem_mutex_id =
@@ -153,8 +167,7 @@ void SEMRW_CALENDAR_ID_config(void)
   SEMRW_CALENDAR_ID.sem_reader_count_id =
       semget(SEMRW_CALENDAR_STRUCT_KEY.sem_reader_count_key, 0, 0666);
   if (-1 == SEMRW_CALENDAR_ID.sem_reader_count_id) { FUNC_PERROR(); }
-  SEMRW_CALENDAR_ID.sem_writer_id =
-      semget(SEMRW_CALENDAR_STRUCT_KEY.sem_writer_key, 0, 0666);
+  SEMRW_CALENDAR_ID.sem_writer_id = semget(SEMRW_CALENDAR_STRUCT_KEY.sem_writer_key, 0, 0666);
   if (-1 == SEMRW_CALENDAR_ID.sem_writer_id) { FUNC_PERROR(); }
 }
 

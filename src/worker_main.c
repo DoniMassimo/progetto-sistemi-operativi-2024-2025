@@ -53,9 +53,9 @@ MesType get_notifications(ComStruct* com_struct)
 
 void core(void)
 {
-  int outcome = seats_try_take_seat(assigned_service, id);
+  seats_try_take_seat(assigned_service, id);
+
   ComStruct com_struct = {0};
-  int recived_msg = -1;
   while (1)
   {
     MesType notification = get_notifications(&com_struct);

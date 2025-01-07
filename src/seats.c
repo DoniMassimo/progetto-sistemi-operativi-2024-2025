@@ -87,7 +87,6 @@ int seats_get_less_worker(Service serv, SeatInfo* seat_info)
   if ((SeatInfo*)-1 == (SeatInfo*)shm_sinfo_ptr) { FUNC_PERROR(); }
   int bounds[2];
   get_bounds_serv(bounds, serv);
-  int service_available = 0;
   int seat_index = -1;
   int min_nof_user_waiting = INT_MAX;
   for (int i = bounds[0]; i < bounds[1]; i++)
@@ -96,7 +95,6 @@ int seats_get_less_worker(Service serv, SeatInfo* seat_info)
     {
       min_nof_user_waiting = shm_sinfo_ptr[i].nof_user_waiting;
       seat_index = i;
-      service_available = 1;
     }
   }
   if (-1 != seat_index) { *seat_info = shm_sinfo_ptr[seat_index]; }

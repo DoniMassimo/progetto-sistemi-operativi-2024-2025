@@ -16,6 +16,7 @@ extern int START_SEM_COUNT;
 extern size_t N_NANO_SECS;
 extern int P_SERV_MIN;
 extern int P_SERV_MAX;
+extern int N_REQUESTS;
 
 typedef enum
 {

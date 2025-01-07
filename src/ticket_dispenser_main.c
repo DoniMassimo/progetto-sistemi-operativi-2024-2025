@@ -70,7 +70,7 @@ void core(void)
     MesType notification = get_notifications(&com_struct);
     if (DAY_ENDED == notification)
     {
-      log_info("day ended");
+      log_info("ends day");
       return;
     }
     else if (TICKET_REQ == notification)
@@ -94,7 +94,7 @@ void core(void)
   }
 }
 
-int main(int argc, char* argv[])
+int main(void)
 {
   setup();
   while (1)

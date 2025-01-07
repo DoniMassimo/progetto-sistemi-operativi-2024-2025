@@ -57,9 +57,10 @@ int lock_sem_nowait(int semid, int sem_num)
 int lock_sem_val(int semid, int sem_num, int val)
 {
   if (val <= 0) { MSG_ERROR("val cant be negative.\n"); }
+  if (val > 32767) { MSG_ERROR("val is too big.\n"); }
   struct sembuf sops;
   sops.sem_num = (short unsigned int)sem_num;
-  sops.sem_op = -val;
+  sops.sem_op = (short int)-val;
   sops.sem_flg = 0;
   return semop(semid, &sops, 1);
 }
@@ -122,7 +123,7 @@ int get_sem_value(int semid, int sem_count)
   return semctl(semid, sem_count, GETVAL, arg);
 }
 
-int lock_reader(SemRW_Id sem_rw)
+void lock_reader(SemRW_Id sem_rw)
 {
   if (-1 == lock_sem(sem_rw.sem_mutex_id, 0)) { FUNC_PERROR(); }
   if (-1 == release_sem(sem_rw.sem_reader_count_id, 0)) { FUNC_PERROR(); }
@@ -135,7 +136,7 @@ int lock_reader(SemRW_Id sem_rw)
   if (-1 == release_sem(sem_rw.sem_mutex_id, 0)) { FUNC_PERROR(); }
 }
 
-int release_reader(SemRW_Id sem_rw)
+void release_reader(SemRW_Id sem_rw)
 {
   if (-1 == lock_sem(sem_rw.sem_mutex_id, 0)) { FUNC_PERROR(); }
   if (-1 == lock_sem(sem_rw.sem_reader_count_id, 0)) { FUNC_PERROR(); }

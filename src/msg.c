@@ -9,6 +9,7 @@
 int* MSG_NOTIFY_WORKER_IDS = NULL;
 int MSG_NOTIFY_DISPENSER_ID = -1;
 int* MSG_NOTIFY_USER_IDS = NULL;
+int MSG_NOTIFY_CLOCK_ID = -1;
 
 void MSG_NOTIFY_WORKER_IDS_init(void)
 {
@@ -66,11 +67,24 @@ void MSG_NOTIFY_USER_IDS_config(void)
   }
 }
 
+void MSG_NOTIFY_CLOCK_ID_init(void)
+{
+  MSG_NOTIFY_CLOCK_ID = msgget(MSG_NOTIFY_CLOCK_KEY, 0666 | IPC_CREAT);
+  if (-1 == MSG_NOTIFY_CLOCK_ID) { FUNC_PERROR(); }
+}
+
+void MSG_NOTIFY_CLOCK_ID_config(void)
+{
+  MSG_NOTIFY_CLOCK_ID = msgget(MSG_NOTIFY_CLOCK_KEY, 0666);
+  if (-1 == MSG_NOTIFY_CLOCK_ID) { FUNC_PERROR(); }
+}
+
 void msg_init(void)
 {
   MSG_NOTIFY_WORKER_IDS_init();
   MSG_NOTIFY_DISPENSER_ID_init();
   MSG_NOTIFY_USER_IDS_init();
+  MSG_NOTIFY_CLOCK_ID_init();
 }
 
 void msg_config(void)
@@ -78,6 +92,7 @@ void msg_config(void)
   MSG_NOTIFY_WORKER_IDS_config();
   MSG_NOTIFY_DISPENSER_ID_config();
   MSG_NOTIFY_USER_IDS_config();
+  MSG_NOTIFY_CLOCK_ID_config();
 }
 
 void msg_deallocate(void)
@@ -93,5 +108,4 @@ void msg_deallocate(void)
     if (-1 == msgctl(MSG_NOTIFY_USER_IDS[i], IPC_RMID, NULL)) { FUNC_PERROR(); }
   }
   free(MSG_NOTIFY_USER_IDS);
-
 }

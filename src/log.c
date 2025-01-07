@@ -55,8 +55,8 @@ static void stdout_callback(log_Event* ev)
   fprintf(ev->udata, "%s %s%-5s\x1b[0m \x1b[90m%s:%d:\x1b[0m ", buf, level_colors[ev->level],
           level_strings[ev->level], ev->file, ev->line);
 #else
-  char log_message[1024];
-  vsnprintf(log_message, 1024, ev->fmt, ev->ap);
+  char log_message[2048];
+  vsnprintf(log_message, 2048, ev->fmt, ev->ap);
   fprintf(ev->udata, "%s %-5s %s:%d: %s\n", buf, level_strings[ev->level], ev->file, ev->line,
           log_message);
 #endif

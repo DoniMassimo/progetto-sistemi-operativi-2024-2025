@@ -17,6 +17,7 @@ extern key_t SEM_PROC_READY_KEY;
 extern key_t SEM_NOTIFY_WORKER_KEY;
 extern key_t SEM_NOTIFY_DISPENSER_KEY;
 extern key_t SEM_NOTIFY_USER_KEY;
+extern key_t SEM_NOTIFY_CLOCK_KEY;
 extern SemRW_Key SEMRW_CALENDAR_STRUCT_KEY;
 
 extern key_t SHM_WORKERS_PID_KEY;
@@ -28,6 +29,7 @@ extern key_t SHM_CALENDAR_KEY;
 extern key_t* MSG_NOTIFY_WORKER_KEYS;
 extern key_t MSG_NOTIFY_DISPENSER_KEY;
 extern key_t* MSG_NOTIFY_USER_KEYS;
+extern key_t MSG_NOTIFY_CLOCK_KEY;
 
 void ftok_key_init(void);
 
