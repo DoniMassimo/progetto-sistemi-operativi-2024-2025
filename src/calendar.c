@@ -42,8 +42,8 @@ int find_best_time(int requested_time, Service* serv, int serv_num)
     else if (serv_duration + current_minute >= MINUTES_IN_DAY) { continue; }
     else
     {
-      int sum = 0;     
-      for (int j = 0; j < serv_duration; j++) { sum += (int)serv[current_minute + j]; }
+      int sum = 0;
+      for (int j = 0; j < serv_duration; j++) { sum += (int)calendar[current_minute + j]; }
       int time_diff = abs(requested_time - current_minute);
       if (sum < best_time_sum || (sum == best_time_sum && time_diff < closest_time))
       {
@@ -61,5 +61,6 @@ int find_best_time(int requested_time, Service* serv, int serv_num)
   for (int i = 0; i < serv_duration; i++) { calendar[best_time + i]++; }
   if (-1 == shmdt(calendar)) { FUNC_PERROR(); }
   if (-1 == release_sem(SEMRW_CALENDAR_ID.sem_writer_id, 0)) { FUNC_PERROR(); }
+  log_trace("serv_dur: %d, req_time: %d, best_time: %d", serv_duration, requested_time, best_time);
   return best_time;
 }

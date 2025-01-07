@@ -35,66 +35,59 @@ void setup(char arg_1[])
   msg_config();
 }
 
-int generate_requests(Service** requests)
-{
-  int nof_req = (rand() % N_REQUESTS) + 1;
-  *requests = (Service*)malloc(sizeof(Service) * (size_t)nof_req);
-  if (NULL == *requests) { FUNC_PERROR(); }
-  for (int i = 0; i < nof_req; i++) { (*requests)[i] = (Service)(rand() % SERV_NUM); }
-  return nof_req;
-}
-
-void send_clock_reqs(int req_times[], Service* serv_req, int nof_req)
+void send_notific_clock(int req_times[], Service* serv_req, int nof_req)
 {
   log_trace("user -> nof_req: %d", nof_req);
-  size_t content_size = sizeof(ClockCom) + (sizeof(Service) + sizeof(int)) * (size_t)nof_req;
-  ClockCom* request = (ClockCom*)malloc(content_size);
-  if (NULL == request) { FUNC_PERROR(); }
+  size_t notific_size = sizeof(ClockCom) + (sizeof(Service) + sizeof(int)) * (size_t)nof_req;
+  ClockCom* notification = (ClockCom*)malloc(notific_size);
+  if (NULL == notification) { FUNC_PERROR(); }
   size_t times_size = sizeof(int) * (size_t)nof_req;
   size_t serv_size = sizeof(Service) * (size_t)nof_req;
   for (int i = 0; i < nof_req; i++)
   {
-    memcpy(request->data, req_times, times_size);
-    memcpy(request->data + times_size, serv_req, serv_size);
+    memcpy(notification->data, req_times, times_size);
+    memcpy(notification->data + times_size, serv_req, serv_size);
   }
-  request->mtype = CLOCK_REQ;
+  notification->mtype = CLOCK_REQ;
   if (nof_req > 0)
   {
-    request->msg_id = MSG_NOTIFY_USER_IDS[id];
-    request->sem_count = id;
+    notification->msg_id = MSG_NOTIFY_USER_IDS[id];
+    notification->sem_count = id;
   }
-  request->times_size = times_size;
-  request->serv_req_size = serv_size;
-  if (-1 == msgsnd(MSG_NOTIFY_CLOCK_ID, request, content_size - sizeof(long), 0)) { FUNC_PERROR(); }
+  notification->times_size = times_size;
+  notification->serv_req_size = serv_size;
+  if (-1 == msgsnd(MSG_NOTIFY_CLOCK_ID, notification, notific_size - sizeof(long), 0)) { FUNC_PERROR(); }
 }
 
-void calc_times_from_serv(int** all_req_times, Service* serv_req, int req_time, int nof_req)
+void calc_times_from_serv(int all_req_times[], Service serv_req[], int req_time, int nof_req)
 {
-  *all_req_times = (int*)malloc(sizeof(int) * (size_t)nof_req);
-  if (NULL == *all_req_times) { FUNC_PERROR(); }
-  for (int i = 0; i < nof_req; i++) { (*all_req_times)[i] = get_serv_duration(serv_req[i], 1); }
+  for (int i = 0; i < nof_req; i++)
+  {
+    if (req_time >= MINUTES_IN_DAY) { req_time = MINUTES_IN_DAY - 1; }
+    all_req_times[i] = req_time;
+    req_time = req_time + get_serv_duration(&serv_req[i], 1);
+  }
 }
 
 void setup_request(void)
 {
   if ((rand() % 100) + 1 > P_SERV)
   {
-    send_clock_reqs(NULL, NULL, 0);
+    send_notific_clock(NULL, NULL, 0);
     return;
   }
-  Service* serv_req = NULL;
-  int nof_req = generate_requests(&serv_req);
+  int nof_req = (rand() % N_REQUESTS) + 1;
+  Service serv_req[nof_req];
+  int all_req_times[nof_req];
+  for (int i = 0; i < nof_req; i++) { serv_req[i] = (Service)(rand() % SERV_NUM); }
   int req_time = (int)(rand() % (8 * 60));
   int opt_time = find_best_time(req_time, serv_req, nof_req);
-  log_trace("user -> req_time: %d opt_time: %d", req_time, opt_time);
-  int* all_req_times = NULL;
-  // send_clock_reqs(req_time, requests, nof_req);
-  free(serv_req);
+  calc_times_from_serv(all_req_times, serv_req, opt_time, nof_req);
+  send_notific_clock(all_req_times, serv_req, nof_req);
 }
 
 void start(void)
 {
-  log_trace("user %d start", id);
   setup_request();
   if (-1 == release_sem(SEM_PROC_READY_ID, 0)) { FUNC_PERROR(); }
   int sem_res = lock_sem(SEM_START_ID, 0);
