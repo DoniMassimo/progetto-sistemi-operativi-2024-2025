@@ -131,9 +131,9 @@ void lock_reader(SemRW_Id sem_rw)
   if (-1 == num_reader) { FUNC_PERROR(); }
   else if (1 == num_reader)
   {
-    if (-1 == lock_sem(sem_rw.sem_writer_id, 0)) { FUNC_PERROR(); }
+    if (-1 == lock_sem(sem_rw.sem_writer_id, 0)) { FUNC_PERROR(); } // scrittura sulla shm
   }
-  if (-1 == release_sem(sem_rw.sem_mutex_id, 0)) { FUNC_PERROR(); }
+  if (-1 == release_sem(sem_rw.sem_mutex_id, 0)) { FUNC_PERROR(); } 
 }
 
 void release_reader(SemRW_Id sem_rw)
