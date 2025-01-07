@@ -32,6 +32,7 @@ int find_best_time(int requested_time, Service* serv, int serv_num)
 {
   int best_time = -1;
   int best_time_sum = INT_MAX;
+  
 
   lock_reader(SEMRW_CALENDAR_ID); //decremento il contatore dei lettori
 
