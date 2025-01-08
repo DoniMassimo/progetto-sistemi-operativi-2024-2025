@@ -68,28 +68,25 @@ void core(void)
   while (1)
   {
     MesType notification = get_notifications(&com_struct);
-    if (DAY_ENDED == notification)
-    {
-      log_info("ends day");
-      return;
-    }
+    if (DAY_ENDED == notification) { return; }
     else if (TICKET_REQ == notification)
     {
       Service asked_serv = (Service)com_struct.content.info;
+      log_trace("ticke disp richiesta ticket -> serv: %d, user: %d", asked_serv,
+                com_struct.content.sem_count);
       SeatInfo seat_info = {0};
       int service_available = seats_get_less_worker(asked_serv, &seat_info);
       ComStruct resp_struct = {0};
       resp_struct.mtype = TICKET_RESP;
-      if (service_available) { resp_struct.content.info = 1; }
+      resp_struct.content.sem_count = seat_info.sem_notify_worker_count;
+      resp_struct.content.msg_id = seat_info.msg_notify_worker_id;
+      if (1 == service_available) { resp_struct.content.info = 1; }
       else { resp_struct.content.info = 0; }
       if (-1 == msgsnd(com_struct.content.msg_id, &resp_struct, sizeof(Content), 0))
       {
         FUNC_PERROR();
       }
-      if (-1 == release_sem(SEM_NOTIFY_USER_ID, com_struct.content.sem_count))
-      {
-        FUNC_PERROR();
-      }
+      if (-1 == release_sem(SEM_NOTIFY_USER_ID, com_struct.content.sem_count)) { FUNC_PERROR(); }
     }
   }
 }

@@ -37,13 +37,16 @@ void setup(char arg_1[])
 
 void send_notific_clock(int req_times[], Service* serv_req, int nof_req)
 {
-  log_trace("user -> nof_req: %d", nof_req);
   size_t notific_size = sizeof(ClockCom) + (sizeof(Service) + sizeof(int)) * (size_t)nof_req;
   ClockCom* notification = (ClockCom*)malloc(notific_size);
   if (NULL == notification) { FUNC_PERROR(); }
   size_t times_size = sizeof(int) * (size_t)nof_req;
   size_t serv_size = sizeof(Service) * (size_t)nof_req;
   for (int i = 0; i < nof_req; i++)
+  {
+    log_trace("user %d invia richiesta -> serv: %d time: %d", id, serv_req[i], req_times[i]);
+  }
+  if (nof_req > 0)
   {
     memcpy(notification->data, req_times, times_size);
     memcpy(notification->data + times_size, serv_req, serv_size);
@@ -56,7 +59,10 @@ void send_notific_clock(int req_times[], Service* serv_req, int nof_req)
   }
   notification->times_size = times_size;
   notification->serv_req_size = serv_size;
-  if (-1 == msgsnd(MSG_NOTIFY_CLOCK_ID, notification, notific_size - sizeof(long), 0)) { FUNC_PERROR(); }
+  if (-1 == msgsnd(MSG_NOTIFY_CLOCK_ID, notification, notific_size - sizeof(long), 0))
+  {
+    FUNC_PERROR();
+  }
 }
 
 void calc_times_from_serv(int all_req_times[], Service serv_req[], int req_time, int nof_req)
@@ -107,7 +113,23 @@ MesType get_notifications(ComStruct* com_struct)
     if (ENOMSG != errno) { FUNC_PERROR(); }
   }
   else { return TICKET_RESP; }
+  if (-1 == msgrcv(MSG_NOTIFY_USER_IDS[id], com_struct, sizeof(Content), CLOCK_NOTIFC, IPC_NOWAIT))
+  {
+    if (ENOMSG != errno) { FUNC_PERROR(); }
+  }
+  else { return CLOCK_NOTIFC; }
   MSG_ERROR("Expect to find message\n");
+}
+
+void send_ticket_request(Service serv)
+{
+  ComStruct ticket_req = {0};
+  ticket_req.mtype = TICKET_REQ;
+  ticket_req.content.msg_id = MSG_NOTIFY_USER_IDS[id];
+  ticket_req.content.sem_count = id;
+  ticket_req.content.info = (int)serv;
+  msgsnd(MSG_NOTIFY_DISPENSER_ID, &ticket_req, sizeof(Content), 0);
+  release_sem(SEM_NOTIFY_DISPENSER_ID, 0);
 }
 
 void core(void)
@@ -116,15 +138,16 @@ void core(void)
   while (1)
   {
     MesType notification = get_notifications(&com_struct);
-    if (DAY_ENDED == notification)
-    {
-      log_info("user %d ends day", id);
-      return;
-    }
+    if (DAY_ENDED == notification) { return; }
     else if (TICKET_RESP == notification)
     {
-      int ticket_outcome = com_struct.content.info;
-      log_info("ticket request outcome: %d", ticket_outcome);
+      log_trace("user %d risposta ticket -> esito: %d", id, com_struct.content.info);
+      if (1 == com_struct.content.info) {}
+    }
+    else if (CLOCK_NOTIFC == notification)
+    {
+      log_trace("user %d riceve notifica -> serv: %d", id, com_struct.content.info);
+      send_ticket_request((Service)com_struct.content.info);
     }
   }
 }

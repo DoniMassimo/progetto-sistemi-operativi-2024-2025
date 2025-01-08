@@ -10,7 +10,7 @@ typedef enum
   TICKET_REQ,
   TICKET_RESP,
   CLOCK_REQ,
-  CLOCK_RESP,
+  CLOCK_NOTIFC,
 } MesType;
 
 typedef struct

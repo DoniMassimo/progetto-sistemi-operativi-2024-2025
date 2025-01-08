@@ -4,6 +4,7 @@
 #include <sys/msg.h>
 #include <signal.h>
 #include "config.h"
+#include "calendar.h"
 #include "ftok_key.h"
 #include "log.h"
 #include "macros.h"
@@ -23,6 +24,7 @@ typedef struct
 
 UserNotific* user_notific = NULL;
 size_t user_notf_size = 0;
+size_t user_notf_index = 0;
 
 void setup(void)
 {
@@ -61,13 +63,14 @@ int compare(const void* a, const void* b)
   return req1->time - req2->time;
 }
 
-void setup_user_times(void)
+void setup_user_notific(void)
 {
   if (NULL != user_notific || 0 != user_notf_size)
   {
     free(user_notific);
     user_notific = NULL;
     user_notf_size = 0;
+    user_notf_index = 0;
   }
   user_notific = (UserNotific*)malloc(sizeof(UserNotific) * 2);
   if (NULL == user_notific) { FUNC_PERROR(); }
@@ -95,7 +98,7 @@ void setup_user_times(void)
 
 void start(void)
 {
-  setup_user_times();
+  setup_user_notific();
   if (-1 == release_sem(SEM_PROC_READY_ID, 0)) { FUNC_PERROR(); }
   if (-1 == lock_sem(SEM_START_ID, 0)) { FUNC_PERROR(); }
   init_sem_one(SEM_DAY_STARTED_ID, 0);
@@ -119,6 +122,28 @@ void send_msg_day_ended(void)
   if (-1 == release_sem(SEM_NOTIFY_DISPENSER_ID, 0)) { FUNC_PERROR(); }
 }
 
+void send_user_notific(int curr_min)
+{
+  while (user_notific[user_notf_index].time <= curr_min)
+  {
+    if (user_notf_index >= user_notf_size) { break; }
+    int time = user_notific[user_notf_index].time;
+    Service serv = user_notific[user_notf_index].serv;
+    int msg_id = user_notific[user_notf_index].msg_id;
+    int sem_count = user_notific[user_notf_index].sem_count;
+    ComStruct notifc_struct = {0};
+    notifc_struct.mtype = CLOCK_NOTIFC;
+    notifc_struct.content.sem_count = -1;
+    notifc_struct.content.msg_id = -1;
+    notifc_struct.content.info = (int)serv;
+    log_trace("clock test invio notifica -> user: %d time: %d serv: %d msg_id: %d", sem_count, time,
+              serv, msg_id);
+    msgsnd(msg_id, &notifc_struct, sizeof(Content), 0);
+    release_sem(SEM_NOTIFY_USER_ID, sem_count);
+    user_notf_index++;
+  }
+}
+
 void core(void)
 {
   int min_count = 0;
@@ -129,10 +154,11 @@ void core(void)
   {
     min_count++;
     if (nanosleep(&req, NULL) == -1) { FUNC_PERROR(); }
+    send_user_notific(min_count);
   }
   release_sem(SEM_DAY_END_ID, 0);
+  clear_calendar();
   send_msg_day_ended();
-  log_info("giorno finito");
 }
 
 int main(void)

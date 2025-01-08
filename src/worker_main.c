@@ -54,16 +54,11 @@ MesType get_notifications(ComStruct* com_struct)
 void core(void)
 {
   seats_try_take_seat(assigned_service, id);
-
   ComStruct com_struct = {0};
   while (1)
   {
     MesType notification = get_notifications(&com_struct);
-    if (DAY_ENDED == notification)
-    {
-      log_info("worker %d ends day", id);
-      return;
-    }
+    if (DAY_ENDED == notification) { return; }
   }
 }
 

@@ -7,5 +7,6 @@
 
 int get_serv_duration(Service* serv, int serv_num);
 int find_best_time(int requested_time, Service* serv, int serv_num);
+void clear_calendar(void);
 
 #endif
