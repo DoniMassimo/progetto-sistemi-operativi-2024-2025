@@ -7,6 +7,7 @@ typedef enum
 {
   DAY_ENDED = 1,
   SERVICE_REQ,
+  SERVICE_RESP,
   TICKET_REQ,
   TICKET_RESP,
   CLOCK_REQ,
@@ -16,21 +17,23 @@ typedef enum
 
 typedef struct
 {
-  int msg_id;
-  int sem_count;
-  int info;
-} Content;
-
-typedef struct
-{
   long mtype;
-  Content content;
-} ComStruct;
-
-typedef struct
-{
-  long mtype;
+  int data;
 } DayEnded;
+
+typedef struct
+{
+  long mtype;
+  int user_msg_id;
+  int user_sem_id;
+  int user_sem_count;
+} ServiceReq;
+
+typedef struct
+{
+  long mtype;
+  int data;
+} ServiceResp;
 
 typedef struct
 {

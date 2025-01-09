@@ -43,7 +43,7 @@ void start(void)
 void core(void)
 {
   int nof_notifc = 3;
-  MesType notifc_filter[] = {DAY_ENDED, CLOCK_NOTIFC, TICKET_RESP};
+  MesType notifc_filter[] = {DAY_ENDED, CLOCK_NOTIFC, TICKET_RESP, SERVICE_RESP};
   void* notifc = NULL;
   GetNotfParam get_notf_param = {0};
   get_notf_param.notifc_filter = notifc_filter;
@@ -63,9 +63,11 @@ void core(void)
     }
     else if (TICKET_RESP == notification)
     {
-      TicketResp* ticke_resp = (TicketResp*)notifc;
-      log_trace("user %d risposta ticket -> esito: %d", id, ticke_resp->status);
+      TicketResp* ticket_resp = (TicketResp*)notifc;
+      log_trace("user %d risposta ticket -> esito: %d", id, ticket_resp->status);
+      if (1 == ticket_resp->status) {}
     }
+    else if (SERVICE_RESP == notification) {}
     else if (CLOCK_NOTIFC == notification)
     {
       ClockNotifc* clock_req = (ClockNotifc*)notifc;

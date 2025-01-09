@@ -3,7 +3,20 @@
 
 #include "struct.h"
 
-typedef struct 
+typedef struct
+{
+  void* notifc;
+  struct NotifcNode* next;
+} NotifcNode;
+
+typedef struct
+{
+  NotifcNode* start;
+  NotifcNode* end;
+  int nof_node;
+} NotifcQueue;
+
+typedef struct
 {
   MesType* notifc_filter;
   int nof_notifc;

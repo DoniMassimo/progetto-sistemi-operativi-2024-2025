@@ -79,22 +79,23 @@ void setup_user_notific(void)
 
 void send_msg_day_ended(void)
 {
-  ComStruct com_struct;
+  DayEnded com_struct;
+  size_t msg_size = get_notifc_size(DAY_ENDED);
   com_struct.mtype = DAY_ENDED;
   for (int i = 0; i < NOF_USERS; i++)
   {
-    if (-1 == msgsnd(MSG_NOTIFY_USER_IDS[i], &com_struct, sizeof(Content), 0)) { FUNC_PERROR(); }
+    if (-1 == msgsnd(MSG_NOTIFY_USER_IDS[i], &com_struct, sizeof(msg_size), 0)) { FUNC_PERROR(); }
   }
   if (-1 == release_all_sem(SEM_NOTIFY_USER_ID, NOF_USERS)) { FUNC_PERROR(); }
   for (int i = 0; i < NOF_WORKERS; i++)
   {
-    if (-1 == msgsnd(MSG_NOTIFY_WORKER_IDS[i], &com_struct, sizeof(Content), 0)) { FUNC_PERROR(); }
+    if (-1 == msgsnd(MSG_NOTIFY_WORKER_IDS[i], &com_struct, sizeof(msg_size), 0)) { FUNC_PERROR(); }
   }
   if (NOF_WORKERS > 0)
   {
     if (-1 == release_all_sem(SEM_NOTIFY_WORKER_ID, NOF_WORKERS)) { FUNC_PERROR(); }
   }
-  if (-1 == msgsnd(MSG_NOTIFY_DISPENSER_ID, &com_struct, sizeof(Content), 0)) { FUNC_PERROR(); }
+  if (-1 == msgsnd(MSG_NOTIFY_DISPENSER_ID, &com_struct, sizeof(msg_size), 0)) { FUNC_PERROR(); }
   if (-1 == release_sem(SEM_NOTIFY_DISPENSER_ID, 0)) { FUNC_PERROR(); }
 }
 

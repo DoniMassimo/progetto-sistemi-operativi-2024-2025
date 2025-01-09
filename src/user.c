@@ -10,6 +10,7 @@
 #include "user.h"
 #include "config.h"
 #include "calendar.h"
+#include "notification.h"
 
 int id;
 int P_SERV;
@@ -46,12 +47,13 @@ void send_notific_clock(int req_times[], Service* serv_req, int nof_req)
 
 void send_ticket_request(Service serv)
 {
-  ComStruct ticket_req = {0};
+  TicketReq ticket_req = {0};
+  size_t msg_size = get_notifc_size(TICKET_REQ);
   ticket_req.mtype = TICKET_REQ;
-  ticket_req.content.msg_id = MSG_NOTIFY_USER_IDS[id];
-  ticket_req.content.sem_count = id;
-  ticket_req.content.info = (int)serv;
-  msgsnd(MSG_NOTIFY_DISPENSER_ID, &ticket_req, sizeof(Content), 0);
+  ticket_req.msg_id = MSG_NOTIFY_USER_IDS[id];
+  ticket_req.sem_count = id;
+  ticket_req.serv = serv;
+  msgsnd(MSG_NOTIFY_DISPENSER_ID, &ticket_req, msg_size, 0);
   release_sem(SEM_NOTIFY_DISPENSER_ID, 0);
 }
 
@@ -80,4 +82,9 @@ void setup_clock_notifc(void)
   int opt_time = find_best_time(req_time, serv_req, nof_req);
   calc_times_from_serv(all_req_times, serv_req, opt_time, nof_req);
   send_notific_clock(all_req_times, serv_req, nof_req);
+}
+
+void send_service_req(TicketResp* ticket_resp)
+{
+  ServiceReq service_req = {0};
 }
