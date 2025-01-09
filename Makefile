@@ -17,19 +17,17 @@ bin/manager_main: build/manager_main.o build/sem_utils.o build/seats.o $(PROJ_DE
 bin/worker_main: build/worker_main.o build/sem_utils.o build/seats.o $(PROJ_DEPS)
 	$(CC) $(CFLAGS) -o bin/worker_main build/worker_main.o build/sem_utils.o build/seats.o $(PROJ_DEPS)
 
-bin/clock_main: build/clock_main.o build/sem_utils.o $(PROJ_DEPS)
-	$(CC) $(CFLAGS) -o bin/clock_main build/clock_main.o build/sem_utils.o $(PROJ_DEPS)
+bin/clock_main: build/clock_main.o build/sem_utils.o build/clock.o $(PROJ_DEPS)
+	$(CC) $(CFLAGS) -o bin/clock_main build/clock_main.o build/sem_utils.o build/clock.o $(PROJ_DEPS)
 
-bin/user_main: build/user_main.o build/sem_utils.o $(PROJ_DEPS)
-	$(CC) $(CFLAGS) -o bin/user_main build/user_main.o build/sem_utils.o $(PROJ_DEPS)
+bin/user_main: build/user_main.o build/sem_utils.o build/user.o $(PROJ_DEPS)
+	$(CC) $(CFLAGS) -o bin/user_main build/user_main.o build/sem_utils.o build/user.o $(PROJ_DEPS)
 
-bin/ticket_dispenser_main: build/ticket_dispenser_main.o build/sem_utils.o build/seats.o $(PROJ_DEPS)
-	$(CC) $(CFLAGS) -o bin/ticket_dispenser_main build/ticket_dispenser_main.o build/sem_utils.o build/seats.o $(PROJ_DEPS)
+bin/ticket_dispenser_main: build/ticket_dispenser_main.o build/sem_utils.o build/seats.o build/ticket_dispenser.o $(PROJ_DEPS)
+	$(CC) $(CFLAGS) -o bin/ticket_dispenser_main build/ticket_dispenser_main.o build/sem_utils.o build/seats.o build/ticket_dispenser.o $(PROJ_DEPS)
 
 clean:
 	rm -f build/* bin/*
-
-
 
 #build/tests/%.o: tests/%.c $(COMMON_DEPS)
 #	$(CC) $(CFLAGS) -c $< -o $@

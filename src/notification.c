@@ -21,9 +21,14 @@ size_t get_notifc_size(MesType mes_type)
   MSG_ERROR("Not valid MesType");
 }
 
-MesType get_notifications(MesType notifc_filter[], int nof_notifc, int msg_id, int sem_id, int sem_count,
-              void** notifc_mes)
+MesType get_notifications(GetNotfParam* get_notf_param)
 {
+  MesType* notifc_filter = get_notf_param->notifc_filter;
+  int nof_notifc = get_notf_param->nof_notifc;
+  int msg_id = get_notf_param->msg_id;
+  int sem_id = get_notf_param->sem_id;
+  int sem_count = get_notf_param->sem_count;
+  void **notifc_mes = get_notf_param->notifc_mes;
   size_t notific_size = get_notifc_size(notifc_filter[0]);
   *notifc_mes = (void*)malloc(notific_size);
   if (NULL == *notifc_mes) { FUNC_PERROR(); }

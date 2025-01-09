@@ -18,19 +18,7 @@
 #include "sem.h"
 #include "msg.h"
 #include "struct.h"
-
-typedef struct
-{
-  int status;
-  int msg_id;
-  int sem_count;
-} Ticket;
-
-typedef struct
-{
-  long mtype;
-  Ticket ticket;
-} DispenserMsg;
+#include "ticket_dispenser.h"
 
 void setup(void)
 {
@@ -49,14 +37,20 @@ void start(void)
 
 void core(void)
 {
-  int nof_notifc = 3;
+  int nof_notifc = 2;
   MesType notifc_filter[] = {DAY_ENDED, TICKET_REQ};
   void* notifc = NULL;
+  GetNotfParam get_notf_param = {0};
+  get_notf_param.notifc_filter = notifc_filter;
+  get_notf_param.nof_notifc = nof_notifc;
+  get_notf_param.msg_id = MSG_NOTIFY_DISPENSER_ID;
+  get_notf_param.sem_id = SEM_NOTIFY_DISPENSER_ID;
+  get_notf_param.sem_count = 0;
+  get_notf_param.notifc_mes = &notifc;
   while (1)
   {
     if (notifc != NULL) { free(notifc); }
-    MesType notification = get_notifications(notifc_filter, nof_notifc, MSG_NOTIFY_DISPENSER_ID,
-                                 SEM_NOTIFY_DISPENSER_ID, 0, &notifc);
+    MesType notification = get_notifications(&get_notf_param);
     if (DAY_ENDED == notification)
     {
       free(notifc);
@@ -65,23 +59,7 @@ void core(void)
     else if (TICKET_REQ == notification)
     {
       TicketReq* ticket_req = (TicketReq*)notifc;
-      Service asked_serv = (Service)ticket_req->serv;
-      log_trace("ticke disp richiesta ticket -> serv: %d, user: %d", asked_serv,
-                ticket_req->sem_count);
-      SeatInfo seat_info = {0};
-      int service_available = seats_get_less_worker(asked_serv, &seat_info);
-      TicketResp ticket_resp = {0};
-      ticket_resp.mtype = TICKET_RESP;
-      ticket_resp.worker_sem_count = seat_info.sem_notify_worker_count;
-      ticket_resp.worker_msg_id = seat_info.msg_notify_worker_id;
-      ticket_resp.serv = asked_serv;
-      if (1 == service_available) { ticket_resp.status = 1; }
-      else { ticket_resp.status = 0; }
-      if (-1 == msgsnd(ticket_req->msg_id, &ticket_resp, get_notifc_size(TICKET_RESP), 0))
-      {
-        FUNC_PERROR();
-      }
-      if (-1 == release_sem(SEM_NOTIFY_USER_ID, ticket_req->sem_count)) { FUNC_PERROR(); }
+      handle_ticket_req(ticket_req);
     }
   }
 }
