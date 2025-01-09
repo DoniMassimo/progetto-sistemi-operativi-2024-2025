@@ -14,6 +14,7 @@
 #include "sem_utils.h"
 #include "struct.h"
 #include "sem_utils.h"
+#define MAX_LATE_REQUESTS INT_MAX
 
 ServiceDuration service_duration[SERV_NUM] = {{SEND_PICK_PARC, 15},  {SEND_LET_REG, 12},
                                               {WDRAWALS_DEPOSIT, 9}, {PAY_POST_BULL, 12},
@@ -24,6 +25,27 @@ int get_serv_duration(Service* serv, int serv_num)
   int sum = 0;
   for (int i = 0; i < serv_num; i++) { sum += service_duration[serv[i]].duration; }
   return sum;
+}
+
+void handle_late_request(int requested_time, int serv_duration, int* calendar, Service* serv,
+                         int serv_num)
+{
+  int last_minute = MINUTES_IN_DAY - 1;
+  calendar[last_minute]++;
+
+  static LateRequest late_requests[MAX_LATE_REQUESTS];
+  static int late_requests_count = 0;
+
+  if (late_requests_count < NOF_USERS)
+  {
+    late_requests[late_requests_count].requested_time = requested_time;
+    late_requests[late_requests_count].duration = serv_duration;
+    late_requests[late_requests_count].serv_num = serv_num;
+    for (int i = 0; i < serv_num; i++) { late_requests[late_requests_count].serv[i] = serv[i]; }
+    late_requests_count++;
+  }
+  else { log_error("Too many late requests."); }
+  
 }
 
 int find_best_time(int requested_time, Service* serv, int serv_num)
@@ -38,8 +60,8 @@ int find_best_time(int requested_time, Service* serv, int serv_num)
   for (int i = -60; i <= 60; i++)
   {
     int current_minute = requested_time + i;
-    if (current_minute < 0 || current_minute >= MINUTES_IN_DAY) { continue; }
-    else if (serv_duration + current_minute >= MINUTES_IN_DAY) { continue; }
+    if (current_minute < 0 || current_minute >= MINUTES_IN_DAY) { handle_late_request(requested_time, serv_duration, calendar, serv, serv_num); }
+    else if (serv_duration + current_minute >= MINUTES_IN_DAY) { handle_late_request(requested_time, serv_duration, calendar, serv, serv_num); }
     else
     {
       int sum = 0;

@@ -11,6 +11,7 @@ typedef enum
   TICKET_RESP,
   CLOCK_REQ,
   CLOCK_NOTIFC,
+  TOO_LATE_REQUEST,
   NO_MES,
 } MesType;
 
@@ -23,8 +24,17 @@ typedef struct
 
 typedef struct
 {
+  int requested_time;
+  int duration;
+  Service serv[SERV_NUM];
+  int serv_num;
+} LateRequest;
+
+typedef struct
+{
   long mtype;
   Content content;
+  LateRequest late_request;
 } ComStruct;
 
 typedef struct
