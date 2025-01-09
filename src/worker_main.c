@@ -47,11 +47,17 @@ void core(void)
   int nof_notifc = 1;
   MesType notifc_filter[] = {DAY_ENDED};
   void* notifc = NULL;
+  GetNotfParam get_notf_param = {0};
+  get_notf_param.notifc_filter = notifc_filter;
+  get_notf_param.nof_notifc = nof_notifc;
+  get_notf_param.msg_id = MSG_NOTIFY_WORKER_IDS[id];
+  get_notf_param.sem_id = SEM_NOTIFY_WORKER_ID;
+  get_notf_param.sem_count = id;
+  get_notf_param.notifc_mes = &notifc;
   while (1)
   {
     if (notifc != NULL) { free(notifc); }
-    MesType notification = get_notifications(notifc_filter, nof_notifc, MSG_NOTIFY_WORKER_IDS[id],
-                                 SEM_NOTIFY_WORKER_ID, id, &notifc);
+    MesType notification = get_notifications(&get_notf_param);
     if (DAY_ENDED == notification)
     {
       free(notifc);
