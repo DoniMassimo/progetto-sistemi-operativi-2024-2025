@@ -51,6 +51,7 @@ void SHM_SEATS_INDEX_config(void)
 
 void SHM_WORKERS_PID_init(void)
 {
+  if (NOF_WORKERS < 1) { return; }
   size_t workers_pid_size = sizeof(pid_t) * (size_t)NOF_WORKERS;
   SHM_WORKERS_PID_ID = shmget(SHM_WORKERS_PID_KEY, workers_pid_size, 0666 | IPC_CREAT);
   if (-1 == SHM_WORKERS_PID_ID) { FUNC_PERROR(); }
@@ -62,6 +63,7 @@ void SHM_WORKERS_PID_init(void)
 
 void SHM_WORKERS_PID_config(void)
 {
+  if (NOF_WORKERS < 1) { return; }
   size_t workers_pid_size = sizeof(pid_t) * (size_t)NOF_WORKERS;
   SHM_WORKERS_PID_ID = shmget(SHM_WORKERS_PID_KEY, workers_pid_size, 0666);
   if (-1 == SHM_WORKERS_PID_ID) { FUNC_PERROR(); }

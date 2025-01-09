@@ -5,6 +5,7 @@
 #include <sys/sem.h>
 #include <sys/msg.h>
 #include <errno.h>
+#include "notification.h"
 #include "config.h"
 #include "ftok_key.h"
 #include "macros.h"
@@ -40,25 +41,22 @@ void start(void)
   if (-1 == lock_sem(SEM_START_ID, 0)) { FUNC_PERROR(); }
 }
 
-MesType get_notifications(ComStruct* com_struct)
-{
-  if (-1 == lock_sem(SEM_NOTIFY_WORKER_ID, id)) { FUNC_PERROR(); }
-  if (-1 == msgrcv(MSG_NOTIFY_WORKER_IDS[id], com_struct, sizeof(Content), DAY_ENDED, IPC_NOWAIT))
-  {
-    if (ENOMSG != errno) { FUNC_PERROR(); }
-  }
-  else { return DAY_ENDED; }
-  MSG_ERROR("Expect to find message\n");
-}
-
 void core(void)
 {
   seats_try_take_seat(assigned_service, id);
-  ComStruct com_struct = {0};
+  int nof_notifc = 1;
+  MesType notifc_filter[] = {DAY_ENDED};
+  void* notifc = NULL;
   while (1)
   {
-    MesType notification = get_notifications(&com_struct);
-    if (DAY_ENDED == notification) { return; }
+    if (notifc != NULL) { free(notifc); }
+    MesType notification = get_notifications(notifc_filter, nof_notifc, MSG_NOTIFY_WORKER_IDS[id],
+                                 SEM_NOTIFY_WORKER_ID, id, &notifc);
+    if (DAY_ENDED == notification)
+    {
+      free(notifc);
+      return;
+    }
   }
 }
 

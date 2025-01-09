@@ -18,6 +18,7 @@
 #include "sem.h"
 #include "msg.h"
 #include "struct.h"
+#include "notification.h"
 
 int id;
 int P_SERV;
@@ -37,8 +38,8 @@ void setup(char arg_1[])
 
 void send_notific_clock(int req_times[], Service* serv_req, int nof_req)
 {
-  size_t notific_size = sizeof(ClockCom) + (sizeof(Service) + sizeof(int)) * (size_t)nof_req;
-  ClockCom* notification = (ClockCom*)malloc(notific_size);
+  size_t notific_size = sizeof(ClockReq) + (sizeof(Service) + sizeof(int)) * (size_t)nof_req;
+  ClockReq* notification = (ClockReq*)malloc(notific_size);
   if (NULL == notification) { FUNC_PERROR(); }
   size_t times_size = sizeof(int) * (size_t)nof_req;
   size_t serv_size = sizeof(Service) * (size_t)nof_req;
@@ -96,29 +97,7 @@ void start(void)
 {
   setup_request();
   if (-1 == release_sem(SEM_PROC_READY_ID, 0)) { FUNC_PERROR(); }
-  int sem_res = lock_sem(SEM_START_ID, 0);
-  if (-1 == sem_res) { FUNC_PERROR(); }
-}
-
-MesType get_notifications(ComStruct* com_struct)
-{
-  if (-1 == lock_sem(SEM_NOTIFY_USER_ID, id)) { FUNC_PERROR(); }
-  if (-1 == msgrcv(MSG_NOTIFY_USER_IDS[id], com_struct, sizeof(Content), DAY_ENDED, IPC_NOWAIT))
-  {
-    if (ENOMSG != errno) { FUNC_PERROR(); }
-  }
-  else { return DAY_ENDED; }
-  if (-1 == msgrcv(MSG_NOTIFY_USER_IDS[id], com_struct, sizeof(Content), TICKET_RESP, IPC_NOWAIT))
-  {
-    if (ENOMSG != errno) { FUNC_PERROR(); }
-  }
-  else { return TICKET_RESP; }
-  if (-1 == msgrcv(MSG_NOTIFY_USER_IDS[id], com_struct, sizeof(Content), CLOCK_NOTIFC, IPC_NOWAIT))
-  {
-    if (ENOMSG != errno) { FUNC_PERROR(); }
-  }
-  else { return CLOCK_NOTIFC; }
-  MSG_ERROR("Expect to find message\n");
+  if (-1 == lock_sem(SEM_START_ID, 0)) { FUNC_PERROR(); }
 }
 
 void send_ticket_request(Service serv)
@@ -134,20 +113,31 @@ void send_ticket_request(Service serv)
 
 void core(void)
 {
+  int nof_notifc = 3;
+  MesType notifc_filter[] = {DAY_ENDED, CLOCK_NOTIFC, TICKET_RESP};
   ComStruct com_struct = {0};
+  void* notifc = NULL;
   while (1)
   {
-    MesType notification = get_notifications(&com_struct);
-    if (DAY_ENDED == notification) { return; }
+    if (notifc != NULL) { free(notifc); }
+    MesType notification =
+        get_notifications(notifc_filter, nof_notifc, MSG_NOTIFY_USER_IDS[id], SEM_NOTIFY_USER_ID, id, &notifc);
+    if (DAY_ENDED == notification)
+    {
+      free(notifc);
+      return;
+    }
     else if (TICKET_RESP == notification)
     {
-      log_trace("user %d risposta ticket -> esito: %d", id, com_struct.content.info);
+      TicketResp* ticke_resp = (TicketResp*)notifc;
+      log_trace("user %d risposta ticket -> esito: %d", id, ticke_resp->status);
       if (1 == com_struct.content.info) {}
     }
     else if (CLOCK_NOTIFC == notification)
     {
-      log_trace("user %d riceve notifica -> serv: %d", id, com_struct.content.info);
-      send_ticket_request((Service)com_struct.content.info);
+      ClockNotifc* clock_req = (ClockNotifc*)notifc;
+      log_trace("user %d riceve notifica -> serv: %d", id, clock_req->serv);
+      send_ticket_request((Service)clock_req->serv);
     }
   }
 }

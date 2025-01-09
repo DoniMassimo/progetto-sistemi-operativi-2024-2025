@@ -19,6 +19,7 @@
 
 void init_workers(void)
 {
+  if (NOF_WORKERS < 1) { return; }
   pid_t* workers_pid = shmat(SHM_WORKERS_PID_ID, NULL, 0);
   if ((pid_t*)-1 == (pid_t*)workers_pid) { FUNC_PERROR(); }
   int assigned_worker[SERV_NUM];

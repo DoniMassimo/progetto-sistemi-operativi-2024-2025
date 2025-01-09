@@ -97,6 +97,7 @@ void SEM_PROC_READY_ID_config(void)
 
 void SEM_NOTIFY_WORKER_ID_init(void)
 {
+  if (NOF_WORKERS < 1) { return; }
   SEM_NOTIFY_WORKER_ID = semget(SEM_NOTIFY_WORKER_KEY, NOF_WORKERS, 0666 | IPC_CREAT);
   if (-1 == SEM_NOTIFY_WORKER_ID) { FUNC_PERROR(); }
   for (int i = 0; i < NOF_WORKERS; i++) { init_sem_zero(SEM_NOTIFY_WORKER_ID, i); }
@@ -104,6 +105,7 @@ void SEM_NOTIFY_WORKER_ID_init(void)
 
 void SEM_NOTIFY_WORKER_ID_config(void)
 {
+  if (NOF_WORKERS < 1) { return; }
   SEM_NOTIFY_WORKER_ID = semget(SEM_NOTIFY_WORKER_KEY, NOF_WORKERS, 0666);
   if (-1 == SEM_NOTIFY_WORKER_ID) { FUNC_PERROR(); }
 }

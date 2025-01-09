@@ -13,7 +13,6 @@
 #include "shm.h"
 #include "msg.h"
 #include "utils.h"
-#include "sig_utils.h"
 
 void seats_init_resources(int* assigned_serv_seats)
 {

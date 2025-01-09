@@ -13,6 +13,7 @@
 #include "shm.h"
 #include "sem_utils.h"
 #include "struct.h"
+#include "notification.h"
 
 typedef struct
 {
@@ -35,7 +36,7 @@ void setup(void)
   shm_config();
 }
 
-void add_user_notific(ClockCom* clock_com, size_t* curr_nof_user_notfc)
+void add_user_notific(ClockReq* clock_com, size_t* curr_nof_user_notfc)
 {
   size_t data_count = clock_com->times_size / sizeof(int);
   int* ptr_times = (int*)clock_com->data;
@@ -75,8 +76,8 @@ void setup_user_notific(void)
   user_notific = (UserNotific*)malloc(sizeof(UserNotific) * 2);
   if (NULL == user_notific) { FUNC_PERROR(); }
   user_notf_size = 2;
-  size_t max_content_size = sizeof(ClockCom) + (sizeof(Service) + sizeof(int)) * (size_t)N_REQUESTS;
-  ClockCom* clock_com = (ClockCom*)malloc(max_content_size);
+  size_t max_content_size = sizeof(ClockReq) + (sizeof(Service) + sizeof(int)) * (size_t)N_REQUESTS;
+  ClockReq* clock_com = (ClockReq*)malloc(max_content_size);
   if (NULL == clock_com) { FUNC_PERROR(); }
   size_t curr_nof_user_notfc = 0;
   int user_set = 0;
@@ -117,7 +118,10 @@ void send_msg_day_ended(void)
   {
     if (-1 == msgsnd(MSG_NOTIFY_WORKER_IDS[i], &com_struct, sizeof(Content), 0)) { FUNC_PERROR(); }
   }
-  if (-1 == release_all_sem(SEM_NOTIFY_WORKER_ID, NOF_WORKERS)) { FUNC_PERROR(); }
+  if (NOF_WORKERS > 0)
+  {
+    if (-1 == release_all_sem(SEM_NOTIFY_WORKER_ID, NOF_WORKERS)) { FUNC_PERROR(); }
+  }
   if (-1 == msgsnd(MSG_NOTIFY_DISPENSER_ID, &com_struct, sizeof(Content), 0)) { FUNC_PERROR(); }
   if (-1 == release_sem(SEM_NOTIFY_DISPENSER_ID, 0)) { FUNC_PERROR(); }
 }
@@ -131,14 +135,12 @@ void send_user_notific(int curr_min)
     Service serv = user_notific[user_notf_index].serv;
     int msg_id = user_notific[user_notf_index].msg_id;
     int sem_count = user_notific[user_notf_index].sem_count;
-    ComStruct notifc_struct = {0};
-    notifc_struct.mtype = CLOCK_NOTIFC;
-    notifc_struct.content.sem_count = -1;
-    notifc_struct.content.msg_id = -1;
-    notifc_struct.content.info = (int)serv;
+    ClockNotifc clock_notifc = {0};
+    clock_notifc.mtype = CLOCK_NOTIFC;
+    clock_notifc.serv = (int)serv;
     log_trace("clock test invio notifica -> user: %d time: %d serv: %d msg_id: %d", sem_count, time,
               serv, msg_id);
-    msgsnd(msg_id, &notifc_struct, sizeof(Content), 0);
+    msgsnd(msg_id, &clock_notifc, get_notifc_size(CLOCK_NOTIFC), 0);
     release_sem(SEM_NOTIFY_USER_ID, sem_count);
     user_notf_index++;
   }

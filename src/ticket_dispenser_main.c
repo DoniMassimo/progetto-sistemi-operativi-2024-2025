@@ -7,6 +7,7 @@
 #include <sys/shm.h>
 #include <sys/msg.h>
 #include "seats.h"
+#include "notification.h"
 #include "log.h"
 #include "utils.h"
 #include "macros.h"
@@ -46,47 +47,41 @@ void start(void)
   if (-1 == lock_sem(SEM_START_ID, 0)) { FUNC_PERROR(); }
 }
 
-MesType get_notifications(ComStruct* com_struct)
-{
-  if (-1 == lock_sem(SEM_NOTIFY_DISPENSER_ID, 0)) { FUNC_PERROR(); }
-  if (-1 == msgrcv(MSG_NOTIFY_DISPENSER_ID, com_struct, sizeof(Content), DAY_ENDED, IPC_NOWAIT))
-  {
-    if (ENOMSG != errno) { FUNC_PERROR(); }
-  }
-  else { return DAY_ENDED; }
-  if (-1 == msgrcv(MSG_NOTIFY_DISPENSER_ID, com_struct, sizeof(Content), TICKET_REQ, IPC_NOWAIT))
-  {
-    if (ENOMSG != errno) { FUNC_PERROR(); }
-  }
-  else { return TICKET_REQ; }
-  MSG_ERROR("Expect to find message\n");
-}
-
 void core(void)
 {
-  ComStruct com_struct = {0};
+  int nof_notifc = 3;
+  MesType notifc_filter[] = {DAY_ENDED, TICKET_REQ};
+  void* notifc = NULL;
   while (1)
   {
-    MesType notification = get_notifications(&com_struct);
-    if (DAY_ENDED == notification) { return; }
+    if (notifc != NULL) { free(notifc); }
+    MesType notification = get_notifications(notifc_filter, nof_notifc, MSG_NOTIFY_DISPENSER_ID,
+                                 SEM_NOTIFY_DISPENSER_ID, 0, &notifc);
+    if (DAY_ENDED == notification)
+    {
+      free(notifc);
+      return;
+    }
     else if (TICKET_REQ == notification)
     {
-      Service asked_serv = (Service)com_struct.content.info;
+      TicketReq* ticket_req = (TicketReq*)notifc;
+      Service asked_serv = (Service)ticket_req->serv;
       log_trace("ticke disp richiesta ticket -> serv: %d, user: %d", asked_serv,
-                com_struct.content.sem_count);
+                ticket_req->sem_count);
       SeatInfo seat_info = {0};
       int service_available = seats_get_less_worker(asked_serv, &seat_info);
-      ComStruct resp_struct = {0};
-      resp_struct.mtype = TICKET_RESP;
-      resp_struct.content.sem_count = seat_info.sem_notify_worker_count;
-      resp_struct.content.msg_id = seat_info.msg_notify_worker_id;
-      if (1 == service_available) { resp_struct.content.info = 1; }
-      else { resp_struct.content.info = 0; }
-      if (-1 == msgsnd(com_struct.content.msg_id, &resp_struct, sizeof(Content), 0))
+      TicketResp ticket_resp = {0};
+      ticket_resp.mtype = TICKET_RESP;
+      ticket_resp.worker_sem_count = seat_info.sem_notify_worker_count;
+      ticket_resp.worker_msg_id = seat_info.msg_notify_worker_id;
+      ticket_resp.serv = asked_serv;
+      if (1 == service_available) { ticket_resp.status = 1; }
+      else { ticket_resp.status = 0; }
+      if (-1 == msgsnd(ticket_req->msg_id, &ticket_resp, get_notifc_size(TICKET_RESP), 0))
       {
         FUNC_PERROR();
       }
-      if (-1 == release_sem(SEM_NOTIFY_USER_ID, com_struct.content.sem_count)) { FUNC_PERROR(); }
+      if (-1 == release_sem(SEM_NOTIFY_USER_ID, ticket_req->sem_count)) { FUNC_PERROR(); }
     }
   }
 }
