@@ -46,13 +46,6 @@ Questo comando avvierà tutti i componenti necessari del progetto.
 
 La configurazione del sistema è definita nel file `config.c`. È possibile modificare i parametri di configurazione come il numero di lavoratori, utenti, e la durata dei servizi.
 
-## Test
-
-Il progetto utilizza il framework di test Unity. Per eseguire i test, utilizzare il comando:
-
-```sh
-make test
-```
 
 ## Autori
 

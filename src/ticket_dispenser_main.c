@@ -60,8 +60,6 @@ void core(void)
     else if (TICKET_REQ == notification)
     {
       TicketReq* ticket_req = (TicketReq*)notifc;
-      log_trace("ticke_disp R ticket_req -> serv: %d, user: %d", ticket_req->serv,
-                ticket_req->sem_count);
       handle_ticket_req(ticket_req);
     }
   }

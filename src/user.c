@@ -24,7 +24,7 @@ void send_notific_clock(int req_times[], Service* serv_req, int nof_req)
   size_t serv_size = sizeof(Service) * (size_t)nof_req;
   for (int i = 0; i < nof_req; i++)
   {
-    log_trace("user %d clock_req -> serv: %d time: %d", id, serv_req[i], req_times[i]);
+    log_trace("user %d S clock_req -> serv: %d time: %d", id, serv_req[i], req_times[i]);
   }
   if (nof_req > 0)
   {

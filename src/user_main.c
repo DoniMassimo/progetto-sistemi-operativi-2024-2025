@@ -66,14 +66,20 @@ void core(void)
     else if (TICKET_RESP == notification)
     {
       TicketResp* ticket_resp = (TicketResp*)notifc;
-      log_trace("user %d ticket_resp -> status: %d", id, ticket_resp->status);
-      if (1 == ticket_resp->status) { send_serv_request(ticket_resp); }
+      log_trace("user %d R ticket_resp -> serv: %d status: %d", id, ticket_resp->serv,
+                ticket_resp->status);
+      if (1 == ticket_resp->status)
+      {
+        log_trace("user %d S service_req -> serv: %d worker: %d", id, ticket_resp->serv,
+                  ticket_resp->worker_sem_count);
+        send_serv_request(ticket_resp);
+      }
       int new_filter[] = {DAY_ENDED, SERVICE_RESP};
       memcpy(get_notf_param.notifc_filter, new_filter, sizeof(MesType) * 2);
     }
     else if (SERVICE_RESP == notification)
     {
-      log_trace("user %d -> risposta servizio", id);
+      log_trace("user %d R service_resp-> risposta servizio", id);
       ServiceResp* service_resp = (ServiceResp*)notifc;
       if (0 == service_resp->data) { MSG_ERROR("Expecting 1"); }
       get_notf_param.can_skip = 0;
@@ -86,7 +92,7 @@ void core(void)
     else if (CLOCK_NOTIFC == notification)
     {
       ClockNotifc* clock_notifc = (ClockNotifc*)notifc;
-      log_trace("user %d clock_notifc -> serv: %d", id, clock_notifc->serv);
+      log_trace("user %d R clock_notifc -> serv: %d", id, clock_notifc->serv);
       send_ticket_request((Service)clock_notifc->serv);
       get_notf_param.can_skip = 1;
       get_notf_param.nof_notifc = 2;
