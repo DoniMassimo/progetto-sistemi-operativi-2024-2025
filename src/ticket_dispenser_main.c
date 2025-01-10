@@ -46,6 +46,7 @@ void core(void)
   get_notf_param.msg_id = MSG_NOTIFY_DISPENSER_ID;
   get_notf_param.sem_id = SEM_NOTIFY_DISPENSER_ID;
   get_notf_param.sem_count = 0;
+  get_notf_param.can_skip = 0;
   get_notf_param.notifc_mes = &notifc;
   while (1)
   {
@@ -59,6 +60,8 @@ void core(void)
     else if (TICKET_REQ == notification)
     {
       TicketReq* ticket_req = (TicketReq*)notifc;
+      log_trace("ticke_disp R ticket_req -> serv: %d, user: %d", ticket_req->serv,
+                ticket_req->sem_count);
       handle_ticket_req(ticket_req);
     }
   }

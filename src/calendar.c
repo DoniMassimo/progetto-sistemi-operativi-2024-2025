@@ -15,14 +15,25 @@
 #include "struct.h"
 #include "sem_utils.h"
 
-ServiceDuration service_duration[SERV_NUM] = {{SEND_PICK_PARC, 15},  {SEND_LET_REG, 12},
+ServiceDuration service_duration_max[SERV_NUM] = {{SEND_PICK_PARC, 15},  {SEND_LET_REG, 12},
                                               {WDRAWALS_DEPOSIT, 9}, {PAY_POST_BULL, 12},
                                               {PURCH_FIN_PROD, 30},  {PURCH_WATCH_BRAC, 30}};
+
+ServiceDuration service_duration[SERV_NUM] = {{SEND_PICK_PARC, 10},  {SEND_LET_REG, 8},
+                                              {WDRAWALS_DEPOSIT, 6}, {PAY_POST_BULL, 8},
+                                              {PURCH_FIN_PROD, 20},  {PURCH_WATCH_BRAC, 20}};
 
 int get_serv_duration(Service* serv, int serv_num)
 {
   int sum = 0;
   for (int i = 0; i < serv_num; i++) { sum += service_duration[serv[i]].duration; }
+  return sum;
+}
+
+int get_serv_duration_max(Service* serv, int serv_num)
+{
+  int sum = 0;
+  for (int i = 0; i < serv_num; i++) { sum += service_duration_max[serv[i]].duration; }
   return sum;
 }
 

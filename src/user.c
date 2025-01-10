@@ -17,29 +17,29 @@ int P_SERV;
 
 void send_notific_clock(int req_times[], Service* serv_req, int nof_req)
 {
-  size_t notific_size = sizeof(ClockReq) + (sizeof(Service) + sizeof(int)) * (size_t)nof_req;
-  ClockReq* notification = (ClockReq*)malloc(notific_size);
-  if (NULL == notification) { FUNC_PERROR(); }
+  size_t clock_req_size = get_notifc_size(CLOCK_REQ);
+  ClockReq* clock_req = (ClockReq*)malloc(clock_req_size + sizeof(long));
+  if (NULL == clock_req) { FUNC_PERROR(); }
   size_t times_size = sizeof(int) * (size_t)nof_req;
   size_t serv_size = sizeof(Service) * (size_t)nof_req;
   for (int i = 0; i < nof_req; i++)
   {
-    log_trace("user %d invia richiesta -> serv: %d time: %d", id, serv_req[i], req_times[i]);
+    log_trace("user %d clock_req -> serv: %d time: %d", id, serv_req[i], req_times[i]);
   }
   if (nof_req > 0)
   {
-    memcpy(notification->data, req_times, times_size);
-    memcpy(notification->data + times_size, serv_req, serv_size);
+    memcpy(clock_req->data, req_times, times_size);
+    memcpy(clock_req->data + times_size, serv_req, serv_size);
   }
-  notification->mtype = CLOCK_REQ;
+  clock_req->mtype = CLOCK_REQ;
   if (nof_req > 0)
   {
-    notification->msg_id = MSG_NOTIFY_USER_IDS[id];
-    notification->sem_count = id;
+    clock_req->msg_id = MSG_NOTIFY_USER_IDS[id];
+    clock_req->sem_count = id;
   }
-  notification->times_size = times_size;
-  notification->serv_req_size = serv_size;
-  if (-1 == msgsnd(MSG_NOTIFY_CLOCK_ID, notification, notific_size - sizeof(long), 0))
+  clock_req->times_size = times_size;
+  clock_req->serv_req_size = serv_size;
+  if (-1 == msgsnd(MSG_NOTIFY_CLOCK_ID, clock_req, clock_req_size, 0))
   {
     FUNC_PERROR();
   }
@@ -55,6 +55,19 @@ void send_ticket_request(Service serv)
   ticket_req.serv = serv;
   msgsnd(MSG_NOTIFY_DISPENSER_ID, &ticket_req, msg_size, 0);
   release_sem(SEM_NOTIFY_DISPENSER_ID, 0);
+}
+
+void send_serv_request(TicketResp* ticket_resp)
+{
+  ServiceReq service_req = {0};
+  service_req.mtype = SERVICE_REQ;
+  service_req.serv = ticket_resp->serv;
+  service_req.user_msg_id = MSG_NOTIFY_USER_IDS[id];
+  service_req.user_sem_id = SEM_NOTIFY_USER_ID;
+  service_req.user_sem_count = id;
+  size_t notifc_size = get_notifc_size(SERVICE_REQ);
+  msgsnd(ticket_resp->worker_msg_id, &service_req, notifc_size, 0);
+  if (-1 == release_sem(SEM_NOTIFY_WORKER_ID, ticket_resp->worker_sem_count)) { FUNC_PERROR(); }
 }
 
 void calc_times_from_serv(int all_req_times[], Service serv_req[], int req_time, int nof_req)
@@ -84,7 +97,3 @@ void setup_clock_notifc(void)
   send_notific_clock(all_req_times, serv_req, nof_req);
 }
 
-void send_service_req(TicketResp* ticket_resp)
-{
-  ServiceReq service_req = {0};
-}

@@ -27,6 +27,7 @@ typedef struct
   int user_msg_id;
   int user_sem_id;
   int user_sem_count;
+  Service serv;
 } ServiceReq;
 
 typedef struct

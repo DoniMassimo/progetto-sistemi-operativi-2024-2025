@@ -74,6 +74,15 @@ int release_sem(int semid, int sem_num)
   return semop(semid, &sops, 1);
 }
 
+int release_sem_val(int semid, int sem_num, int val)
+{
+  struct sembuf sops;
+  sops.sem_num = (short unsigned int)sem_num;
+  sops.sem_op = (short int)val;
+  sops.sem_flg = 0;
+  return semop(semid, &sops, 1);
+}
+
 int release_all_sem(int semid, int sem_count)
 {
   struct sembuf sops[sem_count];

@@ -5,6 +5,7 @@
 #include "macros.h"
 #include "notification.h"
 #include "struct.h"
+#include "log.h"
 #include "msg.h"
 #include "sem.h"
 #include "shm.h"
@@ -111,8 +112,8 @@ void send_user_notific(int curr_min)
     ClockNotifc clock_notifc = {0};
     clock_notifc.mtype = CLOCK_NOTIFC;
     clock_notifc.serv = (int)serv;
-    log_trace("clock test invio notifica -> user: %d time: %d serv: %d msg_id: %d", sem_count, time,
-              serv, msg_id);
+    log_trace("clock clock_notifc -> user: %d time: %d serv: %d msg_id: %d", sem_count, time, serv,
+              msg_id);
     msgsnd(msg_id, &clock_notifc, get_notifc_size(CLOCK_NOTIFC), 0);
     release_sem(SEM_NOTIFY_USER_ID, sem_count);
     user_notf_index++;

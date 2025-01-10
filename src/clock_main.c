@@ -6,7 +6,6 @@
 #include "config.h"
 #include "calendar.h"
 #include "ftok_key.h"
-#include "log.h"
 #include "macros.h"
 #include "sem.h"
 #include "msg.h"

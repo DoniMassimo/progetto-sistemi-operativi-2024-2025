@@ -16,7 +16,6 @@
 void handle_ticket_req(TicketReq* ticket_req)
 {
   Service asked_serv = (Service)ticket_req->serv;
-  log_trace("ticke disp richiesta ticket -> serv: %d, user: %d", asked_serv, ticket_req->sem_count);
   SeatInfo seat_info = {0};
   int service_available = seats_get_less_worker(asked_serv, &seat_info);
   TicketResp ticket_resp = {0};
