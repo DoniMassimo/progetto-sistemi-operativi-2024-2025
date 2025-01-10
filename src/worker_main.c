@@ -100,7 +100,7 @@ int prov_serv_paused_worker(SeatFreeCom* seat_free_com)
 
 void comunicate_free_seat(void)
 {
-  for (int i = 0; i < NOF_WORKER; i++)
+  for (int i = 0; i < NOF_WORKERS; i++)
   {
     if (i == id) { continue; }
     SeatFreeCom seat_free_com = {0};
@@ -109,7 +109,7 @@ void comunicate_free_seat(void)
     seat_free_com.worker_msg_id = MSG_NOTIFY_WORKER_IDS[id];
     msgsnd(MSG_NOTIFY_WORKER_IDS[i], &seat_free_com, sfc_size, 0);
   }
-  release_all_sem_excl(SEM_NOTIFY_WORKER_ID, NOF_WORKER, id);
+  release_all_sem_excl(SEM_NOTIFY_WORKER_ID, NOF_WORKERS, id);
 }
 
 void core(void)
@@ -161,7 +161,7 @@ void core(void)
     {
       if (take_seat_res != -2 && *seat_index != -1)
       {
-        seats_release_seat(assigned_service, seat_index);
+        seats_release_seat(assigned_service, *seat_index);
         comunicate_free_seat();
       }
     }
