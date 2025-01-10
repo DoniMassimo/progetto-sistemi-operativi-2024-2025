@@ -43,9 +43,9 @@ int find_best_time(int requested_time, Service* serv, int serv_num)
   int best_time = -1;
   int best_time_sum = INT_MAX;
   int closest_time = INT_MAX;
-  int emergency_time = -1; //il tempo di emergenza è il tempo più vicino al tempo richiesto
-  int emergency_time_sum = INT_MAX; //tiene traccia del minor numero di servizi in un intervallo di 2 ore
-  int emergency_time_diff = INT_MAX; //tiene traccia della differenza tra il tempo richiesto e il tempo di emergenza
+  int emergency_time = -1;
+  int emergency_time_sum = INT_MAX;
+  int emergency_time_diff = INT_MAX;
   lock_reader(SEMRW_CALENDAR_ID);
   int* calendar = (int*)shmat(SHM_CALENDAR_ID, NULL, 0);
   if ((void*)-1 == (void*)calendar) { FUNC_PERROR(); }
@@ -53,20 +53,17 @@ int find_best_time(int requested_time, Service* serv, int serv_num)
   for (int i = -60; i <= 60; i++)
   {
     int current_minute = requested_time + i;
-    if (current_minute >= MINUTES_IN_DAY || serv_duration + current_minute >= MINUTES_IN_DAY) 
+    if (current_minute >= MINUTES_IN_DAY || serv_duration + current_minute >= MINUTES_IN_DAY)
     {
       int time_diff = abs(requested_time - current_minute);
-      if(time_diff < emergency_time_diff)
+      if (time_diff < emergency_time_diff)
       {
         emergency_time_diff = time_diff;
         emergency_time = current_minute;
       }
-      continue; 
-    }
-    else if(current_minute < 0)
-    {
       continue;
     }
+    else if (current_minute < 0) { continue; }
     else
     {
       int sum = 0;
@@ -78,7 +75,8 @@ int find_best_time(int requested_time, Service* serv, int serv_num)
         best_time = current_minute;
         closest_time = time_diff;
       }
-      if (sum < emergency_time_sum || (sum == emergency_time_sum && time_diff < emergency_time_diff))
+      if (sum < emergency_time_sum ||
+          (sum == emergency_time_sum && time_diff < emergency_time_diff))
       {
         emergency_time_sum = sum;
         emergency_time = current_minute;
