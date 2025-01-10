@@ -43,7 +43,7 @@ void get_bounds_serv(int* bounds, Service serv)
   if (-1 == shmdt(shm_sindex_ptr)) { FUNC_PERROR(); }
 }
 
-int seats_try_take_seat(Service serv, int worker_id)
+int seats_try_take_seat(Service serv, int worker_id, int* seat_index)
 {
   int semop_seats_res = lock_sem_nowait(SEM_SEATS_ID, serv);
   if (-1 == semop_seats_res) { FUNC_PERROR(); }
@@ -52,13 +52,13 @@ int seats_try_take_seat(Service serv, int worker_id)
   if ((void*)-1 == (void*)shm_sinfo_ptr) { FUNC_PERROR(); }
   int sinfo_serv_bounds[2];
   get_bounds_serv(sinfo_serv_bounds, serv);
+  *seat_index = -1;
   if (-1 == lock_sem(SEM_SHM_SEATS_INFO_ID, 0)) { FUNC_PERROR(); }
-  int seat_index = -1;
   for (int i = sinfo_serv_bounds[0]; i < sinfo_serv_bounds[1]; i++)
   {
     if (0 == shm_sinfo_ptr[i].seats_taken)
     {
-      seat_index = i;
+      *seat_index = i;
       shm_sinfo_ptr[i].seats_taken = 1;
       shm_sinfo_ptr[i].msg_notify_worker_id = MSG_NOTIFY_WORKER_IDS[worker_id];
       shm_sinfo_ptr[i].sem_notify_worker_count = worker_id;

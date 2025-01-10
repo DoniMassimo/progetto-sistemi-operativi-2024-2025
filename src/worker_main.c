@@ -52,11 +52,72 @@ void send_service_resp(ServiceReq* service_req)
   release_sem(service_req->user_sem_id, service_req->user_sem_count);
 }
 
+void provide_service(ServiceReq* service_req)
+{
+  if (service_req->serv != assigned_service) { MSG_ERROR("Service request not deliverable"); }
+  int serv_dur = get_serv_duration(&service_req->serv, 1);
+  int min_dur = serv_dur - (serv_dur / 2);
+  int max_dur = serv_dur + (serv_dur / 2);
+  serv_dur = min_dur + rand() % (max_dur - min_dur + 1);
+  log_trace("worker %d service_req -> duration: %d, serv: %d, user: %d", id, serv_dur,
+            service_req->serv, service_req->user_sem_count);
+  struct timespec req;
+  req.tv_sec = 0;
+  req.tv_nsec = (long int)N_NANO_SECS * serv_dur;
+  if (nanosleep(&req, NULL) == -1) { FUNC_PERROR(); }
+  send_service_resp(service_req);
+}
+
+int check_day_ended(void)
+{
+  DayEnded day_ended = {0};
+  size_t day_ended_size = get_notifc_size(DAY_ENDED);
+  if (-1 == msgrcv(MSG_NOTIFY_WORKER_IDS[id], &day_ended, day_ended_size, DAY_ENDED, IPC_NOWAIT))
+  {
+    if (ENOMSG != errno) { FUNC_PERROR(); }
+    else if (ENOMSG == errno) { return 0; }
+  }
+  else { return 1; }
+}
+
+int prov_serv_paused_worker(SeatFreeCom* seat_free_com)
+{
+  while (1)
+  {
+    if (1 == check_day_ended()) { return -1; }
+    size_t service_req_size = get_notifc_size(SERVICE_REQ);
+    ServiceReq service_req = {0};
+    if (-1 == msgrcv(seat_free_com->worker_msg_id, &service_req, service_req_size, SERVICE_REQ,
+                     IPC_NOWAIT))
+    {
+      if (ENOMSG != errno) { FUNC_PERROR(); }
+      else if (ENOMSG == errno) { break; }
+    }
+    provide_service(&service_req);
+  }
+  return 0;
+}
+
+void comunicate_free_seat(void)
+{
+  for (int i = 0; i < NOF_WORKER; i++)
+  {
+    if (i == id) { continue; }
+    SeatFreeCom seat_free_com = {0};
+    size_t sfc_size = get_notifc_size(SEAT_FREE);
+    seat_free_com.mtype = SEAT_FREE;
+    seat_free_com.worker_msg_id = MSG_NOTIFY_WORKER_IDS[id];
+    msgsnd(MSG_NOTIFY_WORKER_IDS[i], &seat_free_com, sfc_size, 0);
+  }
+  release_all_sem_excl(SEM_NOTIFY_WORKER_ID, NOF_WORKER, id);
+}
+
 void core(void)
 {
-  seats_try_take_seat(assigned_service, id);
+  int* seat_index;
+  int take_seat_res = seats_try_take_seat(assigned_service, id, seat_index);
   int nof_notifc = 2;
-  MesType notifc_filter[] = {DAY_ENDED, SERVICE_REQ};
+  MesType notifc_filter[] = {DAY_ENDED, SERVICE_REQ, SEAT_FREE};
   void* notifc = NULL;
   GetNotfParam get_notf_param = {0};
   get_notf_param.notifc_filter = notifc_filter;
@@ -78,18 +139,31 @@ void core(void)
     else if (SERVICE_REQ == notification)
     {
       ServiceReq* service_req = (ServiceReq*)notifc;
-      if (service_req->serv != assigned_service) { MSG_ERROR("Service request not deliverable"); }
-      int serv_dur = get_serv_duration(&service_req->serv, 1);
-      int min_dur = serv_dur - (serv_dur / 2);
-      int max_dur = serv_dur + (serv_dur / 2);
-      serv_dur = min_dur + rand() % (max_dur - min_dur + 1);
-      log_trace("worker %d service_req -> duration: %d, serv: %d, user: %d", id, serv_dur,
-                service_req->serv, service_req->user_sem_count);
-      struct timespec req;
-      req.tv_sec = 0;
-      req.tv_nsec = (long int)N_NANO_SECS * serv_dur;
-      if (nanosleep(&req, NULL) == -1) { FUNC_PERROR(); }
-      send_service_resp(service_req);
+      provide_service(service_req);
+    }
+    else if (SEAT_FREE == notification)
+    {
+      if (-2 == take_seat_res)
+      {
+        take_seat_res = seats_try_take_seat(assigned_service, id, seat_index);
+        if (0 == take_seat_res)
+        {
+          SeatFreeCom* seat_free_com = (SeatFreeCom*)notifc;
+          if (-1 == prov_serv_paused_worker(seat_free_com))
+          {
+            // day ended;
+            return;
+          }
+        }
+      }
+    }
+    else if (PAUSE_REQ == notification)
+    {
+      if (take_seat_res != -2 && *seat_index != -1)
+      {
+        seats_release_seat(assigned_service, seat_index);
+        comunicate_free_seat();
+      }
     }
   }
 }

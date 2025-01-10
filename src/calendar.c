@@ -14,6 +14,7 @@
 #include "sem_utils.h"
 #include "struct.h"
 #include "sem_utils.h"
+
 #define MAX_LATE_REQUESTS INT_MAX
 
 ServiceDuration service_duration_max[SERV_NUM] = {{SEND_PICK_PARC, 15},  {SEND_LET_REG, 12},
@@ -84,14 +85,10 @@ int find_best_time(int requested_time, Service* serv, int serv_num)
       }
     }
   }
-
-    // Se non è stato trovato un tempo ideale, usa il emrgency_time
   if (best_time == -1) 
   {
     best_time = emergency_time;
   }
-
-  // Assicurati che il best_time sia all'interno dei limiti della giornata lavorativa
   if (best_time < 0) 
   {
     best_time = 0;
@@ -99,7 +96,6 @@ int find_best_time(int requested_time, Service* serv, int serv_num)
   {
     best_time = MINUTES_IN_DAY - serv_duration;
   }
-
   if (-1 == shmdt(calendar)) { FUNC_PERROR(); }
   release_reader(SEMRW_CALENDAR_ID);
   if (-1 == lock_sem(SEMRW_CALENDAR_ID.sem_writer_id, 0)) { FUNC_PERROR(); }

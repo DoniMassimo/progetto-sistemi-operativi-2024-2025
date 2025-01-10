@@ -12,6 +12,8 @@ typedef enum
   TICKET_RESP,
   CLOCK_REQ,
   CLOCK_NOTIFC,
+  SEAT_FREE,
+  PAUSE_REQ,
   NO_MES,
 } MesType;
 
@@ -20,6 +22,12 @@ typedef struct
   long mtype;
   int data;
 } DayEnded;
+
+typedef struct
+{
+  long mtype;
+  int worker_msg_id;
+} SeatFreeCom;
 
 typedef struct
 {
