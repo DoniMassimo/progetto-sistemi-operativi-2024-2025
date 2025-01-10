@@ -84,6 +84,22 @@ int find_best_time(int requested_time, Service* serv, int serv_num)
       }
     }
   }
+
+    // Se non è stato trovato un tempo ideale, usa il emrgency_time
+  if (best_time == -1) 
+  {
+    best_time = emergency_time;
+  }
+
+  // Assicurati che il best_time sia all'interno dei limiti della giornata lavorativa
+  if (best_time < 0) 
+  {
+    best_time = 0;
+  } else if (best_time >= MINUTES_IN_DAY) 
+  {
+    best_time = MINUTES_IN_DAY - serv_duration;
+  }
+
   if (-1 == shmdt(calendar)) { FUNC_PERROR(); }
   release_reader(SEMRW_CALENDAR_ID);
   if (-1 == lock_sem(SEMRW_CALENDAR_ID.sem_writer_id, 0)) { FUNC_PERROR(); }
