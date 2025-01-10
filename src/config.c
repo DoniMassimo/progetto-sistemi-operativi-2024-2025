@@ -16,7 +16,7 @@ int N_REQUESTS;
 void config_load(void)
 {
   NOF_WORKERS = 7;
-  NOF_USERS = 1;
+  NOF_USERS = 10;
   NOF_WORKER_SEATS = 7;
   START_SEM_COUNT = NOF_WORKERS + NOF_USERS + 2;
   N_NANO_SECS = 5000000;
