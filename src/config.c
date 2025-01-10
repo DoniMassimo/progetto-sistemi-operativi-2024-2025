@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "config.h"
 #include "config.h"
 
@@ -16,13 +18,22 @@ int NOF_PAUSE;
 
 void config_load(void)
 {
-  NOF_WORKERS = 3;
-  NOF_USERS = 2;
-  NOF_WORKER_SEATS = 3;
-  START_SEM_COUNT = NOF_WORKERS + NOF_USERS + 2;
-  N_NANO_SECS = 5000000;
-  P_SERV_MIN = 100;
-  P_SERV_MAX = 100;
-  N_REQUESTS = 2;
-  NOF_PAUSE = 2;
+  FILE* config_file = fopen("config.txt", "r");
+  if (NULL == config_file) { FUNC_PERROR(); }
+  char line[256];
+  while (fgets(line, sizeof(line), config_file))
+  {
+    char* key = strtok(line, "=");
+    char* value = strtok(NULL, "=");
+    if (0 == strcmp(key, "NOF_WORKERS")) { NOF_WORKERS = atoi(value); }
+    else if (0 == strcmp(key, "NOF_USERS")) { NOF_USERS = atoi(value); }
+    else if (0 == strcmp(key, "NOF_WORKER_SEATS")) { NOF_WORKER_SEATS = atoi(value); }
+    else if (0 == strcmp(key, "START_SEM_COUNT")) { START_SEM_COUNT = atoi(value); }
+    else if (0 == strcmp(key, "N_NANO_SECS")) { N_NANO_SECS = (size_t)atoi(value); }
+    else if (0 == strcmp(key, "P_SERV_MIN")) { P_SERV_MIN = atoi(value); }
+    else if (0 == strcmp(key, "P_SERV_MAX")) { P_SERV_MAX = atoi(value); }
+    else if (0 == strcmp(key, "N_REQUESTS")) { N_REQUESTS = atoi(value); }
+    else if (0 == strcmp(key, "NOF_PAUSE")) { NOF_PAUSE = atoi(value); }
+  }
+  fclose(config_file);
 }
