@@ -8,3 +8,5 @@ build/compile_commands.json
 rem_ipc.sh
 temp.md
 gdb.txt
+output_test.txt
+typescript
