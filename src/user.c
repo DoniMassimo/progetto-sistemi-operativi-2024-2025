@@ -90,10 +90,12 @@ void setup_clock_notifc(void)
   int nof_req = (rand() % N_REQUESTS) + 1;
   Service serv_req[nof_req];
   int all_req_times[nof_req];
-  for (int i = 0; i < nof_req; i++) { serv_req[i] = (Service)(rand() % SERV_NUM); }
+  //for (int i = 0; i < nof_req; i++) { serv_req[i] = (Service)(rand() % SERV_NUM); }
+  for (int i = 0; i < nof_req; i++) { serv_req[i] = SEND_PICK_PARC; }
   int req_time = (int)(rand() % (8 * 60));
   int opt_time = find_best_time(req_time, serv_req, nof_req);
-  calc_times_from_serv(all_req_times, serv_req, opt_time, nof_req);
+  //calc_times_from_serv(all_req_times, serv_req, opt_time, nof_req);
+  calc_times_from_serv(all_req_times, serv_req, 30, nof_req);
   send_notific_clock(all_req_times, serv_req, nof_req);
 }
 

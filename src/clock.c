@@ -17,6 +17,10 @@ UserNotific* user_notific = NULL;
 size_t user_notf_size = 0;
 size_t user_notf_index = 0;
 
+ClockReqPause* worker_pause = NULL;
+size_t worker_pause_size = 0;
+size_t worker_pause_index = 0;
+
 void add_user_notific(ClockReq* clock_com, size_t* curr_nof_user_notfc)
 {
   size_t data_count = clock_com->times_size / sizeof(int);
@@ -38,11 +42,58 @@ void add_user_notific(ClockReq* clock_com, size_t* curr_nof_user_notfc)
   }
 }
 
-int compare(const void* a, const void* b)
+int compare_user_notfc(const void* a, const void* b)
 {
   UserNotific* req1 = (UserNotific*)a;
   UserNotific* req2 = (UserNotific*)b;
   return req1->time - req2->time;
+}
+
+int compare_worker_pause(const void* a, const void* b)
+{
+  ClockReqPause* req1 = (ClockReqPause*)a;
+  ClockReqPause* req2 = (ClockReqPause*)b;
+  return req1->time - req2->time;
+}
+
+void setup_worker_pause(void)
+{
+  if (NULL != worker_pause || 0 != worker_pause_size)
+  {
+    free(worker_pause);
+    worker_pause = NULL;
+    worker_pause_size = 0;
+    worker_pause_index = 0;
+  }
+  worker_pause = (ClockReqPause*)malloc(sizeof(ClockReqPause) * 2);
+  if (NULL == worker_pause) { FUNC_PERROR(); }
+  worker_pause_size = 2;
+  int worker_set = 0;
+  ClockReqPause clock_req_pause = {0};
+  size_t crp_size = get_notifc_size(CLOCK_REQ_PAUSE);
+  size_t curr_nof_req_pause = 0;
+  while (worker_set < NOF_WORKERS)
+  {
+    if (curr_nof_req_pause >= worker_pause_size)
+    {
+      worker_pause_size = worker_pause_size * 2;
+      worker_pause =
+          (ClockReqPause*)realloc(worker_pause, sizeof(ClockReqPause) * worker_pause_size);
+      if (NULL == worker_pause) { FUNC_PERROR(); }
+    }
+    if (-1 == msgrcv(MSG_NOTIFY_CLOCK_ID, &clock_req_pause, crp_size, CLOCK_REQ_PAUSE, 0))
+    {
+      FUNC_PERROR();
+    }
+    if (clock_req_pause.time != -1)
+    {
+      memcpy(worker_pause + curr_nof_req_pause, &clock_req_pause, crp_size + sizeof(long));
+      curr_nof_req_pause++;
+    }
+    worker_set++;
+  }
+  worker_pause_size = curr_nof_req_pause;
+  qsort(worker_pause, worker_pause_size, sizeof(ClockReqPause), compare_worker_pause);
 }
 
 void setup_user_notific(void)
@@ -71,11 +122,8 @@ void setup_user_notific(void)
     add_user_notific(clock_com, &curr_nof_user_notfc);
     user_set++;
   }
-  struct msqid_ds msq_stat;
-  if (-1 == msgctl(MSG_NOTIFY_CLOCK_ID, IPC_STAT, &msq_stat)) { FUNC_PERROR(); }
-  if (msq_stat.msg_qnum != 0) { MSG_ERROR("zero messages are expected") }
   user_notf_size = curr_nof_user_notfc;
-  qsort(user_notific, (size_t)user_notf_size, sizeof(UserNotific), compare);
+  qsort(user_notific, (size_t)user_notf_size, sizeof(UserNotific), compare_user_notfc);
 }
 
 void send_msg_day_ended(void)
@@ -102,6 +150,7 @@ void send_msg_day_ended(void)
 
 void send_user_notific(int curr_min)
 {
+  if (user_notf_index >= user_notf_size) { return; }
   while (user_notific[user_notf_index].time <= curr_min)
   {
     if (user_notf_index >= user_notf_size) { break; }
@@ -116,5 +165,23 @@ void send_user_notific(int curr_min)
     msgsnd(msg_id, &clock_notifc, get_notifc_size(CLOCK_NOTIFC), 0);
     release_sem(SEM_NOTIFY_USER_ID, sem_count);
     user_notf_index++;
+  }
+}
+
+void send_worker_pause(int curr_min)
+{
+  if (worker_pause_index >= worker_pause_size) { return; }
+  while (worker_pause[worker_pause_index].time <= curr_min)
+  {
+    if (worker_pause_index >= worker_pause_size) { break; }
+    int time = worker_pause[worker_pause_index].time;
+    int msg_id = worker_pause[worker_pause_index].worker_msg_id;
+    int sem_count = worker_pause[worker_pause_index].worker_sem_count;
+    PauseNotifc pause_notifc = {0};
+    pause_notifc.mtype = PAUSE_NOTIFC;
+    log_trace("clock S pause_notifc -> worker: %d time: %d", sem_count, time);
+    msgsnd(msg_id, &pause_notifc, get_notifc_size(PAUSE_NOTIFC), 0);
+    release_sem(SEM_NOTIFY_WORKER_ID, sem_count);
+    worker_pause_index++;
   }
 }

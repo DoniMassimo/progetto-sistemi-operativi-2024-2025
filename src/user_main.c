@@ -35,6 +35,7 @@ void setup(char arg_1[])
 
 void start(void)
 {
+  if (-1 == lock_sem(SEM_DAY_END_ID, 0)) { FUNC_PERROR(); }
   setup_clock_notifc();
   if (-1 == release_sem(SEM_PROC_READY_ID, 0)) { FUNC_PERROR(); }
   if (-1 == lock_sem(SEM_START_ID, 0)) { FUNC_PERROR(); }
@@ -59,7 +60,6 @@ void core(void)
     MesType notification = get_notifications(&get_notf_param);
     if (DAY_ENDED == notification)
     {
-      log_trace("user %d -> day_ended", id);
       free(notifc);
       return;
     }

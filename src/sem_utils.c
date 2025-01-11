@@ -97,15 +97,17 @@ int release_all_sem(int semid, int sem_count)
 
 int release_all_sem_excl(int semid, int sem_count, int excluded)
 {
-  struct sembuf sops[sem_count];
+  struct sembuf sops[sem_count - 1];
+  int curr_index = 0;
   for (short unsigned int i = 0; i < sem_count; i++)
   {
-    sops[i].sem_num = i;
-    if (i == excluded) { sops[i].sem_op = 0; }
-    else { sops[i].sem_op = 1; }
-    sops[i].sem_flg = 0;
+    if (i == excluded) { continue; }
+    sops[curr_index].sem_num = i;
+    sops[curr_index].sem_op = 1;
+    sops[curr_index].sem_flg = 0;
+    curr_index++;
   }
-  return semop(semid, sops, (short unsigned int)sem_count);
+  return semop(semid, sops, (short unsigned int)sem_count - 1);
 }
 
 int init_all_sem_one(int semid, int sem_count)

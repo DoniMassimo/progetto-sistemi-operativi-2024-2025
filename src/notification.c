@@ -24,6 +24,8 @@ size_t get_notifc_size(MesType mes_type)
   if (SERVICE_REQ == mes_type) { return sizeof(ServiceReq) - sizeof(long); }
   if (SERVICE_RESP == mes_type) { return sizeof(ServiceResp) - sizeof(long); }
   if (SEAT_FREE == mes_type) { return sizeof(SeatFreeCom) - sizeof(long); }
+  if (PAUSE_NOTIFC == mes_type) { return sizeof(PauseNotifc) - sizeof(long); }
+  if (CLOCK_REQ_PAUSE == mes_type) { return sizeof(ClockReqPause) - sizeof(long); }
   MSG_ERROR("Not valid MesType");
 }
 
@@ -82,7 +84,7 @@ void push_notifc_node(NotifcLinked* notifc_queue, void* notifc, size_t notifc_si
   notifc_queue->nof_node++;
 }
 
-void* pop_start_notifc_node(NotifcLinked* notifc_queue, size_t notifc_size, MesType* notifc_type)
+void* pop_start_notifc_node(NotifcLinked* notifc_queue, MesType* notifc_type)
 {
   if (0 == notifc_queue->nof_node) { MSG_ERROR("No element in queue"); }
   NotifcNode* start_node = notifc_queue->start;
@@ -103,7 +105,7 @@ void* pop_start_notifc_node(NotifcLinked* notifc_queue, size_t notifc_size, MesT
   return ret_notifc;
 }
 
-void* pop_end_notifc_node(NotifcLinked* notifc_queue, size_t notifc_size, MesType* notifc_type)
+void* pop_end_notifc_node(NotifcLinked* notifc_queue, MesType* notifc_type)
 {
   if (0 == notifc_queue->nof_node) { MSG_ERROR("No element in queue"); }
   NotifcNode* end_node = notifc_queue->end;

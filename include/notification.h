@@ -34,7 +34,8 @@ size_t get_notifc_size(MesType mes_type);
 MesType get_notifications(GetNotfParam* get_notf_param);
 void push_notifc_node(NotifcLinked* notifc_queue, void* notifc, size_t notifc_size,
                       MesType notifc_type);
-void* pop_start_notifc_node(NotifcLinked* notifc_queue, size_t notifc_size, MesType* notifc_type);
-void* pop_end_notifc_node(NotifcLinked* notifc_queue, size_t notifc_size, MesType* notifc_type);
+
+void* pop_start_notifc_node(NotifcLinked* notifc_queue, MesType* notifc_type);
+void* pop_end_notifc_node(NotifcLinked* notifc_queue, MesType* notifc_type);
 
 #endif

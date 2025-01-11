@@ -13,7 +13,8 @@ typedef enum
   CLOCK_REQ,
   CLOCK_NOTIFC,
   SEAT_FREE,
-  PAUSE_REQ,
+  PAUSE_NOTIFC,
+  CLOCK_REQ_PAUSE,
   NO_MES,
 } MesType;
 
@@ -37,6 +38,20 @@ typedef struct
   int user_sem_count;
   Service serv;
 } ServiceReq;
+
+typedef struct
+{
+  long mtype;
+  int data;
+} PauseNotifc;
+
+typedef struct
+{
+  long mtype;
+  int time;
+  int worker_msg_id;
+  int worker_sem_count;
+} ClockReqPause;
 
 typedef struct
 {

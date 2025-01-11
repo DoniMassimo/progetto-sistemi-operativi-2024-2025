@@ -66,7 +66,7 @@ int seats_try_take_seat(Service serv, int worker_id, int* seat_index)
     }
   }
   if (-1 == release_sem(SEM_SHM_SEATS_INFO_ID, 0)) { FUNC_PERROR(); }
-  if (-1 == seat_index) { MSG_ERROR("Expecting to find free seats."); }
+  if (-1 == *seat_index) { MSG_ERROR("Expecting to find free seats."); }
   if (-1 == shmdt(shm_sinfo_ptr)) { FUNC_PERROR(); }
   return 0;
 }
@@ -88,11 +88,14 @@ int seats_get_less_worker(Service serv, SeatInfo* seat_info)
   get_bounds_serv(bounds, serv);
   int seat_index = -1;
   int min_nof_user_waiting = INT_MAX;
+  struct msqid_ds buf;
   for (int i = bounds[0]; i < bounds[1]; i++)
   {
-    if (shm_sinfo_ptr[i].nof_user_waiting < min_nof_user_waiting && shm_sinfo_ptr[i].seats_taken)
+    if (0 == shm_sinfo_ptr[i].seats_taken) { continue; }
+    if (msgctl(shm_sinfo_ptr[i].msg_notify_worker_id, IPC_STAT, &buf) == -1) { FUNC_PERROR(); }
+    if (buf.msg_qnum < min_nof_user_waiting)
     {
-      min_nof_user_waiting = shm_sinfo_ptr[i].nof_user_waiting;
+      min_nof_user_waiting = buf.msg_qnum;
       seat_index = i;
     }
   }

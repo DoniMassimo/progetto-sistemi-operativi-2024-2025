@@ -21,6 +21,7 @@
 
 Service assigned_service;
 int id;
+int nof_pause_rem;
 
 void setup(char arg_1[], char arg_2[])
 {
@@ -34,10 +35,39 @@ void setup(char arg_1[], char arg_2[])
   sem_config();
   shm_config();
   msg_config();
+  nof_pause_rem = NOF_PAUSE;
+}
+
+void set_pause_time(void)
+{
+  ClockReqPause clock_req_pause = {0};
+  clock_req_pause.mtype = CLOCK_REQ_PAUSE;
+  clock_req_pause.worker_msg_id = MSG_NOTIFY_WORKER_IDS[id];
+  clock_req_pause.worker_sem_count = id;
+  size_t crp_size = get_notifc_size(CLOCK_REQ_PAUSE);
+  int req_sended = 0;
+  if (nof_pause_rem > 0)
+  {
+    int random_num = rand() % 100;
+    if (random_num < 80)
+    {
+      // TODO: rem
+      // int random_time = rand() % ((60 * 8) - 120);
+      int random_time = 0;
+      random_time = random_time + 60;
+      clock_req_pause.time = random_time;
+      req_sended = 1;
+    }
+  }
+  if (0 == req_sended) { clock_req_pause.time = -1; }
+  if (-1 == msgsnd(MSG_NOTIFY_CLOCK_ID, &clock_req_pause, crp_size, 0)) { FUNC_PERROR(); }
+  log_trace("worker %d S clock_req_pause -> time: %d", id, clock_req_pause.time);
 }
 
 void start(void)
 {
+  if (-1 == lock_sem(SEM_DAY_END_ID, 0)) { FUNC_PERROR(); }
+  set_pause_time();
   if (-1 == release_sem(SEM_PROC_READY_ID, 0)) { FUNC_PERROR(); }
   if (-1 == lock_sem(SEM_START_ID, 0)) { FUNC_PERROR(); }
 }
@@ -59,7 +89,7 @@ void provide_service(ServiceReq* service_req)
   int min_dur = serv_dur - (serv_dur / 2);
   int max_dur = serv_dur + (serv_dur / 2);
   serv_dur = min_dur + rand() % (max_dur - min_dur + 1);
-  log_trace("worker %d service_req -> duration: %d, serv: %d, user: %d", id, serv_dur,
+  log_trace("worker: %d service_req -> duration: %d, serv: %d, user: %d", id, serv_dur,
             service_req->serv, service_req->user_sem_count);
   struct timespec req;
   req.tv_sec = 0;
@@ -77,7 +107,7 @@ int check_day_ended(void)
     if (ENOMSG != errno) { FUNC_PERROR(); }
     else if (ENOMSG == errno) { return 0; }
   }
-  else { return 1; }
+  return 1;
 }
 
 int prov_serv_paused_worker(SeatFreeCom* seat_free_com)
@@ -93,6 +123,7 @@ int prov_serv_paused_worker(SeatFreeCom* seat_free_com)
       if (ENOMSG != errno) { FUNC_PERROR(); }
       else if (ENOMSG == errno) { break; }
     }
+    log_trace("worker: %d prov_serv_paused -> user: %d", id, service_req.user_sem_count);
     provide_service(&service_req);
   }
   return 0;
@@ -100,24 +131,36 @@ int prov_serv_paused_worker(SeatFreeCom* seat_free_com)
 
 void comunicate_free_seat(void)
 {
+  SeatFreeCom seat_free_com = {0};
+  size_t sfc_size = get_notifc_size(SEAT_FREE);
+  seat_free_com.mtype = SEAT_FREE;
+  seat_free_com.worker_msg_id = MSG_NOTIFY_WORKER_IDS[id];
   for (int i = 0; i < NOF_WORKERS; i++)
   {
     if (i == id) { continue; }
-    SeatFreeCom seat_free_com = {0};
-    size_t sfc_size = get_notifc_size(SEAT_FREE);
-    seat_free_com.mtype = SEAT_FREE;
-    seat_free_com.worker_msg_id = MSG_NOTIFY_WORKER_IDS[id];
-    msgsnd(MSG_NOTIFY_WORKER_IDS[i], &seat_free_com, sfc_size, 0);
+    if (-1 == msgsnd(MSG_NOTIFY_WORKER_IDS[i], &seat_free_com, sfc_size, 0)) { FUNC_PERROR(); }
+    log_trace("worker: %d comun_free_seat -> worker: %d, msgid: %d", id, i, MSG_NOTIFY_WORKER_IDS[i]);
   }
-  release_all_sem_excl(SEM_NOTIFY_WORKER_ID, NOF_WORKERS, id);
+  if (-1 == release_all_sem_excl(SEM_NOTIFY_WORKER_ID, NOF_WORKERS, id)) { FUNC_PERROR(); }
+  for (int i = 0; i < NOF_WORKERS; i++)
+  {
+    int val = get_sem_value(SEM_NOTIFY_WORKER_ID, id);
+    log_trace("worker: %d -> worker: %d sem_val: %d", id, i, val);
+  }
 }
 
 void core(void)
 {
-  int* seat_index;
-  int take_seat_res = seats_try_take_seat(assigned_service, id, seat_index);
-  int nof_notifc = 2;
-  MesType notifc_filter[] = {DAY_ENDED, SERVICE_REQ, SEAT_FREE};
+  int seat_index;
+  int take_seat_res = seats_try_take_seat(assigned_service, id, &seat_index);
+  int exclude_pause = 0;
+  if (-2 == take_seat_res)
+  {
+    log_trace("worker %d -> does not find seat", id);
+    exclude_pause = 1;
+  }
+  int nof_notifc = 4;
+  MesType notifc_filter[] = {DAY_ENDED, PAUSE_NOTIFC, SEAT_FREE, SERVICE_REQ};
   void* notifc = NULL;
   GetNotfParam get_notf_param = {0};
   get_notf_param.notifc_filter = notifc_filter;
@@ -131,8 +174,10 @@ void core(void)
   {
     if (notifc != NULL) { free(notifc); }
     MesType notification = get_notifications(&get_notf_param);
+    log_trace("worker %d R notification ->  %d", id, notification);
     if (DAY_ENDED == notification)
     {
+      if (0 == take_seat_res) { seats_release_seat(assigned_service, seat_index); }
       free(notifc);
       return;
     }
@@ -143,26 +188,37 @@ void core(void)
     }
     else if (SEAT_FREE == notification)
     {
+      log_trace("worker %d R seat_free_com -> seat status: %d", id, take_seat_res);
       if (-2 == take_seat_res)
       {
-        take_seat_res = seats_try_take_seat(assigned_service, id, seat_index);
+        take_seat_res = seats_try_take_seat(assigned_service, id, &seat_index);
         if (0 == take_seat_res)
         {
           SeatFreeCom* seat_free_com = (SeatFreeCom*)notifc;
+          log_trace("worker %d R seat_free_com -> paused worker msgid: %d", id,
+                    seat_free_com->worker_msg_id);
           if (-1 == prov_serv_paused_worker(seat_free_com))
           {
+            seats_release_seat(assigned_service, seat_index);
             // day ended;
             return;
           }
         }
       }
     }
-    else if (PAUSE_REQ == notification)
+    else if (PAUSE_NOTIFC == notification)
     {
-      if (take_seat_res != -2 && *seat_index != -1)
+      if (take_seat_res != -2 && 0 == exclude_pause)
       {
-        seats_release_seat(assigned_service, *seat_index);
+        nof_pause_rem--;
+        struct msqid_ds buf;
+        if (msgctl(MSG_NOTIFY_WORKER_IDS[id], IPC_STAT, &buf) == -1) { FUNC_PERROR(); }
+        log_trace("worker %d R pause_notifc -> msgid: %d count: %d", id, MSG_NOTIFY_WORKER_IDS[id],
+                  buf.msg_qnum);
+        seats_release_seat(assigned_service, seat_index);
         comunicate_free_seat();
+        free(notifc);
+        break;
       }
     }
   }

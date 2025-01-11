@@ -22,8 +22,9 @@ void init_workers(void)
   if (NOF_WORKERS < 1) { return; }
   pid_t* workers_pid = shmat(SHM_WORKERS_PID_ID, NULL, 0);
   if ((pid_t*)-1 == (pid_t*)workers_pid) { FUNC_PERROR(); }
-  int assigned_worker[SERV_NUM];
-  utils_assign_count_array(assigned_worker, SERV_NUM, NOF_WORKERS);
+  int assigned_worker[] = {2, 0, 0, 0, 0, 0};
+  // int assigned_worker[SERV_NUM];
+  // utils_assign_count_array(assigned_worker, SERV_NUM, NOF_WORKERS);
   int worker_count = 0;
   for (int i = 0; i < SERV_NUM; i++)
   {
@@ -115,8 +116,9 @@ void setup(void)
   sem_init();
   shm_init();
   msg_init();
-  int assigned_serv_seats[SERV_NUM];
-  utils_assign_count_array(assigned_serv_seats, SERV_NUM, NOF_WORKER_SEATS);
+  // int assigned_serv_seats[SERV_NUM];
+  int assigned_serv_seats[] = {1, 0, 0, 0, 0, 0};
+  // utils_assign_count_array(assigned_serv_seats, SERV_NUM, NOF_WORKER_SEATS);
   seats_init_resources(assigned_serv_seats);
   init_processes();
 }
@@ -139,7 +141,7 @@ int main(int argc, char* argv[])
   setup();
   while (1)
   {
-    printf("\n\n");
+    log_trace("\n");
     start();
     core();
   }
