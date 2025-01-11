@@ -14,8 +14,8 @@ build/%.o: src/%.c $(COMMON_DEPS)
 bin/manager_main: build/manager_main.o build/sem_utils.o build/seats.o $(PROJ_DEPS)
 	$(CC) $(CFLAGS) -o bin/manager_main build/manager_main.o build/sem_utils.o build/seats.o $(PROJ_DEPS)
 
-bin/worker_main: build/worker_main.o build/sem_utils.o build/seats.o $(PROJ_DEPS)
-	$(CC) $(CFLAGS) -o bin/worker_main build/worker_main.o build/sem_utils.o build/seats.o $(PROJ_DEPS)
+bin/worker_main: build/worker_main.o build/sem_utils.o build/seats.o build/worker.o $(PROJ_DEPS)
+	$(CC) $(CFLAGS) -o bin/worker_main build/worker_main.o build/sem_utils.o build/seats.o build/worker.o $(PROJ_DEPS)
 
 bin/clock_main: build/clock_main.o build/sem_utils.o build/clock.o $(PROJ_DEPS)
 	$(CC) $(CFLAGS) -o bin/clock_main build/clock_main.o build/sem_utils.o build/clock.o $(PROJ_DEPS)
