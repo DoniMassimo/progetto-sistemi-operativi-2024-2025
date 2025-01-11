@@ -19,5 +19,6 @@ typedef struct
 void get_stats(void);
 // salva stats in un csv
 void save_stats(void);
+void print_stats(void);
 
 #endif

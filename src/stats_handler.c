@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include "config.h"
+#include "log.h"
 #include "stats_handler.h"
 
 ServStats** calendar_stats = NULL;
@@ -16,3 +17,8 @@ void get_stats(int nof_msg)
 }
 
 void save_stats(void) {}
+
+void print_stats(void)
+{
+  log_info(""); // funziona come printf ma non serve \n
+}
