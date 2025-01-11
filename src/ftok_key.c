@@ -28,6 +28,8 @@ key_t* MSG_NOTIFY_WORKER_KEYS = NULL;
 key_t MSG_NOTIFY_DISPENSER_KEY = -1;
 key_t* MSG_NOTIFY_USER_KEYS = NULL;
 key_t MSG_NOTIFY_CLOCK_KEY = -1;
+key_t MSG_STATS_DATA_KEY = -1;
+key_t MSG_STATS_METADATA_KEY = -1;
 
 void sem_key_init(void)
 {
@@ -97,6 +99,10 @@ void msg_key_init(void)
   if (-1 == MSG_NOTIFY_DISPENSER_KEY) { FUNC_PERROR(); }
   MSG_NOTIFY_CLOCK_KEY = ftok(".", key_count++);
   if (-1 == MSG_NOTIFY_CLOCK_KEY) { FUNC_PERROR(); }
+  MSG_STATS_DATA_KEY = ftok(".", key_count++);
+  if (-1 == MSG_STATS_DATA_KEY) { FUNC_PERROR(); }
+  MSG_STATS_METADATA_KEY = ftok(".", key_count++);
+  if (-1 == MSG_STATS_METADATA_KEY) { FUNC_PERROR(); }
 }
 
 void ftok_key_init(void)

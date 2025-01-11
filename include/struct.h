@@ -92,4 +92,53 @@ typedef struct
   int status;
 } TicketResp;
 
+// • il numero di utenti serviti totali nella simulazione
+// • il numero di utenti serviti in media al giorno
+// • il numero di servizi erogati totali nella simulazione
+// • il numero di servizi non erogati totali nella simulazione
+// • il numero di servizi erogati in media al giorno
+// • il numero di servizi non erogati in media al giorno
+// • il tempo medio di attesa degli utenti nella simulazione
+// • il tempo medio di attesa degli utenti nella giornata
+// • il tempo medio di erogazione dei servizi nella simulazione
+// • il tempo medio di erogazione dei servizi nella giornata
+// • le statistiche precedenti suddivise per tipologia di servizio
+// • il numero di operatori attivi durante la giornata;
+// • il numero di operatori attivi durante la simulazione;
+// • il numero medio di pause effettuate nella giornata e il totale di pause effettuate durante la
+// simulazione;
+// • il rapporto fra operatori disponibili e sportelli esistenti, per ogni sportello
+// per ogni giornata.
+
+typedef struct
+{
+  long mtype;
+  Service serv;
+  int completed_serv;
+  int failed_serv;
+  size_t nof_waiting_times;
+  size_t nof_delivery_times;
+  int ser_data[];
+} UserStats;
+
+typedef struct
+{
+  long mtype;
+  int active;
+  int pause;
+} WorkerStats;
+
+typedef struct
+{
+  long mtype;
+  int type; //0 = UserStats
+  size_t ser_data_size;
+} StatsSize;
+
+// [10, 34, 33, 20, 22, 55]
+
+typedef struct
+{
+} WorkerStats;
+
 #endif

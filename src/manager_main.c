@@ -16,6 +16,7 @@
 #include "shm.h"
 #include "sem.h"
 #include "msg.h"
+#include "stats_handler.h"
 
 void init_workers(void)
 {
@@ -138,6 +139,7 @@ int main(int argc, char* argv[])
 {
   if (1 != argc) { MSG_ERROR("agrc error"); }
   utils_get_relative_path(argv[0], REL_DIR);
+  log_trace("%s", REL_DIR);
   setup();
   while (1)
   {
