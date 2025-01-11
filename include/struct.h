@@ -135,10 +135,4 @@ typedef struct
   size_t ser_data_size;
 } StatsSize;
 
-// [10, 34, 33, 20, 22, 55]
-
-typedef struct
-{
-} WorkerStats;
-
 #endif

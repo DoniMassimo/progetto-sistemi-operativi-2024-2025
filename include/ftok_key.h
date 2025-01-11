@@ -30,6 +30,8 @@ extern key_t* MSG_NOTIFY_WORKER_KEYS;
 extern key_t MSG_NOTIFY_DISPENSER_KEY;
 extern key_t* MSG_NOTIFY_USER_KEYS;
 extern key_t MSG_NOTIFY_CLOCK_KEY;
+extern key_t MSG_STATS_DATA_KEY;
+extern key_t MSG_STATS_METADATA_KEY;
 
 void ftok_key_init(void);
 
