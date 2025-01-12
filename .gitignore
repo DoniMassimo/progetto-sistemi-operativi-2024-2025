@@ -10,3 +10,5 @@ temp.md
 gdb.txt
 output_test.txt
 typescript
+.vscode/
+src/stats.csv

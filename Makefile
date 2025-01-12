@@ -11,8 +11,8 @@ PROJ_DEPS = build/utils.o build/config.o build/sem.o build/msg.o build/shm.o bui
 build/%.o: src/%.c $(COMMON_DEPS)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-bin/manager_main: build/manager_main.o build/sem_utils.o build/seats.o $(PROJ_DEPS)
-	$(CC) $(CFLAGS) -o bin/manager_main build/manager_main.o build/sem_utils.o build/seats.o $(PROJ_DEPS)
+bin/manager_main: build/manager_main.o build/sem_utils.o build/seats.o build/stats_handler.o $(PROJ_DEPS)
+	$(CC) $(CFLAGS) -o bin/manager_main build/manager_main.o build/sem_utils.o build/seats.o build/stats_handler.o $(PROJ_DEPS)
 
 bin/worker_main: build/worker_main.o build/sem_utils.o build/seats.o build/worker.o $(PROJ_DEPS)
 	$(CC) $(CFLAGS) -o bin/worker_main build/worker_main.o build/sem_utils.o build/seats.o build/worker.o $(PROJ_DEPS)

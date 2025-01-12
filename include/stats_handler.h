@@ -16,7 +16,7 @@ typedef struct
 } ServStats;
 
 // prende le statistiche da una coda di messaggi
-void get_stats(void);
+void get_stats(int nof_msg);
 // salva stats in un csv
 void save_stats(void);
 void print_stats(void);

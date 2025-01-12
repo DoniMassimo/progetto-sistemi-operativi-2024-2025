@@ -18,6 +18,7 @@
 #include "msg.h"
 #include "stats_handler.h"
 
+
 void init_workers(void)
 {
   if (NOF_WORKERS < 1) { return; }

@@ -124,6 +124,7 @@ typedef struct
 typedef struct
 {
   long mtype;
+  Service serv;
   int active;
   int pause;
 } WorkerStats;
@@ -134,5 +135,5 @@ typedef struct
   int type; //0 = UserStats
   size_t ser_data_size;
 } StatsSize;
-
+//se type = 0 -> UserStats quanto è grande ser_data_size
 #endif

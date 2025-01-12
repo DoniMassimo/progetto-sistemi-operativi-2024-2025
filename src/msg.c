@@ -10,8 +10,8 @@ int* MSG_NOTIFY_WORKER_IDS = NULL;
 int MSG_NOTIFY_DISPENSER_ID = -1;
 int* MSG_NOTIFY_USER_IDS = NULL;
 int MSG_NOTIFY_CLOCK_ID = -1;
-int MSG_STATS_DATA_ID = -1;
-int MSG_STATS_METADATA_ID = -1;
+int MSG_STATS_DATA_ID = -1; // coda di messaggi per i dati delle statistiche
+int MSG_STATS_METADATA_ID = -1; //informazioni su dimensione ecc. dei dati
 
 void MSG_NOTIFY_WORKER_IDS_init(void)
 {
