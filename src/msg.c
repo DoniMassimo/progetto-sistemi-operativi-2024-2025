@@ -127,7 +127,7 @@ void msg_config(void)
   MSG_STATS_METADATA_ID_config();
 }
 
-void msg_deallocate(void)
+void msg_deallocate(int user_added)
 {
   for (int i = 0; i < NOF_WORKERS; i++)
   {
@@ -139,5 +139,15 @@ void msg_deallocate(void)
   {
     if (-1 == msgctl(MSG_NOTIFY_USER_IDS[i], IPC_RMID, NULL)) { FUNC_PERROR(); }
   }
+  if (0 == user_added)
+  {
+    for (int i = NOF_USERS; i < NOF_USERS + N_NEW_USERS; i++)
+    {
+      if (-1 == msgctl(MSG_NOTIFY_USER_IDS[i], IPC_RMID, NULL)) { FUNC_PERROR(); }
+    }
+  }
   free(MSG_NOTIFY_USER_IDS);
+  if (-1 == msgctl(MSG_NOTIFY_CLOCK_ID, IPC_RMID, NULL)) { FUNC_PERROR(); }
+  if (-1 == msgctl(MSG_STATS_DATA_ID, IPC_RMID, NULL)) { FUNC_PERROR(); }
+  if (-1 == msgctl(MSG_STATS_METADATA_ID, IPC_RMID, NULL)) { FUNC_PERROR(); }
 }

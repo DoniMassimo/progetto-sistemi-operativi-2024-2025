@@ -59,7 +59,11 @@ void send_service_resp(ServiceReq* service_req)
 
 void provide_service(ServiceReq* service_req)
 {
-  if (service_req->serv != assigned_service) { MSG_ERROR("Service request not deliverable"); }
+  if (service_req->serv != assigned_service)
+  {
+    log_fatal("worker %d -> Service %d not deliverable", id, service_req->serv);
+    MSG_ERROR("Service request not deliverable");
+  }
   int serv_dur = get_serv_duration(&service_req->serv, 1);
   int min_dur = serv_dur - (serv_dur / 2);
   int max_dur = serv_dur + (serv_dur / 2);
@@ -118,11 +122,6 @@ void comunicate_free_seat(void)
               MSG_NOTIFY_WORKER_IDS[i]);
   }
   if (-1 == release_all_sem_excl(SEM_NOTIFY_WORKER_ID, NOF_WORKERS, id)) { FUNC_PERROR(); }
-  for (int i = 0; i < NOF_WORKERS; i++)
-  {
-    int val = get_sem_value(SEM_NOTIFY_WORKER_ID, id);
-    log_trace("worker: %d -> worker: %d sem_val: %d", id, i, val);
-  }
 }
 
 void set_notf_param(GetNotfParam* get_notf_param, void** notifc)

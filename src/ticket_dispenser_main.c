@@ -77,4 +77,5 @@ int main(void)
     core();
     day_count++;
   }
+  lock_sem(SEM_PROC_CAN_DIE_ID, 0);
 }

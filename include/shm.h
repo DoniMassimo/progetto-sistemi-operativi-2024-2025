@@ -9,5 +9,6 @@ extern int SHM_CALENDAR_ID;
 
 void shm_init(void);
 void shm_config(void);
+void shm_deallocate(void);
 
 #endif

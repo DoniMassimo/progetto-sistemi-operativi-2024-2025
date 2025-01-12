@@ -20,12 +20,17 @@
 
 pid_t* all_proc_pid = NULL;
 size_t nof_proc = 0;
+int user_added = 0;
 
 void init_workers(void)
 {
   if (NOF_WORKERS < 1) { return; }
   int assigned_worker[SERV_NUM];
   utils_assign_count_array(assigned_worker, SERV_NUM, NOF_WORKERS);
+  for (int i = 0; i < SERV_NUM; i++)
+  {
+    log_trace("manager -> %d worker for serv: %d", assigned_worker[i], i);
+  }
   int worker_count = 0;
   for (int i = 0; i < SERV_NUM; i++)
   {
@@ -45,7 +50,11 @@ void init_workers(void)
         char* args[] = {dir, i_str, id, NULL};
         if (execv(args[0], args) == -1) { FUNC_PERROR(); }
       }
-      else { all_proc_pid[nof_proc++] = pid; }
+      else
+      {
+        worker_count++;
+        all_proc_pid[nof_proc++] = pid;
+      }
     }
   }
 }
@@ -153,6 +162,7 @@ void start(void)
   else
   {
     log_trace("manager -> %d users added", N_NEW_USERS);
+    user_added = 1;
     init_new_users();
     release_sem_val(SEM_CLOCK_ADD_USERS_ID, 0, 2);
   }
@@ -181,12 +191,16 @@ int main(int argc, char* argv[])
     core();
     day_count++;
   }
+  release_sem_val(SEM_PROC_CAN_DIE_ID, 0, START_SEM_COUNT);
   for (size_t i = 0; i < nof_proc; i++)
   {
     int status;
-    pid_t child_pid = waitpid(all_proc_pid[i], &status, 0);
+    pid_t child_pid = waitpid(-1, &status, 0);
     if (-1 == child_pid) { FUNC_PERROR(); }
   }
   free(all_proc_pid);
+  sem_deallocate();
+  shm_deallocate();
+  msg_deallocate(user_added);
   return 0;
 }

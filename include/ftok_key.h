@@ -31,6 +31,7 @@ extern key_t SEM_NOTIFY_USER_KEY;
 extern key_t SEM_NOTIFY_CLOCK_KEY;
 extern key_t SEM_ADD_USERS_KEY;
 extern key_t SEM_CLOCK_ADD_USERS_KEY;
+extern key_t SEM_PROC_CAN_DIE_KEY;
 extern SemRP_Key SEMRP_CALENDAR_STRUCT_KEY;
 extern SemWP_Key SEMWP_SEATS_INFO_STRUCT_KEY;
 
