@@ -19,6 +19,7 @@ extern int P_SERV_MAX;
 extern int N_REQUESTS;
 extern int NOF_PAUSE;
 extern int SIM_DURATION;
+extern int N_NEW_USERS;
 
 typedef enum
 {
@@ -35,8 +36,9 @@ typedef struct
 {
   Service service;
   int duration;
-}ServiceDuration;
+} ServiceDuration;
 
-extern void config_load(void);
+void config_load(void);
+void add_new_users(void);
 
 #endif

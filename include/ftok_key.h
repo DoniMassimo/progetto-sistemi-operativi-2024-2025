@@ -18,6 +18,8 @@ extern key_t SEM_NOTIFY_WORKER_KEY;
 extern key_t SEM_NOTIFY_DISPENSER_KEY;
 extern key_t SEM_NOTIFY_USER_KEY;
 extern key_t SEM_NOTIFY_CLOCK_KEY;
+extern key_t SEM_ADD_USERS_KEY;
+extern key_t SEM_CLOCK_ADD_USERS_KEY;
 extern SemRW_Key SEMRW_CALENDAR_STRUCT_KEY;
 
 extern key_t SHM_WORKERS_PID_KEY;

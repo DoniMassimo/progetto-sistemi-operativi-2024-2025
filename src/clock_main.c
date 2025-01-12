@@ -22,16 +22,25 @@ void setup(void)
   msg_config();
   sem_config();
   shm_config();
+  if (-1 == release_sem_val(SEM_DAY_END_ID, 0, START_SEM_COUNT)) { FUNC_PERROR(); }
 }
 
 void start(void)
 {
-  if (-1 == release_sem_val(SEM_DAY_END_ID, 0, START_SEM_COUNT - 1)) { FUNC_PERROR(); }
+  if (-1 == lock_sem(SEM_CLOCK_ADD_USERS_ID, 0)) { FUNC_PERROR(); }
+  int sem_add_users_val = get_sem_value(SEM_CLOCK_ADD_USERS_ID, 0);
+  if (1 == sem_add_users_val)
+  {
+    if (-1 == lock_sem(SEM_CLOCK_ADD_USERS_ID, 0)) { FUNC_PERROR(); }
+    log_trace("AGIUNTI UTENTIEEEEE CLOCK");
+    add_new_users();
+    if (-1 == release_sem_val(SEM_DAY_END_ID, 0, N_NEW_USERS)) { FUNC_PERROR(); }
+  }
   setup_user_notific();
   setup_worker_pause();
   if (-1 == release_sem(SEM_PROC_READY_ID, 0)) { FUNC_PERROR(); }
   if (-1 == lock_sem(SEM_START_ID, 0)) { FUNC_PERROR(); }
-  init_sem_one(SEM_DAY_STARTED_ID, 0);
+  release_sem(SEM_DAY_STARTED_ID, 0);
 }
 
 void core(void)
@@ -47,10 +56,9 @@ void core(void)
     send_user_notific(min_count);
     send_worker_pause(min_count);
   }
-  log_trace("clock end -> time: %d", min_count);
   clear_calendar();
   send_msg_day_ended();
-  if (-1 == release_sem_val(SEM_DAY_END_ID, 0, START_SEM_COUNT - 1)) { FUNC_PERROR(); }
+  if (-1 == release_sem_val(SEM_DAY_END_ID, 0, START_SEM_COUNT)) { FUNC_PERROR(); }
 }
 
 int main(void)

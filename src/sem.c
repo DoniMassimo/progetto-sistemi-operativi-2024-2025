@@ -17,6 +17,8 @@ int SEM_NOTIFY_WORKER_ID = -1;
 int SEM_NOTIFY_DISPENSER_ID = -1;
 int SEM_NOTIFY_USER_ID = -1;
 int SEM_NOTIFY_CLOCK_ID = -1;
+int SEM_ADD_USERS_ID = -1;
+int SEM_CLOCK_ADD_USERS_ID = -1;
 SemRW_Id SEMRW_CALENDAR_ID = {0};
 
 void SEM_START_ID_init(void)
@@ -125,14 +127,14 @@ void SEM_NOTIFY_DISPENSER_ID_config(void)
 
 void SEM_NOTIFY_USER_ID_init(void)
 {
-  SEM_NOTIFY_USER_ID = semget(SEM_NOTIFY_USER_KEY, NOF_USERS, 0666 | IPC_CREAT);
+  SEM_NOTIFY_USER_ID = semget(SEM_NOTIFY_USER_KEY, NOF_USERS + N_NEW_USERS, 0666 | IPC_CREAT);
   if (SEM_NOTIFY_USER_ID < 0) { FUNC_PERROR(); }
-  if (-1 == init_all_sem_zero(SEM_NOTIFY_USER_ID, NOF_USERS)) { FUNC_PERROR(); }
+  if (-1 == init_all_sem_zero(SEM_NOTIFY_USER_ID, NOF_USERS + N_NEW_USERS)) { FUNC_PERROR(); }
 }
 
 void SEM_NOTIFY_USER_ID_config(void)
 {
-  SEM_NOTIFY_USER_ID = semget(SEM_NOTIFY_USER_KEY, NOF_USERS, 0666);
+  SEM_NOTIFY_USER_ID = semget(SEM_NOTIFY_USER_KEY, NOF_USERS + N_NEW_USERS, 0666);
   if (SEM_NOTIFY_USER_ID < 0) { FUNC_PERROR(); }
 }
 
@@ -147,6 +149,32 @@ void SEM_NOTIFY_CLOCK_ID_config(void)
 {
   SEM_NOTIFY_CLOCK_ID = semget(SEM_NOTIFY_CLOCK_KEY, 1, 0666);
   if (SEM_NOTIFY_CLOCK_ID < 0) { FUNC_PERROR(); }
+}
+
+void SEM_ADD_USERS_init(void)
+{
+  SEM_ADD_USERS_ID = semget(SEM_ADD_USERS_KEY, 1, 0666 | IPC_CREAT);
+  if (SEM_ADD_USERS_ID < 0) { FUNC_PERROR(); }
+  init_sem_zero(SEM_ADD_USERS_ID, 0);
+}
+
+void SEM_ADD_USERS_config(void)
+{
+  SEM_ADD_USERS_ID = semget(SEM_ADD_USERS_KEY, 1, 0666);
+  if (SEM_ADD_USERS_ID < 0) { FUNC_PERROR(); }
+}
+
+void SEM_CLOCK_ADD_USERS_init(void)
+{
+  SEM_CLOCK_ADD_USERS_ID = semget(SEM_CLOCK_ADD_USERS_KEY, 1, 0666 | IPC_CREAT);
+  if (SEM_CLOCK_ADD_USERS_ID < 0) { FUNC_PERROR(); }
+  init_sem_zero(SEM_CLOCK_ADD_USERS_ID, 0);
+}
+
+void SEM_CLOCK_ADD_USERS_config(void)
+{
+  SEM_CLOCK_ADD_USERS_ID = semget(SEM_CLOCK_ADD_USERS_KEY, 1, 0666);
+  if (SEM_CLOCK_ADD_USERS_ID < 0) { FUNC_PERROR(); }
 }
 
 void SEMRW_CALENDAR_ID_init(void)
@@ -187,6 +215,8 @@ void sem_init(void)
   SEM_NOTIFY_WORKER_ID_init();
   SEM_NOTIFY_DISPENSER_ID_init();
   SEM_NOTIFY_USER_ID_init();
+  SEM_ADD_USERS_init();
+  SEM_CLOCK_ADD_USERS_init();
   SEMRW_CALENDAR_ID_init();
 }
 
@@ -201,6 +231,8 @@ void sem_config(void)
   SEM_NOTIFY_WORKER_ID_config();
   SEM_NOTIFY_DISPENSER_ID_config();
   SEM_NOTIFY_USER_ID_config();
+  SEM_ADD_USERS_config();
+  SEM_CLOCK_ADD_USERS_config();
   SEMRW_CALENDAR_ID_config();
 }
 

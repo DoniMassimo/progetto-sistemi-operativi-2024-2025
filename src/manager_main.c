@@ -51,6 +51,26 @@ void init_workers(void)
   if (-1 == shmdt(workers_pid)) { FUNC_PERROR(); }
 }
 
+void init_new_users(void)
+{
+  for (int i = NOF_USERS; i < NOF_USERS + N_NEW_USERS; i++)
+  {
+    pid_t pid = fork();
+    if (-1 == pid) { FUNC_PERROR(); }
+    else if (0 == pid)
+    {
+      char id[12];
+      sprintf(id, "%d", i);
+      char dir[MAX_PATH_LEN + MAX_EXE_LEN];
+      strcpy(dir, REL_DIR);
+      strcat(dir, "user_main");
+      char* args[] = {dir, id, NULL};
+      if (execv(args[0], args) == -1) { FUNC_PERROR(); }
+    }
+  }
+  add_new_users();
+}
+
 void init_users(void)
 {
   for (int i = 0; i < NOF_USERS; i++)
@@ -126,6 +146,15 @@ void setup(void)
 
 void start(void)
 {
+  int semop_add_user = lock_sem_nowait(SEM_ADD_USERS_ID, 0);
+  if (-1 == semop_add_user) { FUNC_PERROR(); }
+  else if (-2 == semop_add_user) { release_sem_val(SEM_CLOCK_ADD_USERS_ID, 0, 1); }
+  else
+  {
+    log_trace("AGIUNTI UTENTIEEEEE MANAGER");
+    init_new_users();
+    release_sem_val(SEM_CLOCK_ADD_USERS_ID, 0, 2);
+  }
   if (-1 == lock_sem_val(SEM_PROC_READY_ID, 0, START_SEM_COUNT)) { FUNC_PERROR(); }
   if (-1 == set_sem_val(SEM_START_ID, 0, START_SEM_COUNT)) { FUNC_PERROR(); }
 }
@@ -141,6 +170,7 @@ int main(int argc, char* argv[])
   utils_get_relative_path(argv[0], REL_DIR);
   log_trace("%s", REL_DIR);
   setup();
+  if (-1 == lock_sem(SEM_DAY_END_ID, 0)) { FUNC_PERROR(); }
   while (1)
   {
     log_trace("\n");

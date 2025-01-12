@@ -54,6 +54,20 @@ int lock_sem_nowait(int semid, int sem_num)
   else { return 0; }
 }
 
+int lock_sem_nowait_val(int semid, int sem_num, int val)
+{
+  if (val <= 0) { MSG_ERROR("val cant be negative.\n"); }
+  if (val > 32767) { MSG_ERROR("val is too big.\n"); }
+  struct sembuf sops;
+  sops.sem_num = (short unsigned int)sem_num;
+  sops.sem_op = (short int)-val;
+  sops.sem_flg = IPC_NOWAIT;
+  int semop_res = semop(semid, &sops, 1);
+  if (-1 == semop_res && EAGAIN != errno) { return -1; }
+  else if (-1 == semop_res && EAGAIN == errno) { return -2; }
+  else { return 0; }
+}
+
 int lock_sem_val(int semid, int sem_num, int val)
 {
   if (val <= 0) { MSG_ERROR("val cant be negative.\n"); }

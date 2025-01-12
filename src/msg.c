@@ -49,9 +49,10 @@ void MSG_NOTIFY_DISPENSER_ID_config(void)
 
 void MSG_NOTIFY_USER_IDS_init(void)
 {
-  MSG_NOTIFY_USER_IDS = (int*)malloc(sizeof(int) * (size_t)NOF_USERS);
+  size_t num_user = (size_t)(NOF_USERS + N_NEW_USERS);
+  MSG_NOTIFY_USER_IDS = (int*)malloc(sizeof(int) * num_user);
   if (NULL == MSG_NOTIFY_USER_IDS) { FUNC_PERROR(); }
-  for (int i = 0; i < NOF_USERS; i++)
+  for (size_t i = 0; i < num_user; i++)
   {
     MSG_NOTIFY_USER_IDS[i] = msgget(MSG_NOTIFY_USER_KEYS[i], 0666 | IPC_CREAT);
     if (-1 == MSG_NOTIFY_USER_IDS[i]) { FUNC_PERROR(); }
@@ -60,9 +61,10 @@ void MSG_NOTIFY_USER_IDS_init(void)
 
 void MSG_NOTIFY_USER_IDS_config(void)
 {
-  MSG_NOTIFY_USER_IDS = (int*)malloc(sizeof(int) * (size_t)NOF_USERS);
+  size_t num_user = (size_t)(NOF_USERS + N_NEW_USERS);
+  MSG_NOTIFY_USER_IDS = (int*)malloc(sizeof(int) * num_user);
   if (NULL == MSG_NOTIFY_USER_IDS) { FUNC_PERROR(); }
-  for (int i = 0; i < NOF_USERS; i++)
+  for (size_t i = 0; i < num_user; i++)
   {
     MSG_NOTIFY_USER_IDS[i] = msgget(MSG_NOTIFY_USER_KEYS[i], 0666);
     if (-1 == MSG_NOTIFY_USER_IDS[i]) { FUNC_PERROR(); }

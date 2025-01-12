@@ -16,6 +16,7 @@ int P_SERV_MAX;
 int N_REQUESTS;
 int NOF_PAUSE;
 int SIM_DURATION;
+int N_NEW_USERS;
 
 void config_load(void)
 {
@@ -35,8 +36,15 @@ void config_load(void)
     else if (0 == strcmp(key, "N_REQUESTS")) { N_REQUESTS = atoi(value); }
     else if (0 == strcmp(key, "NOF_PAUSE")) { NOF_PAUSE = atoi(value); }
     else if (0 == strcmp(key, "SIM_DURATION")) { SIM_DURATION = atoi(value); }
+    else if (0 == strcmp(key, "N_NEW_USERS")) { N_NEW_USERS = atoi(value); }
     else { MSG_ERROR("Error in config file"); }
   }
   START_SEM_COUNT = NOF_WORKERS + NOF_USERS + 2;
   fclose(config_file);
+}
+
+void add_new_users(void)
+{
+  NOF_USERS = NOF_USERS + N_NEW_USERS;
+  START_SEM_COUNT = START_SEM_COUNT + N_NEW_USERS;
 }
