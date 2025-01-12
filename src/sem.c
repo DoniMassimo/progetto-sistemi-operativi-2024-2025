@@ -16,10 +16,11 @@ int SEM_PROC_READY_ID = -1;
 int SEM_NOTIFY_WORKER_ID = -1;
 int SEM_NOTIFY_DISPENSER_ID = -1;
 int SEM_NOTIFY_USER_ID = -1;
-int SEM_NOTIFY_CLOCK_ID = -1;
 int SEM_ADD_USERS_ID = -1;
 int SEM_CLOCK_ADD_USERS_ID = -1;
-SemRW_Id SEMRW_CALENDAR_ID = {0};
+int SEM_PROC_CAN_DIE_ID = -1;
+SemRP_Id SEMRP_CALENDAR_ID = {0};
+SemWP_Id SEMWP_SEATS_INFO_ID = {0};
 
 void SEM_START_ID_init(void)
 {
@@ -138,19 +139,6 @@ void SEM_NOTIFY_USER_ID_config(void)
   if (SEM_NOTIFY_USER_ID < 0) { FUNC_PERROR(); }
 }
 
-void SEM_NOTIFY_CLOCK_ID_init(void)
-{
-  SEM_NOTIFY_CLOCK_ID = semget(SEM_NOTIFY_CLOCK_KEY, 1, 0666 | IPC_CREAT);
-  if (SEM_NOTIFY_CLOCK_ID < 0) { FUNC_PERROR(); }
-  if (-1 == init_sem_zero(SEM_NOTIFY_CLOCK_ID, 0)) { FUNC_PERROR(); }
-}
-
-void SEM_NOTIFY_CLOCK_ID_config(void)
-{
-  SEM_NOTIFY_CLOCK_ID = semget(SEM_NOTIFY_CLOCK_KEY, 1, 0666);
-  if (SEM_NOTIFY_CLOCK_ID < 0) { FUNC_PERROR(); }
-}
-
 void SEM_ADD_USERS_init(void)
 {
   SEM_ADD_USERS_ID = semget(SEM_ADD_USERS_KEY, 1, 0666 | IPC_CREAT);
@@ -177,31 +165,111 @@ void SEM_CLOCK_ADD_USERS_config(void)
   if (SEM_CLOCK_ADD_USERS_ID < 0) { FUNC_PERROR(); }
 }
 
-void SEMRW_CALENDAR_ID_init(void)
+void SEM_PROC_CAN_DIE_ID_init(void)
 {
-  SEMRW_CALENDAR_ID.sem_mutex_id =
-      semget(SEMRW_CALENDAR_STRUCT_KEY.sem_mutex_key, 1, 0666 | IPC_CREAT);
-  init_sem_one(SEMRW_CALENDAR_ID.sem_mutex_id, 0);
-  if (-1 == SEMRW_CALENDAR_ID.sem_mutex_id) { FUNC_PERROR(); }
-  SEMRW_CALENDAR_ID.sem_reader_count_id =
-      semget(SEMRW_CALENDAR_STRUCT_KEY.sem_reader_count_key, 1, 0666 | IPC_CREAT);
-  init_sem_zero(SEMRW_CALENDAR_ID.sem_reader_count_id, 0);
-  if (-1 == SEMRW_CALENDAR_ID.sem_reader_count_id) { FUNC_PERROR(); }
-  SEMRW_CALENDAR_ID.sem_writer_id =
-      semget(SEMRW_CALENDAR_STRUCT_KEY.sem_writer_key, 1, 0666 | IPC_CREAT);
-  if (-1 == SEMRW_CALENDAR_ID.sem_writer_id) { FUNC_PERROR(); }
-  init_sem_one(SEMRW_CALENDAR_ID.sem_writer_id, 0);
+  SEM_PROC_CAN_DIE_ID = semget(SEM_PROC_CAN_DIE_KEY, 1, 0666 | IPC_CREAT);
+  if (SEM_PROC_CAN_DIE_ID < 0) { FUNC_PERROR(); }
+  init_sem_zero(SEM_PROC_CAN_DIE_ID, 0);
 }
 
-void SEMRW_CALENDAR_ID_config(void)
+void SEM_PROC_CAN_DIE_ID_config(void)
 {
-  SEMRW_CALENDAR_ID.sem_mutex_id = semget(SEMRW_CALENDAR_STRUCT_KEY.sem_mutex_key, 1, 0666);
-  if (-1 == SEMRW_CALENDAR_ID.sem_mutex_id) { FUNC_PERROR(); }
-  SEMRW_CALENDAR_ID.sem_reader_count_id =
-      semget(SEMRW_CALENDAR_STRUCT_KEY.sem_reader_count_key, 1, 0666);
-  if (-1 == SEMRW_CALENDAR_ID.sem_reader_count_id) { FUNC_PERROR(); }
-  SEMRW_CALENDAR_ID.sem_writer_id = semget(SEMRW_CALENDAR_STRUCT_KEY.sem_writer_key, 1, 0666);
-  if (-1 == SEMRW_CALENDAR_ID.sem_writer_id) { FUNC_PERROR(); }
+  SEM_PROC_CAN_DIE_ID = semget(SEM_PROC_CAN_DIE_KEY, 1, 0666);
+  if (SEM_PROC_CAN_DIE_ID < 0) { FUNC_PERROR(); }
+}
+
+void SEMRP_CALENDAR_ID_init(void)
+{
+  SEMRP_CALENDAR_ID.sem_mutex_id =
+      semget(SEMRP_CALENDAR_STRUCT_KEY.sem_mutex_key, 1, 0666 | IPC_CREAT);
+  init_sem_one(SEMRP_CALENDAR_ID.sem_mutex_id, 0);
+  if (-1 == SEMRP_CALENDAR_ID.sem_mutex_id) { FUNC_PERROR(); }
+  SEMRP_CALENDAR_ID.sem_reader_count_id =
+      semget(SEMRP_CALENDAR_STRUCT_KEY.sem_reader_count_key, 1, 0666 | IPC_CREAT);
+  init_sem_zero(SEMRP_CALENDAR_ID.sem_reader_count_id, 0);
+  if (-1 == SEMRP_CALENDAR_ID.sem_reader_count_id) { FUNC_PERROR(); }
+  SEMRP_CALENDAR_ID.sem_writer_id =
+      semget(SEMRP_CALENDAR_STRUCT_KEY.sem_writer_key, 1, 0666 | IPC_CREAT);
+  if (-1 == SEMRP_CALENDAR_ID.sem_writer_id) { FUNC_PERROR(); }
+  init_sem_one(SEMRP_CALENDAR_ID.sem_writer_id, 0);
+}
+
+void SEMRP_CALENDAR_ID_config(void)
+{
+  SEMRP_CALENDAR_ID.sem_mutex_id = semget(SEMRP_CALENDAR_STRUCT_KEY.sem_mutex_key, 1, 0666);
+  if (-1 == SEMRP_CALENDAR_ID.sem_mutex_id) { FUNC_PERROR(); }
+  SEMRP_CALENDAR_ID.sem_reader_count_id =
+      semget(SEMRP_CALENDAR_STRUCT_KEY.sem_reader_count_key, 1, 0666);
+  if (-1 == SEMRP_CALENDAR_ID.sem_reader_count_id) { FUNC_PERROR(); }
+  SEMRP_CALENDAR_ID.sem_writer_id = semget(SEMRP_CALENDAR_STRUCT_KEY.sem_writer_key, 1, 0666);
+  if (-1 == SEMRP_CALENDAR_ID.sem_writer_id) { FUNC_PERROR(); }
+}
+
+void SEMWP_SEATS_INFO_ID_init(void)
+{
+  SEMWP_SEATS_INFO_ID.sem_mutex_id =
+      semget(SEMWP_SEATS_INFO_STRUCT_KEY.sem_mutex_key, 1, 0666 | IPC_CREAT);
+  if (-1 == SEMWP_SEATS_INFO_ID.sem_mutex_id) { FUNC_PERROR(); }
+  init_sem_one(SEMWP_SEATS_INFO_ID.sem_mutex_id, 0);
+
+  SEMWP_SEATS_INFO_ID.sem_ar_count_id =
+      semget(SEMWP_SEATS_INFO_STRUCT_KEY.sem_ar_count_key, 1, 0666 | IPC_CREAT);
+  if (-1 == SEMWP_SEATS_INFO_ID.sem_ar_count_id) { FUNC_PERROR(); }
+  init_sem_zero(SEMWP_SEATS_INFO_ID.sem_ar_count_id, 0);
+
+  SEMWP_SEATS_INFO_ID.sem_wr_count_id =
+      semget(SEMWP_SEATS_INFO_STRUCT_KEY.sem_wr_count_key, 1, 0666 | IPC_CREAT);
+  if (-1 == SEMWP_SEATS_INFO_ID.sem_wr_count_id) { FUNC_PERROR(); }
+  init_sem_zero(SEMWP_SEATS_INFO_ID.sem_wr_count_id, 0);
+
+  SEMWP_SEATS_INFO_ID.sem_aw_count_id =
+      semget(SEMWP_SEATS_INFO_STRUCT_KEY.sem_aw_count_key, 1, 0666 | IPC_CREAT);
+  if (-1 == SEMWP_SEATS_INFO_ID.sem_aw_count_id) { FUNC_PERROR(); }
+  init_sem_zero(SEMWP_SEATS_INFO_ID.sem_aw_count_id, 0);
+
+  SEMWP_SEATS_INFO_ID.sem_ww_count_id =
+      semget(SEMWP_SEATS_INFO_STRUCT_KEY.sem_ww_count_key, 1, 0666 | IPC_CREAT);
+  if (-1 == SEMWP_SEATS_INFO_ID.sem_ww_count_id) { FUNC_PERROR(); }
+  init_sem_zero(SEMWP_SEATS_INFO_ID.sem_ww_count_id, 0);
+
+  SEMWP_SEATS_INFO_ID.sem_ok_read_id =
+      semget(SEMWP_SEATS_INFO_STRUCT_KEY.sem_ok_read_key, 1, 0666 | IPC_CREAT);
+  if (-1 == SEMWP_SEATS_INFO_ID.sem_ok_read_id) { FUNC_PERROR(); }
+  init_sem_zero(SEMWP_SEATS_INFO_ID.sem_ok_read_id, 0);
+
+  SEMWP_SEATS_INFO_ID.sem_ok_write_id =
+      semget(SEMWP_SEATS_INFO_STRUCT_KEY.sem_ok_write_key, 1, 0666 | IPC_CREAT);
+  if (-1 == SEMWP_SEATS_INFO_ID.sem_ok_write_id) { FUNC_PERROR(); }
+  init_sem_zero(SEMWP_SEATS_INFO_ID.sem_ok_write_id, 0);
+}
+
+void SEMWP_SEATS_INFO_ID_config(void)
+{
+  SEMWP_SEATS_INFO_ID.sem_mutex_id = semget(SEMWP_SEATS_INFO_STRUCT_KEY.sem_mutex_key, 1, 0666);
+  if (-1 == SEMWP_SEATS_INFO_ID.sem_mutex_id) { FUNC_PERROR(); }
+
+  SEMWP_SEATS_INFO_ID.sem_ar_count_id =
+      semget(SEMWP_SEATS_INFO_STRUCT_KEY.sem_ar_count_key, 1, 0666);
+  if (-1 == SEMWP_SEATS_INFO_ID.sem_ar_count_id) { FUNC_PERROR(); }
+
+  SEMWP_SEATS_INFO_ID.sem_wr_count_id =
+      semget(SEMWP_SEATS_INFO_STRUCT_KEY.sem_wr_count_key, 1, 0666);
+  if (-1 == SEMWP_SEATS_INFO_ID.sem_wr_count_id) { FUNC_PERROR(); }
+
+  SEMWP_SEATS_INFO_ID.sem_aw_count_id =
+      semget(SEMWP_SEATS_INFO_STRUCT_KEY.sem_aw_count_key, 1, 0666);
+  if (-1 == SEMWP_SEATS_INFO_ID.sem_aw_count_id) { FUNC_PERROR(); }
+
+  SEMWP_SEATS_INFO_ID.sem_ww_count_id =
+      semget(SEMWP_SEATS_INFO_STRUCT_KEY.sem_ww_count_key, 1, 0666);
+  if (-1 == SEMWP_SEATS_INFO_ID.sem_ww_count_id) { FUNC_PERROR(); }
+
+  SEMWP_SEATS_INFO_ID.sem_ok_read_id = semget(SEMWP_SEATS_INFO_STRUCT_KEY.sem_ok_read_key, 1, 0666);
+  if (-1 == SEMWP_SEATS_INFO_ID.sem_ok_read_id) { FUNC_PERROR(); }
+
+  SEMWP_SEATS_INFO_ID.sem_ok_write_id =
+      semget(SEMWP_SEATS_INFO_STRUCT_KEY.sem_ok_write_key, 1, 0666);
+  if (-1 == SEMWP_SEATS_INFO_ID.sem_ok_write_id) { FUNC_PERROR(); }
 }
 
 void sem_init(void)
@@ -217,7 +285,9 @@ void sem_init(void)
   SEM_NOTIFY_USER_ID_init();
   SEM_ADD_USERS_init();
   SEM_CLOCK_ADD_USERS_init();
-  SEMRW_CALENDAR_ID_init();
+  SEM_PROC_CAN_DIE_ID_init();
+  SEMRP_CALENDAR_ID_init();
+  SEMWP_SEATS_INFO_ID_init();
 }
 
 void sem_config(void)
@@ -233,7 +303,9 @@ void sem_config(void)
   SEM_NOTIFY_USER_ID_config();
   SEM_ADD_USERS_config();
   SEM_CLOCK_ADD_USERS_config();
-  SEMRW_CALENDAR_ID_config();
+  SEM_PROC_CAN_DIE_ID_init();
+  SEMRP_CALENDAR_ID_config();
+  SEMWP_SEATS_INFO_ID_config();
 }
 
 void sem_deallocate(void)
@@ -247,4 +319,17 @@ void sem_deallocate(void)
   if (-1 == semctl(SEM_NOTIFY_WORKER_ID, 0, IPC_RMID)) { FUNC_PERROR(); }
   if (-1 == semctl(SEM_NOTIFY_DISPENSER_ID, 0, IPC_RMID)) { FUNC_PERROR(); }
   if (-1 == semctl(SEM_NOTIFY_USER_ID, 0, IPC_RMID)) { FUNC_PERROR(); }
+  if (-1 == semctl(SEM_ADD_USERS_ID, 0, IPC_RMID)) { FUNC_PERROR(); }
+  if (-1 == semctl(SEM_CLOCK_ADD_USERS_ID, 0, IPC_RMID)) { FUNC_PERROR(); }
+  if (-1 == semctl(SEM_PROC_CAN_DIE_ID, 0, IPC_RMID)) { FUNC_PERROR(); }
+  if (-1 == semctl(SEMRP_CALENDAR_ID.sem_mutex_id, 1, IPC_RMID)) { FUNC_PERROR(); }
+  if (-1 == semctl(SEMRP_CALENDAR_ID.sem_reader_count_id, 1, IPC_RMID)) { FUNC_PERROR(); }
+  if (-1 == semctl(SEMRP_CALENDAR_ID.sem_writer_id, 1, IPC_RMID)) { FUNC_PERROR(); }
+  if (-1 == semctl(SEMWP_SEATS_INFO_ID.sem_mutex_id, 1, IPC_RMID)) { FUNC_PERROR(); }
+  if (-1 == semctl(SEMWP_SEATS_INFO_ID.sem_ar_count_id, 1, IPC_RMID)) { FUNC_PERROR(); }
+  if (-1 == semctl(SEMWP_SEATS_INFO_ID.sem_wr_count_id, 1, IPC_RMID)) { FUNC_PERROR(); }
+  if (-1 == semctl(SEMWP_SEATS_INFO_ID.sem_aw_count_id, 1, IPC_RMID)) { FUNC_PERROR(); }
+  if (-1 == semctl(SEMWP_SEATS_INFO_ID.sem_ww_count_id, 1, IPC_RMID)) { FUNC_PERROR(); }
+  if (-1 == semctl(SEMWP_SEATS_INFO_ID.sem_ok_read_id, 1, IPC_RMID)) { FUNC_PERROR(); }
+  if (-1 == semctl(SEMWP_SEATS_INFO_ID.sem_ok_write_id, 1, IPC_RMID)) { FUNC_PERROR(); }
 }

@@ -18,15 +18,19 @@
 #include "msg.h"
 #include "stats_handler.h"
 
+pid_t* all_proc_pid = NULL;
+size_t nof_proc = 0;
+int user_added = 0;
 
 void init_workers(void)
 {
   if (NOF_WORKERS < 1) { return; }
-  pid_t* workers_pid = shmat(SHM_WORKERS_PID_ID, NULL, 0);
-  if ((pid_t*)-1 == (pid_t*)workers_pid) { FUNC_PERROR(); }
-  int assigned_worker[] = {2, 0, 0, 0, 0, 0};
-  // int assigned_worker[SERV_NUM];
-  // utils_assign_count_array(assigned_worker, SERV_NUM, NOF_WORKERS);
+  int assigned_worker[SERV_NUM];
+  utils_assign_count_array(assigned_worker, SERV_NUM, NOF_WORKERS);
+  for (int i = 0; i < SERV_NUM; i++)
+  {
+    log_trace("manager -> %d worker for serv: %d", assigned_worker[i], i);
+  }
   int worker_count = 0;
   for (int i = 0; i < SERV_NUM; i++)
   {
@@ -46,10 +50,13 @@ void init_workers(void)
         char* args[] = {dir, i_str, id, NULL};
         if (execv(args[0], args) == -1) { FUNC_PERROR(); }
       }
-      else { workers_pid[worker_count++] = pid; }
+      else
+      {
+        worker_count++;
+        all_proc_pid[nof_proc++] = pid;
+      }
     }
   }
-  if (-1 == shmdt(workers_pid)) { FUNC_PERROR(); }
 }
 
 void init_new_users(void)
@@ -68,6 +75,7 @@ void init_new_users(void)
       char* args[] = {dir, id, NULL};
       if (execv(args[0], args) == -1) { FUNC_PERROR(); }
     }
+    else { all_proc_pid[nof_proc++] = pid; }
   }
   add_new_users();
 }
@@ -88,6 +96,7 @@ void init_users(void)
       char* args[] = {dir, id, NULL};
       if (execv(args[0], args) == -1) { FUNC_PERROR(); }
     }
+    else { all_proc_pid[nof_proc++] = pid; }
   }
 }
 
@@ -103,12 +112,11 @@ void init_clock(void)
     char* args[] = {dir, NULL};
     if (execv(args[0], args) == -1) { FUNC_PERROR(); }
   }
+  else { all_proc_pid[nof_proc++] = pid; }
 }
 
 void init_ticket_dispenser(void)
 {
-  pid_t* ticket_disp_pid = shmat(SHM_TICKET_DISPENSER_PID_ID, NULL, 0);
-  if ((pid_t*)-1 == (pid_t*)ticket_disp_pid) { FUNC_PERROR(); }
   pid_t pid = fork();
   if (-1 == pid) { FUNC_PERROR(); }
   else if (0 == pid)
@@ -119,8 +127,7 @@ void init_ticket_dispenser(void)
     char* args[] = {dir, NULL};
     if (execv(args[0], args) == -1) { FUNC_PERROR(); }
   }
-  else { *ticket_disp_pid = pid; }
-  if (-1 == shmdt(ticket_disp_pid)) { FUNC_PERROR(); }
+  else { all_proc_pid[nof_proc++] = pid; }
 }
 
 void init_processes(void)
@@ -134,13 +141,15 @@ void init_processes(void)
 void setup(void)
 {
   config_load();
+  size_t all_proc_num = (size_t)(START_SEM_COUNT + N_NEW_USERS);
+  all_proc_pid = (pid_t*)malloc(sizeof(pid_t) * all_proc_num);
+  if (NULL == all_proc_pid) { FUNC_PERROR(); }
   ftok_key_init();
   sem_init();
   shm_init();
   msg_init();
-  // int assigned_serv_seats[SERV_NUM];
-  int assigned_serv_seats[] = {1, 0, 0, 0, 0, 0};
-  // utils_assign_count_array(assigned_serv_seats, SERV_NUM, NOF_WORKER_SEATS);
+  int assigned_serv_seats[SERV_NUM];
+  utils_assign_count_array(assigned_serv_seats, SERV_NUM, NOF_WORKER_SEATS);
   seats_init_resources(assigned_serv_seats);
   init_processes();
 }
@@ -152,7 +161,8 @@ void start(void)
   else if (-2 == semop_add_user) { release_sem_val(SEM_CLOCK_ADD_USERS_ID, 0, 1); }
   else
   {
-    log_trace("AGIUNTI UTENTIEEEEE MANAGER");
+    log_trace("manager -> %d users added", N_NEW_USERS);
+    user_added = 1;
     init_new_users();
     release_sem_val(SEM_CLOCK_ADD_USERS_ID, 0, 2);
   }
@@ -172,11 +182,25 @@ int main(int argc, char* argv[])
   log_trace("%s", REL_DIR);
   setup();
   if (-1 == lock_sem(SEM_DAY_END_ID, 0)) { FUNC_PERROR(); }
+  int day_count = 0;
   while (1)
   {
+    if (day_count >= SIM_DURATION) { break; }
     log_trace("\n");
     start();
     core();
+    day_count++;
   }
+  release_sem_val(SEM_PROC_CAN_DIE_ID, 0, START_SEM_COUNT);
+  for (size_t i = 0; i < nof_proc; i++)
+  {
+    int status;
+    pid_t child_pid = waitpid(-1, &status, 0);
+    if (-1 == child_pid) { FUNC_PERROR(); }
+  }
+  free(all_proc_pid);
+  sem_deallocate();
+  shm_deallocate();
+  msg_deallocate(user_added);
   return 0;
 }

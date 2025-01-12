@@ -10,5 +10,6 @@ extern int MSG_STATS_METADATA_ID ;
 
 void msg_init(void);
 void msg_config(void);
+void msg_deallocate(int user_added);
 
 #endif

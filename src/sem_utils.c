@@ -161,28 +161,101 @@ int get_sem_value(int semid, int sem_count)
   return semctl(semid, sem_count, GETVAL, arg);
 }
 
-void lock_reader(SemRW_Id sem_rw)
+void lock_reader_RP(SemRP_Id sem_rp)
 {
-  if (-1 == lock_sem(sem_rw.sem_mutex_id, 0)) { FUNC_PERROR(); }
-  if (-1 == release_sem(sem_rw.sem_reader_count_id, 0)) { FUNC_PERROR(); }
-  int num_reader = get_sem_value(sem_rw.sem_reader_count_id, 0);
+  if (-1 == lock_sem(sem_rp.sem_mutex_id, 0)) { FUNC_PERROR(); }
+  if (-1 == release_sem(sem_rp.sem_reader_count_id, 0)) { FUNC_PERROR(); }
+  int num_reader = get_sem_value(sem_rp.sem_reader_count_id, 0);
   if (-1 == num_reader) { FUNC_PERROR(); }
   else if (1 == num_reader)
   {
-    if (-1 == lock_sem(sem_rw.sem_writer_id, 0)) { FUNC_PERROR(); }
+    if (-1 == lock_sem(sem_rp.sem_writer_id, 0)) { FUNC_PERROR(); }
   }
-  if (-1 == release_sem(sem_rw.sem_mutex_id, 0)) { FUNC_PERROR(); }
+  if (-1 == release_sem(sem_rp.sem_mutex_id, 0)) { FUNC_PERROR(); }
 }
 
-void release_reader(SemRW_Id sem_rw)
+void release_reader_RP(SemRP_Id sem_rp)
 {
-  if (-1 == lock_sem(sem_rw.sem_mutex_id, 0)) { FUNC_PERROR(); }
-  if (-1 == lock_sem(sem_rw.sem_reader_count_id, 0)) { FUNC_PERROR(); }
-  int num_reader = get_sem_value(sem_rw.sem_reader_count_id, 0);
+  if (-1 == lock_sem(sem_rp.sem_mutex_id, 0)) { FUNC_PERROR(); }
+  if (-1 == lock_sem(sem_rp.sem_reader_count_id, 0)) { FUNC_PERROR(); }
+  int num_reader = get_sem_value(sem_rp.sem_reader_count_id, 0);
   if (-1 == num_reader) { FUNC_PERROR(); }
   else if (0 == num_reader)
   {
-    if (-1 == release_sem(sem_rw.sem_writer_id, 0)) { FUNC_PERROR(); }
+    if (-1 == release_sem(sem_rp.sem_writer_id, 0)) { FUNC_PERROR(); }
   }
-  if (-1 == release_sem(sem_rw.sem_mutex_id, 0)) { FUNC_PERROR(); }
+  if (-1 == release_sem(sem_rp.sem_mutex_id, 0)) { FUNC_PERROR(); }
+}
+
+void lock_reader_WP(SemWP_Id sem_wp)
+{
+  if (-1 == lock_sem(sem_wp.sem_mutex_id, 0)) { FUNC_PERROR(); }
+  int active_writer = get_sem_value(sem_wp.sem_aw_count_id, 0);
+  int waiting_writer = get_sem_value(sem_wp.sem_ww_count_id, 0);
+  if (-1 == active_writer || -1 == waiting_writer) { FUNC_PERROR(); }
+  if (active_writer + waiting_writer > 0) { release_sem(sem_wp.sem_wr_count_id, 0); }
+  else
+  {
+    if (-1 == release_sem(sem_wp.sem_ok_read_id, 0)) { FUNC_PERROR(); }
+    if (-1 == release_sem(sem_wp.sem_ar_count_id, 0)) { FUNC_PERROR(); }
+  }
+  if (-1 == release_sem(sem_wp.sem_mutex_id, 0)) { FUNC_PERROR(); }
+  if (-1 == lock_sem(sem_wp.sem_ok_read_id, 0)) { FUNC_PERROR(); }
+}
+
+void release_reader_WP(SemWP_Id sem_wp)
+{
+  if (-1 == lock_sem(sem_wp.sem_mutex_id, 0)) { FUNC_PERROR(); }
+  if (-1 == lock_sem(sem_wp.sem_ar_count_id, 0)) { FUNC_PERROR(); }
+  int active_reader = get_sem_value(sem_wp.sem_ar_count_id, 0);
+  int waiting_writer = get_sem_value(sem_wp.sem_ww_count_id, 0);
+  if (-1 == active_reader || -1 == waiting_writer) { FUNC_PERROR(); }
+  if (0 == active_reader && waiting_writer > 0)
+  {
+    if (-1 == release_sem(sem_wp.sem_ok_write_id, 0)) { FUNC_PERROR(); }
+    if (-1 == release_sem(sem_wp.sem_aw_count_id, 0)) { FUNC_PERROR(); }
+    if (-1 == lock_sem(sem_wp.sem_ww_count_id, 0)) { FUNC_PERROR(); }
+  }
+  if (-1 == release_sem(sem_wp.sem_mutex_id, 0)) { FUNC_PERROR(); }
+}
+
+void lock_writer_WP(SemWP_Id sem_wp)
+{
+  if (-1 == lock_sem(sem_wp.sem_mutex_id, 0)) { FUNC_PERROR(); }
+  int active_writer = get_sem_value(sem_wp.sem_aw_count_id, 0);
+  int active_reader = get_sem_value(sem_wp.sem_ar_count_id, 0);
+  if (-1 == active_reader || -1 == active_writer) { FUNC_PERROR(); }
+  if (active_reader + active_writer > 0)
+  {
+    if (-1 == release_sem(sem_wp.sem_ww_count_id, 0)) { FUNC_PERROR(); }
+  }
+  else
+  {
+    if (-1 == release_sem(sem_wp.sem_ok_write_id, 0)) { FUNC_PERROR(); }
+    if (-1 == release_sem(sem_wp.sem_aw_count_id, 0)) { FUNC_PERROR(); }
+  }
+  if (-1 == release_sem(sem_wp.sem_mutex_id, 0)) { FUNC_PERROR(); }
+  if (-1 == lock_sem(sem_wp.sem_ok_write_id, 0)) { FUNC_PERROR(); }
+}
+
+void release_writer_WP(SemWP_Id sem_wp)
+{
+  if (-1 == lock_sem(sem_wp.sem_mutex_id, 0)) { FUNC_PERROR(); }
+  if (-1 == lock_sem(sem_wp.sem_aw_count_id, 0)) { FUNC_PERROR(); }
+  int waiting_writer = get_sem_value(sem_wp.sem_ww_count_id, 0);
+  int waiting_reader = get_sem_value(sem_wp.sem_wr_count_id, 0);
+  if (-1 == waiting_writer) { FUNC_PERROR(); }
+  if (waiting_writer > 0)
+  {
+    if (-1 == release_sem(sem_wp.sem_ok_write_id, 0)) { FUNC_PERROR(); }
+    if (-1 == release_sem(sem_wp.sem_aw_count_id, 0)) { FUNC_PERROR(); }
+    if (-1 == lock_sem(sem_wp.sem_ww_count_id, 0)) { FUNC_PERROR(); }
+  }
+  else if (waiting_reader > 0)
+  {
+    if (-1 == release_sem(sem_wp.sem_ok_read_id, 0)) { FUNC_PERROR(); }
+    if (-1 == release_sem(sem_wp.sem_ar_count_id, 0)) { FUNC_PERROR(); }
+    if (-1 == lock_sem(sem_wp.sem_wr_count_id, 0)) { FUNC_PERROR(); }
+  }
+  if (-1 == release_sem(sem_wp.sem_mutex_id, 0)) { FUNC_PERROR(); }
 }

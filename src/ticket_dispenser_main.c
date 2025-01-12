@@ -69,9 +69,13 @@ void core(void)
 int main(void)
 {
   setup();
+  int day_count = 0;
   while (1)
   {
+    if (day_count >= SIM_DURATION) { break; }
     start();
     core();
+    day_count++;
   }
+  lock_sem(SEM_PROC_CAN_DIE_ID, 0);
 }

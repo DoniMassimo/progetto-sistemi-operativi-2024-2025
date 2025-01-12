@@ -96,10 +96,14 @@ int main(int argc, char* argv[])
   if (3 != argc) { MSG_ERROR("agrc error"); }
   utils_get_relative_path(argv[0], REL_DIR);
   setup(argv[1], argv[2]);
+  int day_count = 0;
   while (1)
   {
+    if (day_count >= SIM_DURATION) { break; }
     start();
     core();
+    day_count++;
   }
+  lock_sem(SEM_PROC_CAN_DIE_ID, 0);
   return 0;
 }

@@ -32,7 +32,6 @@ void start(void)
   if (1 == sem_add_users_val)
   {
     if (-1 == lock_sem(SEM_CLOCK_ADD_USERS_ID, 0)) { FUNC_PERROR(); }
-    log_trace("AGIUNTI UTENTIEEEEE CLOCK");
     add_new_users();
     if (-1 == release_sem_val(SEM_DAY_END_ID, 0, N_NEW_USERS)) { FUNC_PERROR(); }
   }
@@ -64,10 +63,14 @@ void core(void)
 int main(void)
 {
   setup();
+  int day_count = 0;
   while (1)
   {
+    if (day_count >= SIM_DURATION) { break; }
     start();
     core();
+    day_count++;
   }
+  lock_sem(SEM_PROC_CAN_DIE_ID, 0);
   return 0;
 }

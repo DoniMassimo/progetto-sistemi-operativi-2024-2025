@@ -32,21 +32,17 @@ void set_pause_time(void)
   clock_req_pause.worker_msg_id = MSG_NOTIFY_WORKER_IDS[id];
   clock_req_pause.worker_sem_count = id;
   size_t crp_size = get_notifc_size(CLOCK_REQ_PAUSE);
-  int req_sended = 0;
   if (nof_pause_rem > 0)
   {
     int random_num = rand() % 100;
     if (random_num < 80)
     {
-      // TODO: rem
-      // int random_time = rand() % ((60 * 8) - 120);
-      int random_time = 0;
+      int random_time = rand() % ((60 * 8) - 120);
       random_time = random_time + 60;
       clock_req_pause.time = random_time;
-      req_sended = 1;
     }
   }
-  if (0 == req_sended) { clock_req_pause.time = -1; }
+  else { clock_req_pause.time = -1; }
   if (-1 == msgsnd(MSG_NOTIFY_CLOCK_ID, &clock_req_pause, crp_size, 0)) { FUNC_PERROR(); }
   log_trace("worker %d S clock_req_pause -> time: %d", id, clock_req_pause.time);
 }
@@ -63,7 +59,11 @@ void send_service_resp(ServiceReq* service_req)
 
 void provide_service(ServiceReq* service_req)
 {
-  if (service_req->serv != assigned_service) { MSG_ERROR("Service request not deliverable"); }
+  if (service_req->serv != assigned_service)
+  {
+    log_fatal("worker %d -> Service %d not deliverable", id, service_req->serv);
+    MSG_ERROR("Service request not deliverable");
+  }
   int serv_dur = get_serv_duration(&service_req->serv, 1);
   int min_dur = serv_dur - (serv_dur / 2);
   int max_dur = serv_dur + (serv_dur / 2);
@@ -122,11 +122,6 @@ void comunicate_free_seat(void)
               MSG_NOTIFY_WORKER_IDS[i]);
   }
   if (-1 == release_all_sem_excl(SEM_NOTIFY_WORKER_ID, NOF_WORKERS, id)) { FUNC_PERROR(); }
-  for (int i = 0; i < NOF_WORKERS; i++)
-  {
-    int val = get_sem_value(SEM_NOTIFY_WORKER_ID, id);
-    log_trace("worker: %d -> worker: %d sem_val: %d", id, i, val);
-  }
 }
 
 void set_notf_param(GetNotfParam* get_notf_param, void** notifc)
