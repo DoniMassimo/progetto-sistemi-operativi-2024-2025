@@ -25,9 +25,9 @@ void handle_ticket_req(TicketReq* ticket_req)
   ticket_resp.serv = asked_serv;
   if (1 == service_available) { ticket_resp.status = 1; }
   else { ticket_resp.status = 0; }
-  if (-1 == msgsnd(ticket_req->msg_id, &ticket_resp, get_notifc_size(TICKET_RESP), 0))
+  if (-1 == msgsnd(ticket_req->user_msg_id, &ticket_resp, get_notifc_size(TICKET_RESP), 0))
   {
     FUNC_PERROR();
   }
-  if (-1 == release_sem(SEM_NOTIFY_USER_ID, ticket_req->sem_count)) { FUNC_PERROR(); }
+  if (-1 == release_sem(SEM_NOTIFY_USER_ID, ticket_req->user_sem_count)) { FUNC_PERROR(); }
 }

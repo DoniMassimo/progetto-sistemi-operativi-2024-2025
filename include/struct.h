@@ -78,8 +78,8 @@ typedef struct
 typedef struct
 {
   long mtype;
-  int msg_id;
-  int sem_count;
+  int user_msg_id;
+  int user_sem_count;
   Service serv;
 } TicketReq;
 

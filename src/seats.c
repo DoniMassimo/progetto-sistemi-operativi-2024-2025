@@ -53,7 +53,8 @@ int seats_try_take_seat(Service serv, int worker_id, int* seat_index)
   int sinfo_serv_bounds[2];
   get_bounds_serv(sinfo_serv_bounds, serv);
   *seat_index = -1;
-  if (-1 == lock_sem(SEM_SHM_SEATS_INFO_ID, 0)) { FUNC_PERROR(); }
+  //if (-1 == lock_sem(SEM_SHM_SEATS_INFO_ID, 0)) { FUNC_PERROR(); }
+  lock_writer_WP(SEMWP_SEATS_INFO_ID);
   for (int i = sinfo_serv_bounds[0]; i < sinfo_serv_bounds[1]; i++)
   {
     if (0 == shm_sinfo_ptr[i].seats_taken)
@@ -65,7 +66,8 @@ int seats_try_take_seat(Service serv, int worker_id, int* seat_index)
       break;
     }
   }
-  if (-1 == release_sem(SEM_SHM_SEATS_INFO_ID, 0)) { FUNC_PERROR(); }
+  release_writer_WP(SEMWP_SEATS_INFO_ID);
+  //if (-1 == release_sem(SEM_SHM_SEATS_INFO_ID, 0)) { FUNC_PERROR(); }
   if (-1 == *seat_index) { MSG_ERROR("Expecting to find free seats."); }
   if (-1 == shmdt(shm_sinfo_ptr)) { FUNC_PERROR(); }
   return 0;
@@ -73,11 +75,13 @@ int seats_try_take_seat(Service serv, int worker_id, int* seat_index)
 
 void seats_release_seat(Service serv, int seat_index)
 {
+  lock_writer_WP(SEMWP_SEATS_INFO_ID);
   SeatInfo* shm_sinfo_ptr = (SeatInfo*)shmat(SHM_SEATS_INFO_ID, NULL, 0);
   if ((void*)-1 == (void*)shm_sinfo_ptr) { FUNC_PERROR(); }
   shm_sinfo_ptr[seat_index].seats_taken = 0;
   if (-1 == shmdt(shm_sinfo_ptr)) { FUNC_PERROR(); }
   if (-1 == release_sem(SEM_SEATS_ID, serv)) { FUNC_PERROR(); }
+  release_writer_WP(SEMWP_SEATS_INFO_ID);
 }
 
 int seats_get_less_worker(Service serv, SeatInfo* seat_info)
@@ -89,6 +93,7 @@ int seats_get_less_worker(Service serv, SeatInfo* seat_info)
   int seat_index = -1;
   int min_nof_user_waiting = INT_MAX;
   struct msqid_ds buf;
+  lock_reader_WP(SEMWP_SEATS_INFO_ID);
   for (int i = bounds[0]; i < bounds[1]; i++)
   {
     if (0 == shm_sinfo_ptr[i].seats_taken) { continue; }
@@ -99,6 +104,7 @@ int seats_get_less_worker(Service serv, SeatInfo* seat_info)
       seat_index = i;
     }
   }
+  release_reader_WP(SEMWP_SEATS_INFO_ID);
   if (-1 != seat_index) { *seat_info = shm_sinfo_ptr[seat_index]; }
   if (-1 == shmdt(shm_sinfo_ptr)) { FUNC_PERROR(); }
   if (-1 == seat_index) { return 0; }

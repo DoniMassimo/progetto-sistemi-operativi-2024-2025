@@ -32,21 +32,17 @@ void set_pause_time(void)
   clock_req_pause.worker_msg_id = MSG_NOTIFY_WORKER_IDS[id];
   clock_req_pause.worker_sem_count = id;
   size_t crp_size = get_notifc_size(CLOCK_REQ_PAUSE);
-  int req_sended = 0;
   if (nof_pause_rem > 0)
   {
     int random_num = rand() % 100;
     if (random_num < 80)
     {
-      // TODO: rem
-      // int random_time = rand() % ((60 * 8) - 120);
-      int random_time = 0;
+      int random_time = rand() % ((60 * 8) - 120);
       random_time = random_time + 60;
       clock_req_pause.time = random_time;
-      req_sended = 1;
     }
   }
-  if (0 == req_sended) { clock_req_pause.time = -1; }
+  else { clock_req_pause.time = -1; }
   if (-1 == msgsnd(MSG_NOTIFY_CLOCK_ID, &clock_req_pause, crp_size, 0)) { FUNC_PERROR(); }
   log_trace("worker %d S clock_req_pause -> time: %d", id, clock_req_pause.time);
 }

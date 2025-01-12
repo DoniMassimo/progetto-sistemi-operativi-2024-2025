@@ -112,10 +112,13 @@ int main(int argc, char* argv[])
   srand((unsigned int)(time(NULL) + getpid()));
   if (2 != argc) { MSG_ERROR("agrc error"); }
   setup(argv[1]);
+  int day_count = 0;
   while (1)
   {
+    if (day_count >= SIM_DURATION) { break; }
     start();
     core();
+    day_count++;
   }
   return 0;
 }
