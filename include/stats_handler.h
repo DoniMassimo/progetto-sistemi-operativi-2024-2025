@@ -10,7 +10,8 @@ int total_active_workers;
 int total_pauses;
 int total_services;
 int total_days;
-
+int avg_wait_time_per_day;
+int avg_deliv_time_per_day;
 typedef struct
 {
   int nof_served_user;
