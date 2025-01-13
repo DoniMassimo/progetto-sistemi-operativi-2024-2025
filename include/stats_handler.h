@@ -12,6 +12,8 @@ int total_services;
 int total_days;
 int avg_wait_time_per_day;
 int avg_deliv_time_per_day;
+float avg_worker_seat_frac;
+
 typedef struct
 {
   int nof_served_user;
