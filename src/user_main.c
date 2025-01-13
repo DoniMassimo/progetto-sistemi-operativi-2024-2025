@@ -44,15 +44,8 @@ void start(void)
 void core(void)
 {
   void* notifc = NULL;
-  MesType notifc_filter[] = {DAY_ENDED, CLOCK_NOTIFC, TICKET_RESP, SERVICE_RESP};
   GetNotfParam get_notf_param = {0};
-  get_notf_param.notifc_filter = notifc_filter;
-  get_notf_param.nof_notifc = 4;
-  get_notf_param.msg_id = MSG_NOTIFY_USER_IDS[id];
-  get_notf_param.sem_id = SEM_NOTIFY_USER_ID;
-  get_notf_param.sem_count = id;
-  get_notf_param.can_skip = 0;
-  get_notf_param.notifc_mes = &notifc;
+  user_set_notf_param(&get_notf_param, &notifc);
   int pending_req = 0;
   while (1)
   {

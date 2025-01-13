@@ -3,6 +3,7 @@
 #include <sys/shm.h>
 #include <sys/msg.h>
 #include <signal.h>
+#include <limits.h>
 #include "config.h"
 #include "calendar.h"
 #include "ftok_key.h"
@@ -73,9 +74,14 @@ void core(void)
     send_worker_pause(*min_count);
     send_timer_notifc(*min_count);
   }
-  if (-1 == shmdt(min_count)) { FUNC_PERROR(); }
+  send_timer_notifc(INT_MAX);
   clear_calendar();
   send_msg_day_ended();
+  req.tv_nsec = (long int)N_NANO_SECS * 5;
+  if (nanosleep(&req, NULL) == -1) { FUNC_PERROR(); }
+  get_new_timer(*min_count);
+  send_timer_notifc(INT_MAX);
+  if (-1 == shmdt(min_count)) { FUNC_PERROR(); }
   if (-1 == release_sem_val(SEM_DAY_END_ID, 0, START_SEM_COUNT)) { FUNC_PERROR(); }
 }
 

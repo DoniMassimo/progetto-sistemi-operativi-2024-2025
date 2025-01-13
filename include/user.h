@@ -2,6 +2,7 @@
 #define USER_H
 
 #include "config.h"
+#include "notification.h"
 
 extern int id;
 extern int P_SERV;
@@ -11,5 +12,6 @@ void send_ticket_request(Service serv);
 void send_serv_request(TicketResp* ticket_resp);
 void calc_times_from_serv(int all_req_times[], Service serv_req[], int req_time, int nof_req);
 void setup_clock_notifc(void);
+void user_set_notf_param(GetNotfParam* get_notf_param, void** notifc);
 
 #endif

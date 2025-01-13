@@ -39,10 +39,22 @@ void send_notific_clock(int req_times[], Service* serv_req, int nof_req)
   }
   clock_req->times_size = times_size;
   clock_req->serv_req_size = serv_size;
-  if (-1 == msgsnd(MSG_NOTIFY_CLOCK_ID, clock_req, clock_req_size, 0))
-  {
-    FUNC_PERROR();
-  }
+  if (-1 == msgsnd(MSG_NOTIFY_CLOCK_ID, clock_req, clock_req_size, 0)) { FUNC_PERROR(); }
+}
+
+void user_set_notf_param(GetNotfParam* get_notf_param, void** notifc)
+{
+  MesType notifc_filter[] = {DAY_ENDED, CLOCK_NOTIFC, TICKET_RESP, SERVICE_RESP};
+  get_notf_param->nof_notifc = 4;
+  size_t notifc_filter_size = sizeof(MesType) * 4;
+  get_notf_param->notifc_filter = (MesType*)malloc(notifc_filter_size);
+  if (NULL == get_notf_param->notifc_filter) { FUNC_PERROR(); }
+  memcpy(get_notf_param->notifc_filter, notifc_filter, notifc_filter_size);
+  get_notf_param->msg_id = MSG_NOTIFY_USER_IDS[id];
+  get_notf_param->sem_id = SEM_NOTIFY_USER_ID;
+  get_notf_param->sem_count = id;
+  get_notf_param->can_skip = 0;
+  get_notf_param->notifc_mes = notifc;
 }
 
 void send_ticket_request(Service serv)
@@ -96,4 +108,3 @@ void setup_clock_notifc(void)
   calc_times_from_serv(all_req_times, serv_req, opt_time, nof_req);
   send_notific_clock(all_req_times, serv_req, nof_req);
 }
-
