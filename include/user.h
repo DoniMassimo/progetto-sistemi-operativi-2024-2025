@@ -6,9 +6,10 @@
 
 extern int id;
 extern int P_SERV;
-extern int serv_req[SERV_NUM];
+extern int rem_serv_req[SERV_NUM];
 
 void setup_user_stats(void);
+void user_clear_msg_queue(void);
 void send_user_stats(void);
 void add_completed_serv(Service serv);
 void set_failed_serv(Service serv,int fail_serv_num);

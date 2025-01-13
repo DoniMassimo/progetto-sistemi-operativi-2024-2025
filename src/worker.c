@@ -27,7 +27,6 @@ int nof_pause_rem;
 int sem_timer_id;
 WorkerStats* worker_stats;
 size_t deliv_time_index;
-long curr_stats_id = -1;
 
 void setup_worker_stats(void)
 {
@@ -38,7 +37,6 @@ void setup_worker_stats(void)
   worker_stats->pause = 0;
   deliv_time_index = 0;
   worker_stats->nof_delivery_times = 0;
-  curr_stats_id = NOF_USERS + N_NEW_USERS + 1;
 }
 
 void set_active_state(void)
@@ -49,6 +47,27 @@ void set_active_state(void)
 void set_pause_state(void)
 {
   worker_stats->pause = 1;
+}
+
+void worker_clear_msg_queue(void)
+{
+  void* notifc = NULL;
+  GetNotfParam get_notf_param = {0};
+  worker_set_notf_param(&get_notf_param, &notifc);
+  get_notf_param.nowait = 1;
+  get_notf_param.can_skip = 1;
+  int count_rem;
+  MesType notification = get_notifications(&get_notf_param);
+  while (notification != NO_MES)
+  {
+    count_rem++;
+    notification = get_notifications(&get_notf_param);
+  }
+  struct msqid_ds buf;
+  if (msgctl(MSG_NOTIFY_WORKER_IDS[id], IPC_STAT, &buf) == -1) { FUNC_PERROR(); }
+  if (buf.msg_qnum > 0) { MSG_ERROR("Unexpected msg"); }
+  init_sem_zero(SEM_NOTIFY_WORKER_ID, id);
+  log_trace("worker: %d -> clear_msg: %d", id, count_rem);
 }
 
 void add_deliv_time(int time)
@@ -67,7 +86,7 @@ void add_deliv_time(int time)
 
 void send_worker_stats(void)
 {
-  curr_stats_id = NOF_USERS + N_NEW_USERS + 1;
+  long curr_stats_id = (NOF_USERS + N_NEW_USERS) * (SERV_NUM + 3) + 1 + id;
   StatsSize stats_size = {0};
   stats_size.mtype = curr_stats_id;
   stats_size.type = 1;
@@ -76,9 +95,10 @@ void send_worker_stats(void)
   msgsnd(MSG_STATS_METADATA_ID, &stats_size, msg_size, 0);
   worker_stats->nof_delivery_times = deliv_time_index;
   worker_stats->mtype = curr_stats_id;
-  msg_size = sizeof(WorkerStats) + sizeof(int) * deliv_time_index;
+  msg_size = sizeof(WorkerStats) + sizeof(int) * deliv_time_index - sizeof(long);
   msgsnd(MSG_STATS_DATA_ID, worker_stats, msg_size, 0);
-  curr_stats_id++;
+  log_trace("worker: %d S send_stats -> mtype: %d count: %d pause: %d active: %d", id,
+            stats_size.mtype, deliv_time_index, worker_stats->pause, worker_stats->active);
 }
 
 void set_pause_time(void)
@@ -187,7 +207,7 @@ void comunicate_free_seat(void)
   if (-1 == release_all_sem_excl(SEM_NOTIFY_WORKER_ID, NOF_WORKERS, id)) { FUNC_PERROR(); }
 }
 
-void set_notf_param(GetNotfParam* get_notf_param, void** notifc)
+void worker_set_notf_param(GetNotfParam* get_notf_param, void** notifc)
 {
   MesType notifc_filter[] = {DAY_ENDED, PAUSE_NOTIFC, SEAT_FREE, SERVICE_REQ};
   get_notf_param->nof_notifc = 4;
@@ -199,6 +219,7 @@ void set_notf_param(GetNotfParam* get_notf_param, void** notifc)
   get_notf_param->sem_id = SEM_NOTIFY_WORKER_ID;
   get_notf_param->sem_count = id;
   get_notf_param->can_skip = 0;
+  get_notf_param->nowait = 0;
   get_notf_param->notifc_mes = notifc;
 }
 
@@ -225,9 +246,9 @@ int try_take_paused_seats(void* notifc)
     if (-1 == prov_serv_paused_worker(seat_free_com))
     {
       seats_release_seat(assigned_service, seat_index);
-      // day ended;
       return -1;
     }
+    return 0;
   }
-  return 0;
+  return -2;
 }

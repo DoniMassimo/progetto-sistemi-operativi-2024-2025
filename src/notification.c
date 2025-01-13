@@ -3,6 +3,7 @@
 #include <sys/shm.h>
 #include <sys/sem.h>
 #include <sys/msg.h>
+#include <unistd.h>
 #include "macros.h"
 #include "sem_utils.h"
 #include "struct.h"
@@ -38,11 +39,15 @@ MesType get_notifications(GetNotfParam* get_notf_param)
   int sem_id = get_notf_param->sem_id;
   int sem_count = get_notf_param->sem_count;
   int can_skip = get_notf_param->can_skip;
+  int nowait = get_notf_param->nowait;
   void** notifc_mes = get_notf_param->notifc_mes;
   size_t notific_size = get_notifc_size(notifc_filter[0]);
   *notifc_mes = (void*)malloc(notific_size);
   if (NULL == *notifc_mes) { FUNC_PERROR(); }
-  if (-1 == lock_sem(sem_id, sem_count)) { FUNC_PERROR(); }
+  if (0 == nowait)
+  {
+    if (-1 == lock_sem(sem_id, sem_count)) { FUNC_PERROR(); }
+  }
   for (int i = 0; i < nof_notifc; i++)
   {
     if (i != 0)
@@ -57,7 +62,11 @@ MesType get_notifications(GetNotfParam* get_notf_param)
     }
     else { return notifc_filter[i]; }
   }
-  if (0 == can_skip) { MSG_ERROR("Notification expeceted"); }
+  if (0 == can_skip)
+  {
+    log_fatal("Notification expeceted %d", getpid());
+    MSG_ERROR("Notification expeceted");
+  }
   return NO_MES;
 }
 

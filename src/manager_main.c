@@ -152,10 +152,13 @@ void setup(void)
   utils_assign_count_array(assigned_serv_seats, SERV_NUM, NOF_WORKER_SEATS);
   seats_init_resources(assigned_serv_seats);
   init_processes();
+  init_stats();
 }
 
 void start(void)
 {
+  if (-1 == lock_sem(SEM_DAY_END_ID, 0)) { FUNC_PERROR(); }
+  if (-1 == wait_zero_sem(SEM_DAY_END_ID, 0)) { FUNC_PERROR(); }
   int semop_add_user = lock_sem_nowait(SEM_ADD_USERS_ID, 0);
   if (-1 == semop_add_user) { FUNC_PERROR(); }
   else if (-2 == semop_add_user) { release_sem_val(SEM_CLOCK_ADD_USERS_ID, 0, 1); }
@@ -172,7 +175,6 @@ void start(void)
 
 void core(void)
 {
-  if (-1 == lock_sem(SEM_DAY_END_ID, 0)) { FUNC_PERROR(); }
 }
 
 int main(int argc, char* argv[])
@@ -181,7 +183,6 @@ int main(int argc, char* argv[])
   utils_get_relative_path(argv[0], REL_DIR);
   log_trace("%s", REL_DIR);
   setup();
-  if (-1 == lock_sem(SEM_DAY_END_ID, 0)) { FUNC_PERROR(); }
   int day_count = 0;
   while (1)
   {
@@ -189,7 +190,9 @@ int main(int argc, char* argv[])
     log_trace("\n");
     start();
     core();
+    get_stats(NOF_USERS * SERV_NUM + NOF_WORKERS, day_count);
     day_count++;
+    print_stats(day_count);
   }
   release_sem_val(SEM_PROC_CAN_DIE_ID, 0, START_SEM_COUNT);
   for (size_t i = 0; i < nof_proc; i++)

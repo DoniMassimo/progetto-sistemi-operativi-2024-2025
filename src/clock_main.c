@@ -24,6 +24,7 @@ void setup(void)
   sem_config();
   shm_config();
   if (-1 == release_sem_val(SEM_DAY_END_ID, 0, START_SEM_COUNT)) { FUNC_PERROR(); }
+  log_trace("clock rilascia day ENDEDEDE %d", START_SEM_COUNT);
 }
 
 void start(void)
@@ -39,6 +40,7 @@ void start(void)
   if (timer_data != NULL)
   {
     free(timer_data);
+    timer_data = NULL;
     timer_data_size = 0;
     timer_send_index = 0;
     timer_recv_index = 0;

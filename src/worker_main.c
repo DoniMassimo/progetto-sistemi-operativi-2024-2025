@@ -41,6 +41,8 @@ void start(void)
 {
   setup_worker_stats();
   if (-1 == lock_sem(SEM_DAY_END_ID, 0)) { FUNC_PERROR(); }
+  if (-1 == wait_zero_sem(SEM_DAY_END_ID, 0)) { FUNC_PERROR(); }
+  worker_clear_msg_queue();
   set_pause_time();
   if (-1 == release_sem(SEM_PROC_READY_ID, 0)) { FUNC_PERROR(); }
   if (-1 == lock_sem(SEM_START_ID, 0)) { FUNC_PERROR(); }
@@ -55,10 +57,14 @@ void core(void)
     log_trace("worker %d -> does not find seat", id);
     exclude_pause = 1;
   }
-  else { set_active_state(); }
+  else
+  {
+    log_trace("worker %d -> find_seat_serv: %d", id, assigned_service);
+    set_active_state();
+  }
   GetNotfParam get_notf_param = {0};
   void* notifc = NULL;
-  set_notf_param(&get_notf_param, &notifc);
+  worker_set_notf_param(&get_notf_param, &notifc);
   while (1)
   {
     if (notifc != NULL) { free(notifc); }
@@ -78,7 +84,9 @@ void core(void)
       log_trace("worker %d R seat_free_com -> seat status: %d", id, take_seat_res);
       if (-2 == take_seat_res)
       {
-        if (-1 == try_take_paused_seats(notifc)) { break; }
+        int seat_outcome = try_take_paused_seats(notifc);
+        if (-1 == seat_outcome) { break; }
+        if (0 == seat_outcome) { take_seat_res = 0; }
       }
     }
     else if (PAUSE_NOTIFC == notification)

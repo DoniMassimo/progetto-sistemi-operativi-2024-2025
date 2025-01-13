@@ -32,23 +32,17 @@ void setup(void)
 void start(void)
 {
   if (-1 == lock_sem(SEM_DAY_END_ID, 0)) { FUNC_PERROR(); }
+  if (-1 == wait_zero_sem(SEM_DAY_END_ID, 0)) { FUNC_PERROR(); }
+  clear_dispenser_msg_queue();
   if (-1 == release_sem(SEM_PROC_READY_ID, 0)) { FUNC_PERROR(); }
   if (-1 == lock_sem(SEM_START_ID, 0)) { FUNC_PERROR(); }
 }
 
 void core(void)
 {
-  int nof_notifc = 2;
-  MesType notifc_filter[] = {DAY_ENDED, TICKET_REQ};
   void* notifc = NULL;
   GetNotfParam get_notf_param = {0};
-  get_notf_param.notifc_filter = notifc_filter;
-  get_notf_param.nof_notifc = nof_notifc;
-  get_notf_param.msg_id = MSG_NOTIFY_DISPENSER_ID;
-  get_notf_param.sem_id = SEM_NOTIFY_DISPENSER_ID;
-  get_notf_param.sem_count = 0;
-  get_notf_param.can_skip = 0;
-  get_notf_param.notifc_mes = &notifc;
+  dispenser_set_notf_param(&get_notf_param, &notifc);
   while (1)
   {
     if (notifc != NULL) { free(notifc); }

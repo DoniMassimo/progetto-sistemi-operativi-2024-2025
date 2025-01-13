@@ -17,7 +17,7 @@ int P_SERV;
 UserStats* user_stats[SERV_NUM];
 size_t wait_time_index[SERV_NUM];
 long curr_stats_id = 1;
-int serv_req[SERV_NUM];
+int rem_serv_req[SERV_NUM];
 
 void setup_user_stats(void)
 {
@@ -30,6 +30,31 @@ void setup_user_stats(void)
     user_stats[i]->failed_serv = 0;
     wait_time_index[i] = 0;
   }
+}
+
+void user_clear_msg_queue(void)
+{
+  void* notifc = NULL;
+  GetNotfParam get_notf_param = {0};
+  user_set_notf_param(&get_notf_param, &notifc);
+  get_notf_param.nowait = 1;
+  get_notf_param.can_skip = 1;
+  int count_rem = 0;
+  MesType notification = get_notifications(&get_notf_param);
+  while (notification != NO_MES)
+  {
+    count_rem++;
+    notification = get_notifications(&get_notf_param);
+  }
+  struct msqid_ds buf;
+  if (msgctl(MSG_NOTIFY_USER_IDS[id], IPC_STAT, &buf) == -1) { FUNC_PERROR(); }
+  if (buf.msg_qnum > 0)
+  {
+    log_fatal("user: %d -> Unexpected msg", id);
+    MSG_ERROR("Unexpected msg");
+  }
+  log_trace("user: %d -> clear_msg: %d", id, count_rem);
+  if (-1 == init_sem_zero(SEM_NOTIFY_USER_ID, id)) { FUNC_PERROR(); }
 }
 
 void add_completed_serv(Service serv)
@@ -53,21 +78,23 @@ void add_waiting_time(Service serv, int time)
 
 void send_user_stats(void)
 {
-  curr_stats_id = 1;
   for (int i = 0; i < SERV_NUM; i++)
   {
     StatsSize stats_size = {0};
-    stats_size.mtype = curr_stats_id;
+    long curr_mtype = 1 + (id * SERV_NUM) + i;
+    stats_size.mtype = curr_mtype;
     stats_size.type = 0;
     stats_size.ser_data_size = sizeof(int) * wait_time_index[i];
     size_t msg_size = sizeof(StatsSize) - sizeof(long);
     msgsnd(MSG_STATS_METADATA_ID, &stats_size, msg_size, 0);
     user_stats[i]->nof_waiting_times = wait_time_index[i];
-    user_stats[i]->mtype = curr_stats_id;
-    user_stats[i]->failed_serv = serv_req[i];
-    msg_size = sizeof(UserStats) + sizeof(int) * wait_time_index[i];
+    user_stats[i]->mtype = curr_mtype;
+    user_stats[i]->failed_serv = rem_serv_req[i];
+    msg_size = sizeof(UserStats) + sizeof(int) * wait_time_index[i] - sizeof(long);
     msgsnd(MSG_STATS_DATA_ID, user_stats[i], msg_size, 0);
-    curr_stats_id++;
+    log_trace("user: %d S send_stats -> serv: %d mtype: %d completed: %d fail: %d count: %d", id, i,
+              stats_size.mtype, user_stats[i]->completed_serv, user_stats[i]->failed_serv,
+              wait_time_index[i]);
   }
 }
 
@@ -110,6 +137,7 @@ void user_set_notf_param(GetNotfParam* get_notf_param, void** notifc)
   get_notf_param->sem_id = SEM_NOTIFY_USER_ID;
   get_notf_param->sem_count = id;
   get_notf_param->can_skip = 0;
+  get_notf_param->nowait = 0;
   get_notf_param->notifc_mes = notifc;
 }
 
@@ -155,14 +183,14 @@ void setup_clock_notifc(void)
     send_notific_clock(NULL, NULL, 0);
     return;
   }
-  memset(serv_req, 0, sizeof(serv_req));
+  memset(rem_serv_req, 0, sizeof(rem_serv_req));
   int nof_req = (rand() % N_REQUESTS) + 1;
   Service serv_req[nof_req];
   int all_req_times[nof_req];
   for (int i = 0; i < nof_req; i++)
   {
     serv_req[i] = (Service)(rand() % SERV_NUM);
-    serv_req[serv_req[i]]++;
+    rem_serv_req[serv_req[i]]++;
   }
   int req_time = (int)(rand() % (8 * 60));
   int opt_time = find_best_time(req_time, serv_req, nof_req);

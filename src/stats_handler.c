@@ -7,8 +7,17 @@
 #include "struct.h"
 #include "macros.h"
 
+int total_served_users;
+int total_delivered_services;
+int total_failed_services;
+int total_wait_time;
+int total_deliv_time;
+int total_active_workers;
+int total_pauses;
+int total_services;
+int total_days;
+
 ServStats** calendar_stats = NULL;
-int curr_day = 0;
 
 void init_stats(void)
 {
@@ -34,7 +43,7 @@ void init_stats(void)
   }
 }
 
-void get_stats(int nof_msg)
+void get_stats(int nof_msg, int curr_day)
 {
   int bound_deliv_time = 0;
   for (int i = 0; i < nof_msg; i++)
@@ -45,10 +54,10 @@ void get_stats(int nof_msg)
       FUNC_PERROR();
     }
 
-    log_info("Received stats size");
     long filter_mtype = stats_size.mtype;
+    int msg_type = stats_size.type;
 
-    if (filter_mtype == 0) // UserStats
+    if (msg_type == 0) // UserStats
     {
       UserStats* user_stats = (UserStats*)malloc(sizeof(UserStats) + stats_size.ser_data_size);
       if (NULL == user_stats) { FUNC_PERROR(); }
@@ -60,37 +69,36 @@ void get_stats(int nof_msg)
         FUNC_PERROR();
         free(user_stats);
       }
-      log_trace("Received user stats");
-
-      calendar_stats[curr_day][user_stats->serv].nof_served_user++;
+      if (user_stats->completed_serv > 0)
+      {
+        calendar_stats[curr_day][user_stats->serv].nof_served_user++;
+      }
       calendar_stats[curr_day][user_stats->serv].nof_delivered_serv += user_stats->completed_serv;
       calendar_stats[curr_day][user_stats->serv].nof_failedserv += user_stats->failed_serv;
       int new_nof_wait_time =
           calendar_stats[curr_day][user_stats->serv].nof_wait_time + user_stats->nof_waiting_times;
-
-      calendar_stats[curr_day][user_stats->serv].wait_time = (int*)realloc(
-          calendar_stats[curr_day][user_stats->serv].wait_time, new_nof_wait_time * sizeof(int));
-
-      if (NULL == calendar_stats[curr_day][user_stats->serv].wait_time ||
-          NULL == calendar_stats[curr_day][user_stats->serv].deliv_time)
+      if (new_nof_wait_time > 0)
       {
-        FUNC_PERROR();
-      }
+        calendar_stats[curr_day][user_stats->serv].wait_time = (int*)realloc(
+            calendar_stats[curr_day][user_stats->serv].wait_time, new_nof_wait_time * sizeof(int));
 
-      for (int k = 0; k < user_stats->nof_waiting_times; k++)
-      {
-        calendar_stats[curr_day][user_stats->serv]
-            .wait_time[calendar_stats[curr_day][user_stats->serv].nof_wait_time + k] =
-            user_stats->ser_data[k];
-      }
+        if (NULL == calendar_stats[curr_day][user_stats->serv].wait_time) { FUNC_PERROR(); }
 
-      calendar_stats[curr_day][user_stats->serv].nof_wait_time = new_nof_wait_time;
+        for (int k = 0; k < user_stats->nof_waiting_times; k++)
+        {
+          calendar_stats[curr_day][user_stats->serv]
+              .wait_time[calendar_stats[curr_day][user_stats->serv].nof_wait_time + k] =
+              user_stats->ser_data[k];
+        }
+        calendar_stats[curr_day][user_stats->serv].nof_wait_time = new_nof_wait_time;
+      }
       bound_deliv_time = user_stats->nof_waiting_times;
       free(user_stats);
     }
-    else if (filter_mtype == 1) // WorkerStats
+    else if (msg_type == 1) // WorkerStats
     {
-      WorkerStats* worker_stats = (WorkerStats*)malloc(sizeof(WorkerStats) - sizeof(long));
+      WorkerStats* worker_stats =
+          (WorkerStats*)malloc(sizeof(WorkerStats) + stats_size.ser_data_size);
       if (NULL == worker_stats) { FUNC_PERROR(); }
 
       if (-1 == msgrcv(MSG_STATS_DATA_ID, worker_stats,
@@ -100,22 +108,25 @@ void get_stats(int nof_msg)
         FUNC_PERROR();
         free(worker_stats);
       }
-      log_info("Received worker stats");
 
       calendar_stats[curr_day][worker_stats->serv].nof_active_worker += worker_stats->active;
       calendar_stats[curr_day][worker_stats->serv].nof_pause += worker_stats->pause;
       int new_nof_deliv_time = calendar_stats[curr_day][worker_stats->serv].nof_deliv_time +
                                worker_stats->nof_delivery_times;
-      calendar_stats[curr_day][worker_stats->serv].deliv_time =
-          (int*)realloc(calendar_stats[curr_day][worker_stats->serv].deliv_time,
-                        new_nof_deliv_time * sizeof(int));
-      for (int k = 0; k < worker_stats->nof_delivery_times; k++)
+      if (new_nof_deliv_time > 0)
       {
-        calendar_stats[curr_day][worker_stats->serv]
-            .deliv_time[calendar_stats[curr_day][worker_stats->serv].nof_deliv_time + k] =
-            worker_stats->ser_data[k + bound_deliv_time];
+        calendar_stats[curr_day][worker_stats->serv].deliv_time =
+            (int*)realloc(calendar_stats[curr_day][worker_stats->serv].deliv_time,
+                          new_nof_deliv_time * sizeof(int));
+        if (NULL == calendar_stats[curr_day][worker_stats->serv].deliv_time) { FUNC_PERROR(); }
+        for (int k = 0; k < worker_stats->nof_delivery_times; k++)
+        {
+          calendar_stats[curr_day][worker_stats->serv]
+              .deliv_time[calendar_stats[curr_day][worker_stats->serv].nof_deliv_time + k] =
+              worker_stats->ser_data[k + bound_deliv_time];
+        }
+        calendar_stats[curr_day][worker_stats->serv].nof_deliv_time = new_nof_deliv_time;
       }
-      calendar_stats[curr_day][worker_stats->serv].nof_deliv_time = new_nof_deliv_time;
       free(worker_stats);
     }
   }
@@ -182,23 +193,23 @@ void save_stats(void)
   fclose(stats_file);
 }
 
-void print_stats(void)
+void print_stats(int curr_day)
 {
   calc_stats();
 
-  for (int i = 0; i < SIM_DURATION; i++)
+  for (int i = 0; i < curr_day; i++)
   {
     for (int j = 0; j < SERV_NUM; j++)
     {
       log_info("Day %d, Service %d:", i, j);
-      log_info("  Number of Served Users: %d", calendar_stats[i][j].nof_served_user);
-      log_info("  Number of Delivered Services: %d", calendar_stats[i][j].nof_delivered_serv);
-      log_info("  Number of Failed Services: %d", calendar_stats[i][j].nof_failedserv);
-      log_info("  Number of Waiting Times: %d", calendar_stats[i][j].nof_wait_time);
-      log_info("  Number of Delivery Times: %d", calendar_stats[i][j].nof_deliv_time);
-      log_info("  Number of Active Workers: %d", calendar_stats[i][j].nof_active_worker);
-      log_info("  Number of Pauses: %d", calendar_stats[i][j].nof_pause);
-      log_info("  Worker Seat Fraction: %f", calendar_stats[i][j].worker_seat_frac);
+      log_info("Number of Served Users: %d", calendar_stats[i][j].nof_served_user);
+      log_info("Number of Delivered Services: %d", calendar_stats[i][j].nof_delivered_serv);
+      log_info("Number of Failed Services: %d", calendar_stats[i][j].nof_failedserv);
+      log_info("Number of Waiting Times: %d", calendar_stats[i][j].nof_wait_time);
+      log_info("Number of Delivery Times: %d", calendar_stats[i][j].nof_deliv_time);
+      log_info("Number of Active Workers: %d", calendar_stats[i][j].nof_active_worker);
+      log_info("Number of Pauses: %d", calendar_stats[i][j].nof_pause);
+      log_info("Worker Seat Fraction: %f", calendar_stats[i][j].worker_seat_frac);
     }
   }
 

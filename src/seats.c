@@ -53,7 +53,6 @@ int seats_try_take_seat(Service serv, int worker_id, int* seat_index)
   int sinfo_serv_bounds[2];
   get_bounds_serv(sinfo_serv_bounds, serv);
   *seat_index = -1;
-  //if (-1 == lock_sem(SEM_SHM_SEATS_INFO_ID, 0)) { FUNC_PERROR(); }
   lock_writer_WP(SEMWP_SEATS_INFO_ID);
   for (int i = sinfo_serv_bounds[0]; i < sinfo_serv_bounds[1]; i++)
   {
@@ -67,7 +66,6 @@ int seats_try_take_seat(Service serv, int worker_id, int* seat_index)
     }
   }
   release_writer_WP(SEMWP_SEATS_INFO_ID);
-  //if (-1 == release_sem(SEM_SHM_SEATS_INFO_ID, 0)) { FUNC_PERROR(); }
   if (-1 == *seat_index) { MSG_ERROR("Expecting to find free seats."); }
   if (-1 == shmdt(shm_sinfo_ptr)) { FUNC_PERROR(); }
   return 0;

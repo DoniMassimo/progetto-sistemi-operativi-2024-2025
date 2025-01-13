@@ -37,6 +37,9 @@ void start(void)
 {
   setup_user_stats();
   if (-1 == lock_sem(SEM_DAY_END_ID, 0)) { FUNC_PERROR(); }
+  if (-1 == wait_zero_sem(SEM_DAY_END_ID, 0)) { FUNC_PERROR(); }
+  log_trace("USERRRRR");
+  user_clear_msg_queue();
   setup_clock_notifc();
   if (-1 == release_sem(SEM_PROC_READY_ID, 0)) { FUNC_PERROR(); }
   if (-1 == lock_sem(SEM_START_ID, 0)) { FUNC_PERROR(); }
@@ -48,7 +51,7 @@ void core(void)
   GetNotfParam get_notf_param = {0};
   user_set_notf_param(&get_notf_param, &notifc);
   int pending_req = 0;
-  Service requested_serv;
+  Service requested_serv = -1;
   int serv_req_time;
   while (1)
   {
@@ -57,7 +60,7 @@ void core(void)
     if (DAY_ENDED == notification)
     {
       free(notifc);
-      return;
+      break;
     }
     else if (TICKET_RESP == notification)
     {
@@ -75,9 +78,9 @@ void core(void)
         serv_req_time = *min_count;
         release_reader_RP(SEMRP_MIN_COUNT_ID);
         if (-1 == shmdt(min_count)) { FUNC_PERROR(); }
+        int new_filter[] = {DAY_ENDED, SERVICE_RESP};
+        memcpy(get_notf_param.notifc_filter, new_filter, sizeof(MesType) * 2);
       }
-      int new_filter[] = {DAY_ENDED, SERVICE_RESP};
-      memcpy(get_notf_param.notifc_filter, new_filter, sizeof(MesType) * 2);
     }
     else if (SERVICE_RESP == notification)
     {
@@ -92,15 +95,20 @@ void core(void)
       if (0 == service_resp->data) { MSG_ERROR("Expecting 1"); }
       get_notf_param.can_skip = 0;
       get_notf_param.nof_notifc = 4;
-      int new_filter[] = {DAY_ENDED, CLOCK_NOTIFC, TICKET_RESP, SERVICE_RESP};
-      memcpy(get_notf_param.notifc_filter, new_filter, sizeof(MesType) * 2);
+      MesType new_filter[] = {DAY_ENDED, CLOCK_NOTIFC, TICKET_RESP, SERVICE_RESP};
+      memcpy(get_notf_param.notifc_filter, new_filter, sizeof(MesType) * 4);
       if (pending_req > 0)
       {
         if (-1 == release_sem_val(SEM_NOTIFY_USER_ID, id, pending_req)) { FUNC_PERROR(); }
       }
+      if (-1 == requested_serv)
+      {
+        log_fatal("user: %d -> Unexpected serv resp", id);
+        MSG_ERROR("Unexpected serv resp");
+      }
       add_completed_serv(requested_serv);
       add_waiting_time(requested_serv, serv_req_time);
-      serv_req[requested_serv]--;
+      rem_serv_req[requested_serv]--;
       pending_req = 0;
     }
     else if (CLOCK_NOTIFC == notification)

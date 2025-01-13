@@ -24,6 +24,7 @@ int init_sem_zero(int semid, int sem_num);
 int lock_sem(int semid, int sem_num);
 int lock_sem_nowait(int semid, int sem_num);
 int lock_sem_val(int semid, int sem_num, int val);
+int wait_zero_sem(int semid, int sem_num);
 int release_sem(int semid, int sem_num);
 int release_sem_val(int semid, int sem_num, int val);
 int release_all_sem(int semid, int sem_count);

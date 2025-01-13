@@ -27,6 +27,7 @@ typedef struct
   int sem_id;
   int sem_count;
   int can_skip;
+  int nowait;
   void** notifc_mes;
 } GetNotfParam;
 

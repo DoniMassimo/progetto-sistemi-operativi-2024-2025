@@ -332,9 +332,9 @@ void sem_config(void)
   SEM_NOTIFY_USER_ID_config();
   SEM_ADD_USERS_config();
   SEM_CLOCK_ADD_USERS_config();
-  SEM_PROC_CAN_DIE_ID_init();
+  SEM_PROC_CAN_DIE_ID_config();
   SEMRP_CALENDAR_ID_config();
-  SEMRP_MIN_COUNT_ID_init();
+  SEMRP_MIN_COUNT_ID_config();
   SEMWP_SEATS_INFO_ID_config();
 }
 
