@@ -1,6 +1,16 @@
 #ifndef STATS_HANDLER_H
 #define STATS_HANDLER_H
 
+int total_served_users;
+int total_delivered_services;
+int total_failed_services;
+int total_wait_time;
+int total_deliv_time;
+int total_active_workers;
+int total_pauses;
+int total_services;
+int total_days;
+
 typedef struct
 {
   int nof_served_user;
