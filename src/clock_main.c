@@ -35,8 +35,18 @@ void start(void)
     add_new_users();
     if (-1 == release_sem_val(SEM_DAY_END_ID, 0, N_NEW_USERS)) { FUNC_PERROR(); }
   }
+  if (timer_data != NULL)
+  {
+    free(timer_data);
+    timer_data_size = 0;
+    timer_send_index = 0;
+    timer_recv_index = 0;
+  }
   setup_user_notific();
   setup_worker_pause();
+  struct msqid_ds buf;
+  if (msgctl(MSG_NOTIFY_CLOCK_ID, IPC_STAT, &buf) == -1) { FUNC_PERROR(); }
+  if (buf.msg_qnum != 0) { MSG_ERROR("Zero mess are expected"); }
   if (-1 == release_sem(SEM_PROC_READY_ID, 0)) { FUNC_PERROR(); }
   if (-1 == lock_sem(SEM_START_ID, 0)) { FUNC_PERROR(); }
   release_sem(SEM_DAY_STARTED_ID, 0);
@@ -44,17 +54,26 @@ void start(void)
 
 void core(void)
 {
-  int min_count = 0;
+  int* min_count = (int*)shmat(SHM_SEATS_INFO_ID, NULL, 0);
+  if ((int*)-1 == (int*)min_count) { FUNC_PERROR(); }
+  if (-1 == lock_sem(SEMRP_MIN_COUNT_ID.sem_writer_id, 0)) { FUNC_PERROR(); }
+  *min_count = 0;
+  if (-1 == release_sem(SEMRP_MIN_COUNT_ID.sem_writer_id, 0)) { FUNC_PERROR(); }
   struct timespec req;
   req.tv_sec = 0;
   req.tv_nsec = (long int)N_NANO_SECS;
-  while (min_count < (60 * 8))
+  while (*min_count < (60 * 8))
   {
-    min_count++;
+    get_new_timer(*min_count);
+    if (-1 == lock_sem(SEMRP_MIN_COUNT_ID.sem_writer_id, 0)) { FUNC_PERROR(); }
+    (*min_count)++;
+    if (-1 == release_sem(SEMRP_MIN_COUNT_ID.sem_writer_id, 0)) { FUNC_PERROR(); }
     if (nanosleep(&req, NULL) == -1) { FUNC_PERROR(); }
-    send_user_notific(min_count);
-    send_worker_pause(min_count);
+    send_user_notific(*min_count);
+    send_worker_pause(*min_count);
+    send_timer_notifc(*min_count);
   }
+  if (-1 == shmdt(min_count)) { FUNC_PERROR(); }
   clear_calendar();
   send_msg_day_ended();
   if (-1 == release_sem_val(SEM_DAY_END_ID, 0, START_SEM_COUNT)) { FUNC_PERROR(); }

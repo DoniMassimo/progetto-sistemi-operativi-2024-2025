@@ -21,6 +21,11 @@ ClockReqPause* worker_pause = NULL;
 size_t worker_pause_size = 0;
 size_t worker_pause_index = 0;
 
+TimerReq* timer_data = NULL;
+size_t timer_data_size = 0;
+size_t timer_send_index = 0;
+size_t timer_recv_index = 0;
+
 void add_user_notific(ClockReq* clock_com, size_t* curr_nof_user_notfc)
 {
   size_t data_count = clock_com->times_size / sizeof(int);
@@ -40,6 +45,13 @@ void add_user_notific(ClockReq* clock_com, size_t* curr_nof_user_notfc)
     user_notific[*curr_nof_user_notfc].msg_id = clock_com->msg_id;
     (*curr_nof_user_notfc)++;
   }
+}
+
+int compare_timer_req(const void* a, const void* b)
+{
+  TimerReq* req1 = (TimerReq*)a;
+  TimerReq* req2 = (TimerReq*)b;
+  return req1->time - req2->time;
 }
 
 int compare_user_notfc(const void* a, const void* b)
@@ -94,6 +106,48 @@ void setup_worker_pause(void)
   }
   worker_pause_size = curr_nof_req_pause;
   qsort(worker_pause, worker_pause_size, sizeof(ClockReqPause), compare_worker_pause);
+}
+
+void get_new_timer(int curr_time)
+{
+  while (1)
+  {
+    if (timer_recv_index >= timer_data_size)
+    {
+      if (0 == timer_data_size) { timer_data_size = 2; }
+      if (timer_data_size > 0) { timer_data_size *= 2; }
+      timer_data = (TimerReq*)realloc(timer_data, sizeof(TimerReq) * timer_data_size);
+      if (NULL == timer_data) { FUNC_PERROR(); }
+    }
+    TimerReq timer_req = {0};
+    size_t msg_size = get_notifc_size(TIMER_REQ);
+    if (-1 == msgrcv(MSG_NOTIFY_CLOCK_ID, &timer_req, msg_size, TIMER_REQ, IPC_NOWAIT))
+    {
+      if (errno == ENOMSG) { break; }
+      else { FUNC_PERROR(); }
+    }
+    timer_req.time += curr_time;
+    timer_data[timer_recv_index] = timer_req;
+    timer_recv_index++;
+    log_trace("clock R timer_req -> time: %d sem_count: %d", timer_req.time, timer_req.info);
+  }
+  qsort(timer_data + timer_send_index, (size_t)(timer_recv_index - timer_send_index),
+        sizeof(TimerReq), compare_timer_req);
+}
+
+void send_timer_notifc(int curr_min)
+{
+  if (timer_send_index >= timer_recv_index) { return; }
+  while (timer_data[timer_send_index].time <= curr_min)
+  {
+    if (timer_send_index >= timer_recv_index) { break; }
+    int time = timer_data[timer_send_index].time;
+    int sem_count = timer_data[timer_send_index].sem_count;
+    int sem_id = timer_data[timer_send_index].sem_id;
+    log_trace("clock S timer_notifc -> time: %d sem_count: %d", curr_min, sem_count);
+    release_sem(sem_id, sem_count);
+    timer_send_index++;
+  }
 }
 
 void setup_user_notific(void)

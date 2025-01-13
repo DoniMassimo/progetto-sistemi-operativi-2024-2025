@@ -26,6 +26,7 @@ size_t get_notifc_size(MesType mes_type)
   if (SEAT_FREE == mes_type) { return sizeof(SeatFreeCom) - sizeof(long); }
   if (PAUSE_NOTIFC == mes_type) { return sizeof(PauseNotifc) - sizeof(long); }
   if (CLOCK_REQ_PAUSE == mes_type) { return sizeof(ClockReqPause) - sizeof(long); }
+  if (TIMER_REQ == mes_type) { return sizeof(TimerReq) - sizeof(long); }
   MSG_ERROR("Not valid MesType");
 }
 

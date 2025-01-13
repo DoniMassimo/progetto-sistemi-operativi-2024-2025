@@ -86,7 +86,7 @@ void core(void)
       get_notf_param.nof_notifc = 4;
       int new_filter[] = {DAY_ENDED, CLOCK_NOTIFC, TICKET_RESP, SERVICE_RESP};
       memcpy(get_notf_param.notifc_filter, new_filter, sizeof(MesType) * 2);
-      release_sem_val(SEM_NOTIFY_USER_ID, id, pending_req);
+      if (-1 == release_sem_val(SEM_NOTIFY_USER_ID, id, pending_req)) { FUNC_PERROR(); }
       pending_req = 0;
     }
     else if (CLOCK_NOTIFC == notification)

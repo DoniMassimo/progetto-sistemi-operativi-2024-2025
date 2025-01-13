@@ -15,6 +15,7 @@ typedef enum
   SEAT_FREE,
   PAUSE_NOTIFC,
   CLOCK_REQ_PAUSE,
+  TIMER_REQ,
   NO_MES,
 } MesType;
 
@@ -92,6 +93,15 @@ typedef struct
   int status;
 } TicketResp;
 
+typedef struct
+{
+  long mtype;
+  int time;
+  int sem_id;
+  int sem_count;
+  int info;
+} TimerReq;
+
 // • il numero di utenti serviti totali nella simulazione
 // • il numero di utenti serviti in media al giorno
 // • il numero di servizi erogati totali nella simulazione
@@ -117,7 +127,6 @@ typedef struct
   int completed_serv;
   int failed_serv;
   size_t nof_waiting_times;
-  size_t nof_delivery_times;
   int ser_data[];
 } UserStats;
 
@@ -127,6 +136,8 @@ typedef struct
   Service serv;
   int active;
   int pause;
+  size_t nof_delivery_times;
+  int ser_data[];
 } WorkerStats;
 
 typedef struct

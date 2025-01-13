@@ -32,6 +32,8 @@ void setup(char arg_1[], char arg_2[])
   sem_config();
   shm_config();
   msg_config();
+  key_t key = ftok(".", 333 + id);
+  sem_timer_id = semget(key, 1, IPC_CREAT | 0666);
   nof_pause_rem = NOF_PAUSE;
 }
 
@@ -59,7 +61,6 @@ void core(void)
   {
     if (notifc != NULL) { free(notifc); }
     MesType notification = get_notifications(&get_notf_param);
-    log_trace("worker %d R notification ->  %d", id, notification);
     if (DAY_ENDED == notification)
     {
       if (0 == take_seat_res) { seats_release_seat(assigned_service, seat_index); }
@@ -105,5 +106,6 @@ int main(int argc, char* argv[])
     day_count++;
   }
   lock_sem(SEM_PROC_CAN_DIE_ID, 0);
+  if (-1 == semctl(sem_timer_id, 0, IPC_RMID)) { FUNC_PERROR(); }
   return 0;
 }

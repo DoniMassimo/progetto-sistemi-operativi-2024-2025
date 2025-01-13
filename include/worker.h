@@ -5,6 +5,7 @@ extern Service assigned_service;
 extern int seat_index;
 extern int id;
 extern int nof_pause_rem;
+extern int sem_timer_id;
 
 void set_pause_time(void);
 void send_service_resp(ServiceReq* service_req);

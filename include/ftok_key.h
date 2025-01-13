@@ -33,6 +33,7 @@ extern key_t SEM_ADD_USERS_KEY;
 extern key_t SEM_CLOCK_ADD_USERS_KEY;
 extern key_t SEM_PROC_CAN_DIE_KEY;
 extern SemRP_Key SEMRP_CALENDAR_STRUCT_KEY;
+extern SemRP_Key SEMRP_MIN_COUNT_STRUCT_KEY;
 extern SemWP_Key SEMWP_SEATS_INFO_STRUCT_KEY;
 
 extern key_t SHM_WORKERS_PID_KEY;
@@ -40,6 +41,7 @@ extern key_t SHM_SEATS_INDEX_KEY;
 extern key_t SHM_SEATS_INFO_KEY;
 extern key_t SHM_TICKET_DISPENSER_PID_KEY;
 extern key_t SHM_CALENDAR_KEY;
+extern key_t SHM_MIN_COUNT_KEY;
 
 extern key_t* MSG_NOTIFY_WORKER_KEYS;
 extern key_t MSG_NOTIFY_DISPENSER_KEY;
