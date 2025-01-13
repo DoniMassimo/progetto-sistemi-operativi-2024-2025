@@ -14,6 +14,62 @@
 
 int id;
 int P_SERV;
+UserStats* user_stats[SERV_NUM];
+size_t wait_time_index[SERV_NUM];
+long curr_stats_id = 1;
+int serv_req[SERV_NUM];
+
+void setup_user_stats(void)
+{
+  for (int i = 0; i < SERV_NUM; i++)
+  {
+    user_stats[i] = (UserStats*)realloc(user_stats[i], sizeof(UserStats));
+    if (NULL == user_stats[i]) { FUNC_PERROR(); }
+    user_stats[i]->serv = (Service)i;
+    user_stats[i]->completed_serv = 0;
+    user_stats[i]->failed_serv = 0;
+    wait_time_index[i] = 0;
+  }
+}
+
+void add_completed_serv(Service serv)
+{
+  user_stats[serv]->completed_serv++;
+}
+
+void add_waiting_time(Service serv, int time)
+{
+  if (wait_time_index[serv] >= user_stats[serv]->nof_waiting_times)
+  {
+    if (0 == user_stats[serv]->nof_waiting_times) { user_stats[serv]->nof_waiting_times = 2; }
+    else { user_stats[serv]->nof_waiting_times *= 2; }
+    size_t new_size = sizeof(int) * user_stats[serv]->nof_waiting_times + sizeof(UserStats);
+    user_stats[serv] = (UserStats*)realloc(user_stats[serv], new_size);
+    if (NULL == user_stats[serv]) { FUNC_PERROR(); }
+  }
+  user_stats[serv]->ser_data[wait_time_index[serv]] = time;
+  wait_time_index[serv]++;
+}
+
+void send_user_stats(void)
+{
+  curr_stats_id = 1;
+  for (int i = 0; i < SERV_NUM; i++)
+  {
+    StatsSize stats_size = {0};
+    stats_size.mtype = curr_stats_id;
+    stats_size.type = 0;
+    stats_size.ser_data_size = sizeof(int) * wait_time_index[i];
+    size_t msg_size = sizeof(StatsSize) - sizeof(long);
+    msgsnd(MSG_STATS_METADATA_ID, &stats_size, msg_size, 0);
+    user_stats[i]->nof_waiting_times = wait_time_index[i];
+    user_stats[i]->mtype = curr_stats_id;
+    user_stats[i]->failed_serv = serv_req[i];
+    msg_size = sizeof(UserStats) + sizeof(int) * wait_time_index[i];
+    msgsnd(MSG_STATS_DATA_ID, user_stats[i], msg_size, 0);
+    curr_stats_id++;
+  }
+}
 
 void send_notific_clock(int req_times[], Service* serv_req, int nof_req)
 {
@@ -24,7 +80,7 @@ void send_notific_clock(int req_times[], Service* serv_req, int nof_req)
   size_t serv_size = sizeof(Service) * (size_t)nof_req;
   for (int i = 0; i < nof_req; i++)
   {
-    log_trace("user %d S clock_req -> serv: %d time: %d", id, serv_req[i], req_times[i]);
+    log_trace("user: %d S clock_req -> serv: %d time: %d", id, serv_req[i], req_times[i]);
   }
   if (nof_req > 0)
   {
@@ -99,10 +155,15 @@ void setup_clock_notifc(void)
     send_notific_clock(NULL, NULL, 0);
     return;
   }
+  memset(serv_req, 0, sizeof(serv_req));
   int nof_req = (rand() % N_REQUESTS) + 1;
   Service serv_req[nof_req];
   int all_req_times[nof_req];
-  for (int i = 0; i < nof_req; i++) { serv_req[i] = (Service)(rand() % SERV_NUM); }
+  for (int i = 0; i < nof_req; i++)
+  {
+    serv_req[i] = (Service)(rand() % SERV_NUM);
+    serv_req[serv_req[i]]++;
+  }
   int req_time = (int)(rand() % (8 * 60));
   int opt_time = find_best_time(req_time, serv_req, nof_req);
   calc_times_from_serv(all_req_times, serv_req, opt_time, nof_req);

@@ -7,7 +7,12 @@ extern int id;
 extern int nof_pause_rem;
 extern int sem_timer_id;
 
+void setup_worker_stats(void);
+void send_worker_stats(void);
 void set_pause_time(void);
+void set_active_state(void);
+void set_pause_state(void);
+void add_deliv_time(int time);
 void send_service_resp(ServiceReq* service_req);
 void provide_service(ServiceReq* service_req);
 int check_day_ended(void);

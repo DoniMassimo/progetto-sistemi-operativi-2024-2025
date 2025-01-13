@@ -58,6 +58,7 @@ typedef struct
 {
   long mtype;
   int data;
+  int time;
 } ServiceResp;
 
 typedef struct

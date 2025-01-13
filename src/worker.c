@@ -25,6 +25,61 @@ int seat_index;
 int id;
 int nof_pause_rem;
 int sem_timer_id;
+WorkerStats* worker_stats;
+size_t deliv_time_index;
+long curr_stats_id = -1;
+
+void setup_worker_stats(void)
+{
+  worker_stats = (WorkerStats*)realloc(worker_stats, sizeof(WorkerStats));
+  if (NULL == worker_stats) { FUNC_PERROR(); }
+  worker_stats->serv = assigned_service;
+  worker_stats->active = 0;
+  worker_stats->pause = 0;
+  deliv_time_index = 0;
+  worker_stats->nof_delivery_times = 0;
+  curr_stats_id = NOF_USERS + N_NEW_USERS + 1;
+}
+
+void set_active_state(void)
+{
+  worker_stats->active = 1;
+}
+
+void set_pause_state(void)
+{
+  worker_stats->pause = 1;
+}
+
+void add_deliv_time(int time)
+{
+  if (deliv_time_index >= worker_stats->nof_delivery_times)
+  {
+    if (0 == worker_stats->nof_delivery_times) { worker_stats->nof_delivery_times = 2; }
+    else { worker_stats->nof_delivery_times *= 2; }
+    size_t new_size = sizeof(int) * worker_stats->nof_delivery_times + sizeof(WorkerStats);
+    worker_stats = (WorkerStats*)realloc(worker_stats, new_size);
+    if (NULL == worker_stats) { FUNC_PERROR(); }
+  }
+  worker_stats->ser_data[deliv_time_index] = time;
+  deliv_time_index++;
+}
+
+void send_worker_stats(void)
+{
+  curr_stats_id = NOF_USERS + N_NEW_USERS + 1;
+  StatsSize stats_size = {0};
+  stats_size.mtype = curr_stats_id;
+  stats_size.type = 1;
+  stats_size.ser_data_size = sizeof(int) * deliv_time_index;
+  size_t msg_size = sizeof(StatsSize) - sizeof(long);
+  msgsnd(MSG_STATS_METADATA_ID, &stats_size, msg_size, 0);
+  worker_stats->nof_delivery_times = deliv_time_index;
+  worker_stats->mtype = curr_stats_id;
+  msg_size = sizeof(WorkerStats) + sizeof(int) * deliv_time_index;
+  msgsnd(MSG_STATS_DATA_ID, worker_stats, msg_size, 0);
+  curr_stats_id++;
+}
 
 void set_pause_time(void)
 {
@@ -78,6 +133,7 @@ void provide_service(ServiceReq* service_req)
   timer_req.sem_id = sem_timer_id;
   timer_req.sem_count = 0;
   timer_req.info = id;
+  add_deliv_time(serv_dur);
   size_t msg_size = get_notifc_size(TIMER_REQ);
   if (-1 == msgsnd(MSG_NOTIFY_CLOCK_ID, &timer_req, msg_size, 0)) { FUNC_PERROR(); }
   lock_sem(sem_timer_id, 0);
@@ -165,6 +221,7 @@ int try_take_paused_seats(void* notifc)
     SeatFreeCom* seat_free_com = (SeatFreeCom*)notifc;
     log_trace("worker %d R seat_free_com -> paused worker msgid: %d", id,
               seat_free_com->worker_msg_id);
+    set_active_state();
     if (-1 == prov_serv_paused_worker(seat_free_com))
     {
       seats_release_seat(assigned_service, seat_index);

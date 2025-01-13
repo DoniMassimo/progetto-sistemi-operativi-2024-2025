@@ -39,6 +39,7 @@ void setup(char arg_1[], char arg_2[])
 
 void start(void)
 {
+  setup_worker_stats();
   if (-1 == lock_sem(SEM_DAY_END_ID, 0)) { FUNC_PERROR(); }
   set_pause_time();
   if (-1 == release_sem(SEM_PROC_READY_ID, 0)) { FUNC_PERROR(); }
@@ -54,6 +55,7 @@ void core(void)
     log_trace("worker %d -> does not find seat", id);
     exclude_pause = 1;
   }
+  else { set_active_state(); }
   GetNotfParam get_notf_param = {0};
   void* notifc = NULL;
   set_notf_param(&get_notf_param, &notifc);
@@ -83,6 +85,7 @@ void core(void)
     {
       if (take_seat_res != -2 && 0 == exclude_pause)
       {
+        set_pause_state();
         take_pause();
         break;
       }
@@ -103,6 +106,7 @@ int main(int argc, char* argv[])
     if (day_count >= SIM_DURATION) { break; }
     start();
     core();
+    send_worker_stats();
     day_count++;
   }
   lock_sem(SEM_PROC_CAN_DIE_ID, 0);

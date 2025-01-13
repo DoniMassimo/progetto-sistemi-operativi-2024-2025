@@ -6,7 +6,13 @@
 
 extern int id;
 extern int P_SERV;
+extern int serv_req[SERV_NUM];
 
+void setup_user_stats(void);
+void send_user_stats(void);
+void add_completed_serv(Service serv);
+void set_failed_serv(Service serv,int fail_serv_num);
+void add_waiting_time(Service serv, int time);
 void send_notific_clock(int req_times[], Service* serv_req, int nof_req);
 void send_ticket_request(Service serv);
 void send_serv_request(TicketResp* ticket_resp);
