@@ -10,9 +10,6 @@
 ServStats** calendar_stats = NULL;
 int curr_day = 0;
 
-// Definizione delle variabili globali
-
-
 void init_stats(void)
 {
   calendar_stats = (ServStats**)malloc(SIM_DURATION * sizeof(ServStats*));
@@ -39,6 +36,7 @@ void init_stats(void)
 
 void get_stats(int nof_msg)
 {
+  int bound_deliv_time = 0;
   for (int i = 0; i < nof_msg; i++)
   {
     StatsSize stats_size;
@@ -67,17 +65,12 @@ void get_stats(int nof_msg)
       calendar_stats[curr_day][user_stats->serv].nof_served_user++;
       calendar_stats[curr_day][user_stats->serv].nof_delivered_serv += user_stats->completed_serv;
       calendar_stats[curr_day][user_stats->serv].nof_failedserv += user_stats->failed_serv;
-
-      // Alloca memoria per wait_time e deliv_time e copia i dati
       int new_nof_wait_time =
           calendar_stats[curr_day][user_stats->serv].nof_wait_time + user_stats->nof_waiting_times;
-      int new_nof_deliv_time = calendar_stats[curr_day][user_stats->serv].nof_deliv_time +
-                               user_stats->nof_delivery_times;
 
       calendar_stats[curr_day][user_stats->serv].wait_time = (int*)realloc(
           calendar_stats[curr_day][user_stats->serv].wait_time, new_nof_wait_time * sizeof(int));
-      calendar_stats[curr_day][user_stats->serv].deliv_time = (int*)realloc(
-          calendar_stats[curr_day][user_stats->serv].deliv_time, new_nof_deliv_time * sizeof(int));
+
       if (NULL == calendar_stats[curr_day][user_stats->serv].wait_time ||
           NULL == calendar_stats[curr_day][user_stats->serv].deliv_time)
       {
@@ -90,16 +83,9 @@ void get_stats(int nof_msg)
             .wait_time[calendar_stats[curr_day][user_stats->serv].nof_wait_time + k] =
             user_stats->ser_data[k];
       }
-      for (int k = 0; k < user_stats->nof_delivery_times; k++)
-      {
-        calendar_stats[curr_day][user_stats->serv]
-            .deliv_time[calendar_stats[curr_day][user_stats->serv].nof_deliv_time + k] =
-            user_stats->ser_data[k + user_stats->nof_waiting_times];
-      }
 
       calendar_stats[curr_day][user_stats->serv].nof_wait_time = new_nof_wait_time;
-      calendar_stats[curr_day][user_stats->serv].nof_deliv_time = new_nof_deliv_time;
-
+      bound_deliv_time = user_stats->nof_waiting_times;
       free(user_stats);
     }
     else if (filter_mtype == 1) // WorkerStats
@@ -118,7 +104,18 @@ void get_stats(int nof_msg)
 
       calendar_stats[curr_day][worker_stats->serv].nof_active_worker += worker_stats->active;
       calendar_stats[curr_day][worker_stats->serv].nof_pause += worker_stats->pause;
-
+      int new_nof_deliv_time = calendar_stats[curr_day][worker_stats->serv].nof_deliv_time +
+                               worker_stats->nof_delivery_times;
+      calendar_stats[curr_day][worker_stats->serv].deliv_time =
+          (int*)realloc(calendar_stats[curr_day][worker_stats->serv].deliv_time,
+                        new_nof_deliv_time * sizeof(int));
+      for (int k = 0; k < worker_stats->nof_delivery_times; k++)
+      {
+        calendar_stats[curr_day][worker_stats->serv]
+            .deliv_time[calendar_stats[curr_day][worker_stats->serv].nof_deliv_time + k] =
+            worker_stats->ser_data[k + bound_deliv_time];
+      }
+      calendar_stats[curr_day][worker_stats->serv].nof_deliv_time = new_nof_deliv_time;
       free(worker_stats);
     }
   }
@@ -171,6 +168,17 @@ void save_stats(void)
               calendar_stats[i][j].nof_pause, calendar_stats[i][j].worker_seat_frac);
     }
   }
+
+  fprintf(stats_file, "\n");
+  fprintf(stats_file, "Total, ,%d,%d,%d,%d,%d,%d,%d,%d\n", total_served_users,
+          total_delivered_services, total_failed_services, total_wait_time, total_deliv_time,
+          total_active_workers, total_pauses, total_services);
+  fprintf(stats_file, "Average per day, ,%f,%f,%f,%f,%f,%f,%f,%f\n",
+          (float)total_served_users / total_days, (float)total_delivered_services / total_days,
+          (float)total_failed_services / total_days, (float)total_wait_time / total_served_users,
+          (float)total_deliv_time / total_services, (float)total_active_workers / total_days,
+          (float)total_pauses / total_days, (float)total_services / total_days);
+
   fclose(stats_file);
 }
 
