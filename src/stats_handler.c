@@ -16,6 +16,9 @@ int total_active_workers;
 int total_pauses;
 int total_services;
 int total_days;
+int avg_wait_time_per_day;
+int avg_deliv_time_per_day;
+float avg_worker_seat_frac;
 
 ServStats** calendar_stats = NULL;
 
@@ -127,6 +130,9 @@ void get_stats(int nof_msg, int curr_day)
         }
         calendar_stats[curr_day][worker_stats->serv].nof_deliv_time = new_nof_deliv_time;
       }
+      calendar_stats[curr_day][worker_stats->serv].nof_deliv_time = new_nof_deliv_time;
+      avg_worker_seat_frac = calendar_stats[curr_day][worker_stats->serv].worker_seat_frac =
+          (float)calendar_stats[curr_day][worker_stats->serv].nof_active_worker / SERV_NUM;
       free(worker_stats);
     }
   }
@@ -141,6 +147,8 @@ void calc_stats(void)
   total_deliv_time = 0;
   total_active_workers = 0;
   total_pauses = 0;
+  avg_wait_time_per_day = 0;
+  avg_deliv_time_per_day = 0;
   total_days = SIM_DURATION;
   total_services = total_delivered_services + total_failed_services;
 
@@ -155,9 +163,25 @@ void calc_stats(void)
       total_deliv_time += calendar_stats[i][j].nof_deliv_time;
       total_active_workers += calendar_stats[i][j].nof_active_worker;
       total_pauses += calendar_stats[i][j].nof_pause;
+
+      if (calendar_stats[i][j].nof_wait_time > 0)
+      {
+        for (int k = 0; k < calendar_stats[i][j].nof_wait_time; k++)
+        {
+          avg_wait_time_per_day += calendar_stats[i][j].wait_time[k];
+        }
+        avg_wait_time_per_day /= calendar_stats[i][j].nof_wait_time;
+      }
+      if (calendar_stats[i][j].nof_deliv_time > 0)
+      {
+        for (int k = 0; k < calendar_stats[i][j].nof_deliv_time; k++)
+        {
+          avg_deliv_time_per_day += calendar_stats[i][j].deliv_time[k];
+        }
+        avg_deliv_time_per_day /= calendar_stats[i][j].nof_deliv_time;
+      }
     }
   }
-
   total_services = total_delivered_services + total_failed_services;
 }
 
@@ -184,11 +208,12 @@ void save_stats(void)
   fprintf(stats_file, "Total, ,%d,%d,%d,%d,%d,%d,%d,%d\n", total_served_users,
           total_delivered_services, total_failed_services, total_wait_time, total_deliv_time,
           total_active_workers, total_pauses, total_services);
-  fprintf(stats_file, "Average per day, ,%f,%f,%f,%f,%f,%f,%f,%f\n",
+  fprintf(stats_file, "Average per day, ,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\n",
           (float)total_served_users / total_days, (float)total_delivered_services / total_days,
           (float)total_failed_services / total_days, (float)total_wait_time / total_served_users,
           (float)total_deliv_time / total_services, (float)total_active_workers / total_days,
-          (float)total_pauses / total_days, (float)total_services / total_days);
+          (float)total_pauses / total_days, (float)total_services / total_days,
+          avg_wait_time_per_day, avg_deliv_time_per_day,(float)avg_worker_seat_frac);
 
   fclose(stats_file);
 }
@@ -227,4 +252,7 @@ void print_stats(int curr_day)
   log_info("Total number of active workers in the simulation: %d", total_active_workers);
   log_info("Total number of pauses in the simulation: %d", total_pauses);
   log_info("Average number of pauses per day: %f", (float)total_pauses / total_days);
+  log_info("average waiting time per day: %f", avg_wait_time_per_day);
+  log_info("average delivery time per day: %f", avg_deliv_time_per_day);
+  log_info("average worker seat fraction: %f", avg_worker_seat_frac);
 }

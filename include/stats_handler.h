@@ -1,6 +1,7 @@
 #ifndef STATS_HANDLER_H
 #define STATS_HANDLER_H
 
+
 extern int total_served_users;
 extern int total_delivered_services;
 extern int total_failed_services;
@@ -10,6 +11,9 @@ extern int total_active_workers;
 extern int total_pauses;
 extern int total_services;
 extern int total_days;
+extern int avg_wait_time_per_day;
+extern int avg_deliv_time_per_day;
+extern float avg_worker_seat_frac;
 
 typedef struct
 {
