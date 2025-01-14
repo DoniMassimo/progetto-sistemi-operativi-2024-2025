@@ -51,3 +51,4 @@ La configurazione del sistema è definita nel file `config.c`. È possibile modi
 
 - Davide Gioetto
 - Massimo Doni
+
