@@ -130,7 +130,6 @@ void get_stats(int nof_msg, int curr_day)
         }
         calendar_stats[curr_day][worker_stats->serv].nof_deliv_time = new_nof_deliv_time;
       }
-      calendar_stats[curr_day][worker_stats->serv].nof_deliv_time = new_nof_deliv_time;
       avg_worker_seat_frac = calendar_stats[curr_day][worker_stats->serv].worker_seat_frac =
           (float)calendar_stats[curr_day][worker_stats->serv].nof_active_worker / SERV_NUM;
       free(worker_stats);
