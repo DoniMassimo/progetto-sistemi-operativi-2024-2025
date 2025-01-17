@@ -141,7 +141,6 @@ void send_timer_notifc(int curr_min)
   while (timer_data[timer_send_index].time <= curr_min)
   {
     if (timer_send_index >= timer_recv_index) { break; }
-    int time = timer_data[timer_send_index].time;
     int sem_count = timer_data[timer_send_index].sem_count;
     int sem_id = timer_data[timer_send_index].sem_id;
     log_trace("clock S timer_notifc -> time: %d sem_count: %d", curr_min, sem_count);

@@ -101,7 +101,7 @@ void core(void)
       {
         if (-1 == release_sem_val(SEM_NOTIFY_USER_ID, id, pending_req)) { FUNC_PERROR(); }
       }
-      if (-1 == requested_serv)
+      if (-1 == (int)requested_serv)
       {
         log_fatal("user: %d -> Unexpected serv resp", id);
         MSG_ERROR("Unexpected serv resp");

@@ -131,7 +131,7 @@ void msg_key_init(void)
   size_t num_user = (size_t)(NOF_USERS + N_NEW_USERS);
   MSG_NOTIFY_USER_KEYS = (key_t*)malloc(sizeof(key_t) * num_user);
   if (NULL == MSG_NOTIFY_USER_KEYS) { FUNC_PERROR(); }
-  for (int i = 0; i < num_user; i++)
+  for (size_t i = 0; i < num_user; i++)
   {
     MSG_NOTIFY_USER_KEYS[i] = ftok(".", key_count++);
     if (-1 == MSG_NOTIFY_USER_KEYS[i]) { FUNC_PERROR(); }

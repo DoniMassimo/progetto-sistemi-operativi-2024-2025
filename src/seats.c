@@ -89,7 +89,7 @@ int seats_get_less_worker(Service serv, SeatInfo* seat_info)
   int bounds[2];
   get_bounds_serv(bounds, serv);
   int seat_index = -1;
-  int min_nof_user_waiting = INT_MAX;
+  size_t min_nof_user_waiting = INT_MAX;
   struct msqid_ds buf;
   lock_reader_WP(SEMWP_SEATS_INFO_ID);
   for (int i = bounds[0]; i < bounds[1]; i++)
