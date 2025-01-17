@@ -59,7 +59,7 @@ void init_workers(void)
   }
 }
 
-void init_new_users(void)
+void init_new_users(int day_count)
 {
   for (int i = NOF_USERS; i < NOF_USERS + N_NEW_USERS; i++)
   {
@@ -69,10 +69,12 @@ void init_new_users(void)
     {
       char id[12];
       sprintf(id, "%d", i);
+      char day[12];
+      sprintf(day, "%d", day_count);
       char dir[MAX_PATH_LEN + MAX_EXE_LEN];
       strcpy(dir, REL_DIR);
       strcat(dir, "user_main");
-      char* args[] = {dir, id, NULL};
+      char* args[] = {dir, id, day, NULL};
       if (execv(args[0], args) == -1) { FUNC_PERROR(); }
     }
     else { all_proc_pid[nof_proc++] = pid; }
@@ -141,6 +143,7 @@ void init_processes(void)
 void setup(void)
 {
   config_load();
+  log_set_level(log_level);
   size_t all_proc_num = (size_t)(START_SEM_COUNT + N_NEW_USERS);
   all_proc_pid = (pid_t*)malloc(sizeof(pid_t) * all_proc_num);
   if (NULL == all_proc_pid) { FUNC_PERROR(); }
@@ -155,7 +158,7 @@ void setup(void)
   init_stats();
 }
 
-void start(void)
+void start(int day_count)
 {
   if (-1 == lock_sem(SEM_DAY_END_ID, 0)) { FUNC_PERROR(); }
   if (-1 == wait_zero_sem(SEM_DAY_END_ID, 0)) { FUNC_PERROR(); }
@@ -166,15 +169,11 @@ void start(void)
   {
     log_trace("manager -> %d users added", N_NEW_USERS);
     user_added = 1;
-    init_new_users();
+    init_new_users(day_count);
     release_sem_val(SEM_CLOCK_ADD_USERS_ID, 0, 2);
   }
   if (-1 == lock_sem_val(SEM_PROC_READY_ID, 0, START_SEM_COUNT)) { FUNC_PERROR(); }
   if (-1 == set_sem_val(SEM_START_ID, 0, START_SEM_COUNT)) { FUNC_PERROR(); }
-}
-
-void core(void)
-{
 }
 
 int main(int argc, char* argv[])
@@ -188,8 +187,7 @@ int main(int argc, char* argv[])
   {
     if (day_count >= SIM_DURATION) { break; }
     log_trace("\n");
-    start();
-    core();
+    start(day_count);
     get_stats(NOF_USERS * SERV_NUM + NOF_WORKERS, day_count);
     day_count++;
     print_stats(day_count);

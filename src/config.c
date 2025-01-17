@@ -17,6 +17,7 @@ int N_REQUESTS;
 int NOF_PAUSE;
 int SIM_DURATION;
 int N_NEW_USERS;
+int log_level;
 
 void config_load(void)
 {
@@ -37,6 +38,7 @@ void config_load(void)
     else if (0 == strcmp(key, "NOF_PAUSE")) { NOF_PAUSE = atoi(value); }
     else if (0 == strcmp(key, "SIM_DURATION")) { SIM_DURATION = atoi(value); }
     else if (0 == strcmp(key, "N_NEW_USERS")) { N_NEW_USERS = atoi(value); }
+    else if (0 == strcmp(key, "log_level")) { log_level = atoi(value); }
     else { MSG_ERROR("Error in config file"); }
   }
   START_SEM_COUNT = NOF_WORKERS + NOF_USERS + 2;

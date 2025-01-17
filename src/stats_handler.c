@@ -222,6 +222,7 @@ void print_stats(int curr_day)
 {
   calc_stats();
 
+  log_info("\nSTATISTICHE GIORNO %d:", curr_day);
   for (int i = 0; i < curr_day; i++)
   {
     for (int j = 0; j < SERV_NUM; j++)
@@ -252,7 +253,7 @@ void print_stats(int curr_day)
   log_info("Total number of active workers in the simulation: %d", total_active_workers);
   log_info("Total number of pauses in the simulation: %d", total_pauses);
   log_info("Average number of pauses per day: %f", (float)total_pauses / total_days);
-  log_info("average waiting time per day: %f", avg_wait_time_per_day);
-  log_info("average delivery time per day: %f", avg_deliv_time_per_day);
-  log_info("average worker seat fraction: %f", avg_worker_seat_frac);
+  log_info("Average waiting time per day: %f", avg_wait_time_per_day);
+  log_info("Average delivery time per day: %f", avg_deliv_time_per_day);
+  log_info("Average worker seat fraction: %f", avg_worker_seat_frac);
 }

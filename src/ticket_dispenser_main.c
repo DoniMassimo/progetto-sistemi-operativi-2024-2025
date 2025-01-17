@@ -23,6 +23,7 @@
 void setup(void)
 {
   config_load();
+  log_set_level(log_level);
   ftok_key_init();
   sem_config();
   shm_config();

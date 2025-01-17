@@ -28,6 +28,7 @@ void setup(char arg_1[], char arg_2[])
   id = (int)strtol(arg_2, &endptr, 10);
   if (*endptr != '\0') { MSG_ERROR("Cant convert argv[2] to int."); }
   config_load();
+  log_set_level(log_level);
   ftok_key_init();
   sem_config();
   shm_config();

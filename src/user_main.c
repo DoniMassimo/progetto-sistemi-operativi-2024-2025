@@ -26,6 +26,7 @@ void setup(char arg_1[])
   id = (int)strtol(arg_1, &endptr, 10);
   if (*endptr != '\0') { MSG_ERROR("Cant convert argv[1] to int."); }
   config_load();
+  log_set_level(log_level);
   P_SERV = P_SERV_MIN + rand() % (P_SERV_MAX - P_SERV_MIN + 1);
   ftok_key_init();
   sem_config();
@@ -38,7 +39,6 @@ void start(void)
   setup_user_stats();
   if (-1 == lock_sem(SEM_DAY_END_ID, 0)) { FUNC_PERROR(); }
   if (-1 == wait_zero_sem(SEM_DAY_END_ID, 0)) { FUNC_PERROR(); }
-  log_trace("USERRRRR");
   user_clear_msg_queue();
   setup_clock_notifc();
   if (-1 == release_sem(SEM_PROC_READY_ID, 0)) { FUNC_PERROR(); }
@@ -132,10 +132,16 @@ void core(void)
 
 int main(int argc, char* argv[])
 {
-  srand((unsigned int)(time(NULL) + getpid()));
-  if (2 != argc) { MSG_ERROR("agrc error"); }
-  setup(argv[1]);
   int day_count = 0;
+  srand((unsigned int)(time(NULL) + getpid()));
+  if (argc < 2 || argc > 3) { MSG_ERROR("agrc error"); }
+  if (3 == argc)
+  {
+    char* endptr;
+    day_count = (int)strtol(argv[2], &endptr, 10);
+    if (*endptr != '\0') { MSG_ERROR("Cant convert argv[2] to int."); }
+  }
+  setup(argv[1]);
   while (1)
   {
     if (day_count >= SIM_DURATION) { break; }
