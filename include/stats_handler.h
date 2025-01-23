@@ -6,9 +6,12 @@ extern int total_served_users;
 extern int total_delivered_services;
 extern int total_failed_services;
 extern int total_wait_time;
+extern int avg_wait_time_general;
 extern int total_deliv_time;
+extern int avg_deliv_time_general;
 extern int total_active_workers;
 extern int total_pauses;
+extern int avg_total_pause;
 extern int total_services;
 extern int total_days;
 extern int avg_wait_time_per_day;
@@ -28,6 +31,15 @@ typedef struct
   int nof_pause;
   float worker_seat_frac;
 } ServStats;
+
+const char* service_names[SERV_NUM] = {
+    "Invio e ritiro pacchi",
+    "Invio e lettere e raccomandate",
+    "Prelievi e versamenti Bancoposta",
+    "Pagamento bollettini postali",
+    "Acquisto prodotti finanziari",
+    "Acquisto orologi e braccialetti"
+};
 
 void init_stats(void);
 // prende le statistiche da una coda di messaggi
