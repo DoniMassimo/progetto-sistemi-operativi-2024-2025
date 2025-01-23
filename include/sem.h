@@ -16,6 +16,7 @@ extern int SEM_NOTIFY_CLOCK_ID;
 extern int SEM_ADD_USERS_ID;
 extern int SEM_CLOCK_ADD_USERS_ID;
 extern int SEM_PROC_CAN_DIE_ID;
+extern int SEM_STOP_SIM_EXPLODE_ID;
 extern SemRP_Id SEMRP_CALENDAR_ID;
 extern SemRP_Id SEMRP_MIN_COUNT_ID;
 extern SemWP_Id SEMWP_SEATS_INFO_ID;

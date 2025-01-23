@@ -26,6 +26,7 @@ key_t SEM_ADD_USERS_KEY = -1;
 key_t SEM_CLOCK_ADD_USERS_KEY = -1;
 key_t SEM_PROC_CAN_DIE_KEY = -1;
 key_t SEM_ALL_PROC_STOP_KEY = -1;
+key_t SEM_STOP_SIM_EXPLODE_KEY = -1;
 SemRP_Key SEMRP_CALENDAR_STRUCT_KEY = {0};
 SemRP_Key SEMRP_MIN_COUNT_STRUCT_KEY = {0};
 SemWP_Key SEMWP_SEATS_INFO_STRUCT_KEY = {0};
@@ -126,6 +127,8 @@ void sem_key_init(void)
   if (-1 == SEM_PROC_CAN_DIE_KEY) { FUNC_PERROR(); }
   SEM_ALL_PROC_STOP_KEY = generate_key();
   if (-1 == SEM_ALL_PROC_STOP_KEY) { FUNC_PERROR(); }
+  SEM_STOP_SIM_EXPLODE_KEY = generate_key();
+  if (-1 == SEM_STOP_SIM_EXPLODE_KEY) { FUNC_PERROR(); }
 }
 
 void semrp_key_init(void)

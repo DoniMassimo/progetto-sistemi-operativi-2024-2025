@@ -192,15 +192,24 @@ int main(int argc, char* argv[])
   log_trace("%s", REL_DIR);
   setup();
   int day_count = 0;
+  int sim_explode = 0;
   while (1)
   {
     if (day_count >= SIM_DURATION) { break; }
     log_trace("\n");
     start(day_count);
     int nof_failed_serv = get_stats(NOF_USERS * SERV_NUM + NOF_WORKERS, day_count);
-    print_stats(day_count);
-    log_info("MANAGERRRR: %d", nof_failed_serv);
-    if (nof_failed_serv > EXPLODE_THRESHOLD) { log_info("MANAGER: troppo utenti in coda"); }
+    if (nof_failed_serv > EXPLODE_THRESHOLD)
+    {
+      if (-1 == release_sem(SEM_STOP_SIM_EXPLODE_ID, 0)) { FUNC_PERROR(); }
+      if (-1 == release_sem_val(SEM_CLOCK_ADD_USERS_ID, 0, 1)) { FUNC_PERROR(); }
+      if (-1 == lock_sem(SEM_DAY_END_ID, 0)) { FUNC_PERROR(); }
+      if (-1 == wait_zero_sem(SEM_DAY_END_ID, 0)) { FUNC_PERROR(); }
+      if (-1 == lock_sem_val(SEM_PROC_READY_ID, 0, START_SEM_COUNT)) { FUNC_PERROR(); }
+      if (-1 == set_sem_val(SEM_START_ID, 0, START_SEM_COUNT)) { FUNC_PERROR(); }
+      sim_explode = 1;
+      break;
+    }
     day_count++;
   }
   release_sem_val(SEM_PROC_CAN_DIE_ID, 0, START_SEM_COUNT);
@@ -214,5 +223,7 @@ int main(int argc, char* argv[])
   sem_deallocate();
   shm_deallocate();
   msg_deallocate(user_added);
+  if (0 == sim_explode) { log_info("\nCause of termination of simulation: timeout"); }
+  else { log_info("\nCause of termination of simulation: explode"); }
   return 0;
 }

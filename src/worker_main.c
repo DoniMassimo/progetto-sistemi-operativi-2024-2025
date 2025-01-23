@@ -51,6 +51,13 @@ void start(void)
   set_pause_time();
   if (-1 == release_sem(SEM_PROC_READY_ID, 0)) { FUNC_PERROR(); }
   if (-1 == lock_sem(SEM_START_ID, 0)) { FUNC_PERROR(); }
+  int sem_expl = get_sem_value(SEM_STOP_SIM_EXPLODE_ID, 0);
+  if (-1 == sem_expl) { FUNC_PERROR(); }
+  else if (1 == sem_expl)
+  {
+    if (-1 == semctl(sem_timer_id, 0, IPC_RMID)) { FUNC_PERROR(); }
+    exit(0);
+  }
 }
 
 void core(void)

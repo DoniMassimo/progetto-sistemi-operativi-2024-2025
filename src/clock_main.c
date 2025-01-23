@@ -52,6 +52,9 @@ void start(void)
   if (buf.msg_qnum != 0) { MSG_ERROR("Zero mess are expected"); }
   if (-1 == release_sem(SEM_PROC_READY_ID, 0)) { FUNC_PERROR(); }
   if (-1 == lock_sem(SEM_START_ID, 0)) { FUNC_PERROR(); }
+  int sem_expl = get_sem_value(SEM_STOP_SIM_EXPLODE_ID, 0);
+  if (-1 == sem_expl) { FUNC_PERROR(); }
+  else if (1 == sem_expl) { exit(0); }
   release_sem(SEM_DAY_STARTED_ID, 0);
 }
 

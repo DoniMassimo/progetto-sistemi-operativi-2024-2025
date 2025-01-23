@@ -240,6 +240,7 @@ void print_stats(int curr_day)
     log_info("Number of Pauses: %d", calendar_stats[curr_day][j].nof_pause);
     log_info("Worker Seat Fraction: %f", calendar_stats[curr_day][j].worker_seat_frac);
   }
+
   log_info("\nSTATISTICHE GIORNO %d:", curr_day + 1);
 
   log_info("Total number of served users in the simulation: %d", total_served_users);

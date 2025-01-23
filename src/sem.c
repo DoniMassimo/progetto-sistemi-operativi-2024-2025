@@ -19,6 +19,7 @@ int SEM_NOTIFY_USER_ID = -1;
 int SEM_ADD_USERS_ID = -1;
 int SEM_CLOCK_ADD_USERS_ID = -1;
 int SEM_PROC_CAN_DIE_ID = -1;
+int SEM_STOP_SIM_EXPLODE_ID = -1;
 SemRP_Id SEMRP_CALENDAR_ID = {0};
 SemRP_Id SEMRP_MIN_COUNT_ID = {0};
 SemWP_Id SEMWP_SEATS_INFO_ID = {0};
@@ -179,6 +180,19 @@ void SEM_PROC_CAN_DIE_ID_config(void)
   if (SEM_PROC_CAN_DIE_ID < 0) { FUNC_PERROR(); }
 }
 
+void SEM_STOP_SIM_EXPLODE_ID_init(void)
+{
+  SEM_STOP_SIM_EXPLODE_ID = semget(SEM_STOP_SIM_EXPLODE_KEY, 1, 0666 | IPC_CREAT);
+  if (SEM_STOP_SIM_EXPLODE_ID < 0) { FUNC_PERROR(); }
+  init_sem_zero(SEM_STOP_SIM_EXPLODE_ID, 0);
+}
+
+void SEM_STOP_SIM_EXPLODE_ID_config(void)
+{
+  SEM_STOP_SIM_EXPLODE_ID = semget(SEM_STOP_SIM_EXPLODE_KEY, 1, 0666);
+  if (SEM_STOP_SIM_EXPLODE_ID < 0) { FUNC_PERROR(); }
+}
+
 void SEMRP_CALENDAR_ID_init(void)
 {
   SEMRP_CALENDAR_ID.sem_mutex_id =
@@ -314,6 +328,7 @@ void sem_init(void)
   SEM_ADD_USERS_init();
   SEM_CLOCK_ADD_USERS_init();
   SEM_PROC_CAN_DIE_ID_init();
+  SEM_STOP_SIM_EXPLODE_ID_init();
   SEMRP_CALENDAR_ID_init();
   SEMRP_MIN_COUNT_ID_init();
   SEMWP_SEATS_INFO_ID_init();
@@ -333,6 +348,7 @@ void sem_config(void)
   SEM_ADD_USERS_config();
   SEM_CLOCK_ADD_USERS_config();
   SEM_PROC_CAN_DIE_ID_config();
+  SEM_STOP_SIM_EXPLODE_ID_config();
   SEMRP_CALENDAR_ID_config();
   SEMRP_MIN_COUNT_ID_config();
   SEMWP_SEATS_INFO_ID_config();
@@ -352,6 +368,7 @@ void sem_deallocate(void)
   if (-1 == semctl(SEM_ADD_USERS_ID, 0, IPC_RMID)) { FUNC_PERROR(); }
   if (-1 == semctl(SEM_CLOCK_ADD_USERS_ID, 0, IPC_RMID)) { FUNC_PERROR(); }
   if (-1 == semctl(SEM_PROC_CAN_DIE_ID, 0, IPC_RMID)) { FUNC_PERROR(); }
+  if (-1 == semctl(SEM_STOP_SIM_EXPLODE_ID, 0, IPC_RMID)) { FUNC_PERROR(); }
   if (-1 == semctl(SEMRP_CALENDAR_ID.sem_mutex_id, 0, IPC_RMID)) { FUNC_PERROR(); }
   if (-1 == semctl(SEMRP_CALENDAR_ID.sem_reader_count_id, 0, IPC_RMID)) { FUNC_PERROR(); }
   if (-1 == semctl(SEMRP_CALENDAR_ID.sem_writer_id, 0, IPC_RMID)) { FUNC_PERROR(); }
