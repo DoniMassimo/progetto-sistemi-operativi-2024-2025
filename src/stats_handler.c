@@ -46,9 +46,10 @@ void init_stats(void)
   }
 }
 
-void get_stats(int nof_msg, int curr_day)
+int get_stats(int nof_msg, int curr_day)
 {
   int bound_deliv_time = 0;
+  int count_failed_serv = 0;
   for (int i = 0; i < nof_msg; i++)
   {
     StatsSize stats_size;
@@ -78,6 +79,7 @@ void get_stats(int nof_msg, int curr_day)
       }
       calendar_stats[curr_day][user_stats->serv].nof_delivered_serv += user_stats->completed_serv;
       calendar_stats[curr_day][user_stats->serv].nof_failedserv += user_stats->failed_serv;
+      count_failed_serv += user_stats->failed_serv;
       int new_nof_wait_time = calendar_stats[curr_day][user_stats->serv].nof_wait_time +
                               (int)user_stats->nof_waiting_times;
       if (new_nof_wait_time > 0)
@@ -136,6 +138,7 @@ void get_stats(int nof_msg, int curr_day)
       free(worker_stats);
     }
   }
+  return count_failed_serv;
 }
 
 void calc_stats(void)
@@ -225,20 +228,17 @@ void print_stats(int curr_day)
 {
   calc_stats();
 
-  for (int i = 0; i < SIM_DURATION; i++)
+  for (int j = 0; j < SERV_NUM; j++)
   {
-    for (int j = 0; j < SERV_NUM; j++)
-    {
-      log_info("Day %d, Service %d:", i, j);
-      log_info("Number of Served Users: %d", calendar_stats[i][j].nof_served_user);
-      log_info("Number of Delivered Services: %d", calendar_stats[i][j].nof_delivered_serv);
-      log_info("Number of Failed Services: %d", calendar_stats[i][j].nof_failedserv);
-      log_info("Number of Waiting Times: %d", calendar_stats[i][j].nof_wait_time);
-      log_info("Number of Delivery Times: %d", calendar_stats[i][j].nof_deliv_time);
-      log_info("Number of Active Workers: %d", calendar_stats[i][j].nof_active_worker);
-      log_info("Number of Pauses: %d", calendar_stats[i][j].nof_pause);
-      log_info("Worker Seat Fraction: %f", calendar_stats[i][j].worker_seat_frac);
-    }
+    log_info("Day %d, Service %d:", curr_day + 1, j);
+    log_info("Number of Served Users: %d", calendar_stats[curr_day][j].nof_served_user);
+    log_info("Number of Delivered Services: %d", calendar_stats[curr_day][j].nof_delivered_serv);
+    log_info("Number of Failed Services: %d", calendar_stats[curr_day][j].nof_failedserv);
+    log_info("Number of Waiting Times: %d", calendar_stats[curr_day][j].nof_wait_time);
+    log_info("Number of Delivery Times: %d", calendar_stats[curr_day][j].nof_deliv_time);
+    log_info("Number of Active Workers: %d", calendar_stats[curr_day][j].nof_active_worker);
+    log_info("Number of Pauses: %d", calendar_stats[curr_day][j].nof_pause);
+    log_info("Worker Seat Fraction: %f", calendar_stats[curr_day][j].worker_seat_frac);
   }
   log_info("\nSTATISTICHE GIORNO %d:", curr_day + 1);
 

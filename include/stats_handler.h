@@ -31,7 +31,7 @@ typedef struct
 
 void init_stats(void);
 // prende le statistiche da una coda di messaggi
-void get_stats(int nof_msg, int curr_day);
+int get_stats(int nof_msg, int curr_day);
 // salva stats in un csv
 void save_stats(void);
 void print_stats(int curr_day);

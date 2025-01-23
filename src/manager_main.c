@@ -197,8 +197,10 @@ int main(int argc, char* argv[])
     if (day_count >= SIM_DURATION) { break; }
     log_trace("\n");
     start(day_count);
-    get_stats(NOF_USERS * SERV_NUM + NOF_WORKERS, day_count);
+    int nof_failed_serv = get_stats(NOF_USERS * SERV_NUM + NOF_WORKERS, day_count);
     print_stats(day_count);
+    log_info("MANAGERRRR: %d", nof_failed_serv);
+    if (nof_failed_serv > EXPLODE_THRESHOLD) { log_info("MANAGER: troppo utenti in coda"); }
     day_count++;
   }
   release_sem_val(SEM_PROC_CAN_DIE_ID, 0, START_SEM_COUNT);
