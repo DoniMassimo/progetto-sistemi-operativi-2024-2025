@@ -181,6 +181,7 @@ void setup_clock_notifc(void)
 {
   if ((rand() % 100) + 1 > P_SERV)
   {
+    log_trace("user: %d -> S send NULL clock notifc", id);
     send_notific_clock(NULL, NULL, 0);
     return;
   }

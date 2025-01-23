@@ -71,13 +71,13 @@ void core(void)
   while (*min_count < (60 * 8))
   {
     get_new_timer(*min_count);
+    send_user_notific(*min_count);
+    send_worker_pause(*min_count);
+    send_timer_notifc(*min_count);
     if (-1 == lock_sem(SEMRP_MIN_COUNT_ID.sem_writer_id, 0)) { FUNC_PERROR(); }
     (*min_count)++;
     if (-1 == release_sem(SEMRP_MIN_COUNT_ID.sem_writer_id, 0)) { FUNC_PERROR(); }
     if (nanosleep(&req, NULL) == -1) { FUNC_PERROR(); }
-    send_user_notific(*min_count);
-    send_worker_pause(*min_count);
-    send_timer_notifc(*min_count);
   }
   send_timer_notifc(INT_MAX);
   clear_calendar();
