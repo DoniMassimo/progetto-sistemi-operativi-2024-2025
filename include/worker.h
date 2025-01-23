@@ -6,6 +6,7 @@ extern int seat_index;
 extern int id;
 extern int nof_pause_rem;
 extern int sem_timer_id;
+extern int serv_bounds[2];
 
 void setup_worker_stats(void);
 void send_worker_stats(void);

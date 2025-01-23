@@ -32,6 +32,7 @@ void init_workers(void)
     log_trace("manager -> %d worker for serv: %d", assigned_worker[i], i);
   }
   int worker_count = 0;
+  int serv_bound = 0;
   for (int i = 0; i < SERV_NUM; i++)
   {
     for (int j = 0; j < assigned_worker[i]; j++)
@@ -42,12 +43,15 @@ void init_workers(void)
       {
         char i_str[20];
         sprintf(i_str, "%d", i);
-        char id[12];
+        char id[20];
         sprintf(id, "%d", worker_count);
+        char serv_bound_str[2][20];
+        sprintf(serv_bound_str[0], "%d", serv_bound);
+        sprintf(serv_bound_str[1], "%d", serv_bound + (int)assigned_worker[i]);
         char dir[MAX_PATH_LEN + MAX_EXE_LEN];
         strcpy(dir, REL_DIR);
         strcat(dir, "worker_main");
-        char* args[] = {dir, i_str, id, NULL};
+        char* args[] = {dir, i_str, id, serv_bound_str[0], serv_bound_str[1], NULL};
         if (execv(args[0], args) == -1) { FUNC_PERROR(); }
       }
       else
@@ -56,6 +60,7 @@ void init_workers(void)
         all_proc_pid[nof_proc++] = pid;
       }
     }
+    serv_bound += (int)assigned_worker[i];
   }
 }
 
@@ -189,8 +194,8 @@ int main(int argc, char* argv[])
     log_trace("\n");
     start(day_count);
     get_stats(NOF_USERS * SERV_NUM + NOF_WORKERS, day_count);
-    day_count++;
     print_stats(day_count);
+    day_count++;
   }
   release_sem_val(SEM_PROC_CAN_DIE_ID, 0, START_SEM_COUNT);
   for (size_t i = 0; i < nof_proc; i++)

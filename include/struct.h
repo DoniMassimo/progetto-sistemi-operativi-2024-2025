@@ -147,5 +147,11 @@ typedef struct
   int type; //0 = UserStats
   size_t ser_data_size;
 } StatsSize;
-//se type = 0 -> UserStats quanto è grande ser_data_size
+
+typedef struct
+{
+  long mtype;
+  char data[];
+} TestStruct;
+
 #endif

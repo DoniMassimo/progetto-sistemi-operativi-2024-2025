@@ -27,6 +27,7 @@ int nof_pause_rem;
 int sem_timer_id;
 WorkerStats* worker_stats;
 size_t deliv_time_index;
+int serv_bounds[2];
 
 void setup_worker_stats(void)
 {
@@ -65,7 +66,12 @@ void worker_clear_msg_queue(void)
   }
   struct msqid_ds buf;
   if (msgctl(MSG_NOTIFY_WORKER_IDS[id], IPC_STAT, &buf) == -1) { FUNC_PERROR(); }
-  if (buf.msg_qnum > 0) { MSG_ERROR("Unexpected msg"); }
+  if (buf.msg_qnum > 0)
+  {
+    TestStruct* ts = (TestStruct*)malloc(sizeof(char) * 300);
+    msgrcv(MSG_NOTIFY_WORKER_IDS[id], ts, sizeof(char) * 250, 0, 0);
+    MSG_ERROR("Unexpected msg");
+  }
   init_sem_zero(SEM_NOTIFY_WORKER_ID, id);
   log_trace("worker: %d -> clear_msg: %d", id, count_rem);
 }
@@ -197,14 +203,17 @@ void comunicate_free_seat(void)
   size_t sfc_size = get_notifc_size(SEAT_FREE);
   seat_free_com.mtype = SEAT_FREE;
   seat_free_com.worker_msg_id = MSG_NOTIFY_WORKER_IDS[id];
-  for (int i = 0; i < NOF_WORKERS; i++)
+  for (int i = serv_bounds[0]; i < serv_bounds[1]; i++)
   {
     if (i == id) { continue; }
     if (-1 == msgsnd(MSG_NOTIFY_WORKER_IDS[i], &seat_free_com, sfc_size, 0)) { FUNC_PERROR(); }
     log_trace("worker: %d comun_free_seat -> worker: %d, msgid: %d", id, i,
               MSG_NOTIFY_WORKER_IDS[i]);
   }
-  if (-1 == release_all_sem_excl(SEM_NOTIFY_WORKER_ID, NOF_WORKERS, id)) { FUNC_PERROR(); }
+  if (-1 == release_range_sem(SEM_NOTIFY_WORKER_ID, serv_bounds[0], serv_bounds[1]))
+  {
+    FUNC_PERROR();
+  }
 }
 
 void worker_set_notf_param(GetNotfParam* get_notf_param, void** notifc)
@@ -228,7 +237,7 @@ void take_pause(void)
   nof_pause_rem--;
   struct msqid_ds buf;
   if (msgctl(MSG_NOTIFY_WORKER_IDS[id], IPC_STAT, &buf) == -1) { FUNC_PERROR(); }
-  log_trace("worker %d R pause_notifc -> msgid: %d count: %d", id, MSG_NOTIFY_WORKER_IDS[id],
+  log_trace("worker: %d R pause_notifc -> msgid: %d count: %d", id, MSG_NOTIFY_WORKER_IDS[id],
             buf.msg_qnum);
   seats_release_seat(assigned_service, seat_index);
   comunicate_free_seat();

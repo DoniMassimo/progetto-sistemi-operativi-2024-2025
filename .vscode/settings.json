@@ -1,8 +1,0 @@
-{
-    "files.associations": {
-        "stats_handler.h": "c",
-        "ticket_dispenser.h": "c",
-        "ftok_key.h": "c",
-        "msg.h": "c"
-    }
-}

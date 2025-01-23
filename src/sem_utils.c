@@ -133,6 +133,19 @@ int release_all_sem_excl(int semid, int sem_count, int excluded)
   return semop(semid, sops, (short unsigned int)sem_count - 1);
 }
 
+int release_range_sem(int semid, int start_count, int end_count)
+{
+  int sem_count = end_count - start_count;
+  struct sembuf sops[sem_count];
+  for (short unsigned int i = 0; i < sem_count; i++)
+  {
+    sops[i].sem_num = start_count + i;
+    sops[i].sem_op = 1;
+    sops[i].sem_flg = 0;
+  }
+  return semop(semid, sops, (short unsigned int)sem_count);
+}
+
 int init_all_sem_one(int semid, int sem_count)
 {
   union semun arg;

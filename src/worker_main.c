@@ -20,20 +20,25 @@
 #include "calendar.h"
 #include "worker.h"
 
-void setup(char arg_1[], char arg_2[])
+void setup(char arg_1[], char arg_2[], char arg_3[], char arg_4[])
 {
   char* endptr;
   assigned_service = (Service)strtol(arg_1, &endptr, 10);
   if (*endptr != '\0') { MSG_ERROR("Cant convert argv[1] to int."); }
   id = (int)strtol(arg_2, &endptr, 10);
   if (*endptr != '\0') { MSG_ERROR("Cant convert argv[2] to int."); }
+  serv_bounds[0] = (int)strtol(arg_3, &endptr, 10);
+  if (*endptr != '\0') { MSG_ERROR("Cant convert argv[3] to int."); }
+  serv_bounds[1] = (int)strtol(arg_4, &endptr, 10);
+  if (*endptr != '\0') { MSG_ERROR("Cant convert argv[4] to int."); }
+  log_debug("worker: %d -> bounds[0]: %d, bounds[1]:%d", id, serv_bounds[0], serv_bounds[1]);
   config_load();
   log_set_level(log_level);
   ftok_key_init();
   sem_config();
   shm_config();
   msg_config();
-  key_t key = ftok(".", 333 + id);
+  key_t key = ftok("/", 333 + id);
   sem_timer_id = semget(key, 1, IPC_CREAT | 0666);
   nof_pause_rem = NOF_PAUSE;
 }
@@ -106,9 +111,9 @@ void core(void)
 int main(int argc, char* argv[])
 {
   srand((unsigned int)(time(NULL) + getpid()));
-  if (3 != argc) { MSG_ERROR("agrc error"); }
+  if (5 != argc) { MSG_ERROR("agrc error"); }
   utils_get_relative_path(argv[0], REL_DIR);
-  setup(argv[1], argv[2]);
+  setup(argv[1], argv[2], argv[3], argv[4]);
   int day_count = 0;
   while (1)
   {
