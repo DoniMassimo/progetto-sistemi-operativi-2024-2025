@@ -29,6 +29,7 @@ Questo progetto implementa un sistema di gestione di un ufficio postale simulato
 Per compilare il progetto, eseguire il comando:
 
 ```sh
+
 make
 ```
 

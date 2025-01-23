@@ -20,6 +20,7 @@ extern int N_REQUESTS;
 extern int NOF_PAUSE;
 extern int SIM_DURATION;
 extern int N_NEW_USERS;
+extern int EXPLODE_THRESHOLD;
 extern int log_level;
 
 typedef enum

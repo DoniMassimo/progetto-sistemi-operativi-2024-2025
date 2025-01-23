@@ -17,11 +17,12 @@ int N_REQUESTS;
 int NOF_PAUSE;
 int SIM_DURATION;
 int N_NEW_USERS;
+int EXPLODE_THRESHOLD;
 int log_level;
 
 void config_load(void)
 {
-  FILE* config_file = fopen("config.txt", "r");
+  FILE* config_file = fopen("config.conf", "r");
   if (NULL == config_file) { FUNC_PERROR(); }
   char line[256];
   while (fgets(line, sizeof(line), config_file))
@@ -38,6 +39,7 @@ void config_load(void)
     else if (0 == strcmp(key, "NOF_PAUSE")) { NOF_PAUSE = atoi(value); }
     else if (0 == strcmp(key, "SIM_DURATION")) { SIM_DURATION = atoi(value); }
     else if (0 == strcmp(key, "N_NEW_USERS")) { N_NEW_USERS = atoi(value); }
+    else if (0 == strcmp(key, "EXPLODE_THRESHOLD")) { EXPLODE_THRESHOLD = atoi(value); }
     else if (0 == strcmp(key, "log_level")) { log_level = atoi(value); }
     else { MSG_ERROR("Error in config file"); }
   }

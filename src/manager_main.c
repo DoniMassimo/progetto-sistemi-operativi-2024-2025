@@ -140,9 +140,13 @@ void init_ticket_dispenser(void)
 void init_processes(void)
 {
   init_workers();
+  log_info("Workers initialization completed");
   init_clock();
+  log_info("Clock initialization completed");
   init_users();
+  log_info("Users initialization completed");
   init_ticket_dispenser();
+  log_info("Ticket Dispenser initialization completed");
 }
 
 void setup(void)

@@ -31,7 +31,6 @@ void setup(char arg_1[], char arg_2[], char arg_3[], char arg_4[])
   if (*endptr != '\0') { MSG_ERROR("Cant convert argv[3] to int."); }
   serv_bounds[1] = (int)strtol(arg_4, &endptr, 10);
   if (*endptr != '\0') { MSG_ERROR("Cant convert argv[4] to int."); }
-  log_debug("worker: %d -> bounds[0]: %d, bounds[1]:%d", id, serv_bounds[0], serv_bounds[1]);
   config_load();
   log_set_level(log_level);
   ftok_key_init();
