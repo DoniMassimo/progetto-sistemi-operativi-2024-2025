@@ -23,6 +23,13 @@ int avg_wait_time_per_day;
 int avg_deliv_time_per_day;
 float avg_worker_seat_frac;
 
+const char* service_names[SERV_NUM] = {"Invio e ritiro pacchi",
+                                       "Invio e lettere e raccomandate",
+                                       "Prelievi e versamenti Bancoposta",
+                                       "Pagamento bollettini postali",
+                                       "Acquisto prodotti finanziari",
+                                       "Acquisto orologi e braccialetti"};
+
 ServStats** calendar_stats = NULL;
 
 void init_stats(void)
@@ -240,10 +247,10 @@ void save_stats(void)
 void print_daily_stats(int curr_day)
 {
   calc_stats();
-
   for (int j = 0; j < SERV_NUM; j++)
   {
-    log_info("Day %d, Service %d:", curr_day + 1, service_names[j]);
+    puts("\n");
+    log_info("Day %d, Service %s: ", curr_day + 1, service_names[j]);
     log_info("Number of Served Users: %d", calendar_stats[curr_day][j].nof_served_user);
     log_info("Average Served Users per day: %f",
              (float)calendar_stats[curr_day][j].nof_served_user / (float)(curr_day + 1));
@@ -263,24 +270,19 @@ void print_daily_stats(int curr_day)
 void print_general_stats(int curr_day)
 {
   calc_stats();
-
-  log_info("\nSTATISTICHE GENERALI");
-  log_info("stats organized by service: ");
-  for (int i = 0; i < SERV_NUM; i++)
-  {
-    log_info("Service %d:", service_names[i]);
-    log_info("Total Number of Served Users: %d", total_served_users);
-    log_info("Average Served Users per day: %f", (float)total_served_users / (float)(curr_day + 1));
-    log_info("Total Number of Delivered Services: %d", total_delivered_services);
-    log_info("Total Number of Failed Services: %d", total_failed_services);
-    log_info("Average Delivered Services per day: %f",
-             (float)total_delivered_services / (float)(curr_day + 1));
-    log_info("Average Failed Services per day: %f",
-             (float)total_failed_services / (float)(curr_day + 1));
-    log_info("Average Waiting Time: %f", avg_wait_time_general);
-  }
+  puts("\n");
+  log_info("Day %d, General stats:", curr_day + 1);
+  log_info("Total Number of Served Users: %d", total_served_users);
+  log_info("Average Served Users per day: %f", (float)total_served_users / (float)(curr_day + 1));
+  log_info("Total Number of Delivered Services: %d", total_delivered_services);
+  log_info("Total Number of Failed Services: %d", total_failed_services);
+  log_info("Average Delivered Services per day: %f",
+           (float)total_delivered_services / (float)(curr_day + 1));
+  log_info("Average Failed Services per day: %f",
+           (float)total_failed_services / (float)(curr_day + 1));
+  log_info("Average Waiting Time: %f", avg_wait_time_general);
   log_info("Total number of active workers in the simulation: %d", total_active_workers);
   log_info("Total number of pauses in the simulation: %d", total_pauses);
   log_info("Average number of pauses in the simulation: %f", avg_total_pause);
-  log_info("Average worker seat fraction: %f", avg_worker_seat_frac / total_days);
+  log_info("Average worker seat fraction: %f", (float)avg_worker_seat_frac / (float)total_days);
 }

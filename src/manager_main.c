@@ -199,6 +199,8 @@ int main(int argc, char* argv[])
     log_trace("\n");
     start(day_count);
     int nof_failed_serv = get_stats(NOF_USERS * SERV_NUM + NOF_WORKERS, day_count);
+    print_daily_stats(day_count);
+    print_general_stats(day_count);
     if (nof_failed_serv > EXPLODE_THRESHOLD)
     {
       if (-1 == release_sem(SEM_STOP_SIM_EXPLODE_ID, 0)) { FUNC_PERROR(); }
