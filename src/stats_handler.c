@@ -264,7 +264,8 @@ void print_daily_stats(int curr_day)
     log_info("Numero di servizi non erogati in media al giorno: %f",
              (float)calendar_stats[curr_day][j].nof_failedserv / (float)(curr_day + 1));
     log_info("Tempo medio di attesa degli utenti nella simulazione: %f", avg_wait_time_per_day);
-    log_info("Numero di operatori attivi durante la giornata: %d", calendar_stats[curr_day][j].nof_active_worker);
+    log_info("Numero di operatori attivi durante la giornata: %d",
+             calendar_stats[curr_day][j].nof_active_worker);
     log_info("Average Delivery Time: %f", avg_deliv_time_per_day);
     log_info("Number of Pauses: %d", calendar_stats[curr_day][j].nof_pause);
   }
