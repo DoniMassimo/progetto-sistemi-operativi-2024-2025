@@ -34,6 +34,7 @@ void init_stats(void);
 int get_stats(int nof_msg, int curr_day);
 // salva stats in un csv
 void save_stats(void);
-void print_stats(int curr_day);
+void print_daily_stats(int curr_day);
+void print_general_stats(int curr_day);
 
 #endif

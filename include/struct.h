@@ -103,7 +103,7 @@ typedef struct
   int info;
 } TimerReq;
 
-// • il numero di utenti serviti totali nella simulazione
+// • il numero di utenti serviti totali nella simulazione *
 // • il numero di utenti serviti in media al giorno
 // • il numero di servizi erogati totali nella simulazione
 // • il numero di servizi non erogati totali nella simulazione
