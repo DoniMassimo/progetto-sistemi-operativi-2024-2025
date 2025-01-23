@@ -251,18 +251,21 @@ void print_daily_stats(int curr_day)
   {
     puts("\n");
     log_info("Day %d, Service %s: ", curr_day + 1, service_names[j]);
-    log_info("Number of Served Users: %d", calendar_stats[curr_day][j].nof_served_user);
-    log_info("Average Served Users per day: %f",
+    log_info("Numero di utenti serviti totali nella simulazione: %d",
+             calendar_stats[curr_day][j].nof_served_user);
+    log_info("Numero di utenti serviti in media al giorno: %f",
              (float)calendar_stats[curr_day][j].nof_served_user / (float)(curr_day + 1));
-    log_info("Number of Delivered Services: %d", calendar_stats[curr_day][j].nof_delivered_serv);
-    log_info("Number of Failed Services: %d", calendar_stats[curr_day][j].nof_failedserv);
-    log_info("Average Delivered Services per day: %f",
+    log_info("Numero di servizi erogati totali nella simulazione: %d",
+             calendar_stats[curr_day][j].nof_delivered_serv);
+    log_info("Numero di servizi non erogati totali nella simulazione: %d",
+             calendar_stats[curr_day][j].nof_failedserv);
+    log_info("Numero di servizi erogati in media al giorno: %f",
              (float)calendar_stats[curr_day][j].nof_delivered_serv / (float)(curr_day + 1));
-    log_info("Average Failed Services per day: %f",
+    log_info("Numero di servizi non erogati in media al giorno: %f",
              (float)calendar_stats[curr_day][j].nof_failedserv / (float)(curr_day + 1));
-    log_info("Average Waiting Time: %f", avg_wait_time_per_day);
+    log_info("Tempo medio di attesa degli utenti nella simulazione: %f", avg_wait_time_per_day);
+    log_info("Numero di operatori attivi durante la giornata: %d", calendar_stats[curr_day][j].nof_active_worker);
     log_info("Average Delivery Time: %f", avg_deliv_time_per_day);
-    log_info("Number of Active Workers: %d", calendar_stats[curr_day][j].nof_active_worker);
     log_info("Number of Pauses: %d", calendar_stats[curr_day][j].nof_pause);
   }
 }
