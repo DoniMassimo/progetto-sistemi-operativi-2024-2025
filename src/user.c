@@ -87,12 +87,12 @@ void send_user_stats(void)
     stats_size.type = 0;
     stats_size.ser_data_size = sizeof(int) * wait_time_index[i];
     size_t msg_size = sizeof(StatsSize) - sizeof(long);
-    msgsnd(MSG_STATS_METADATA_ID, &stats_size, msg_size, 0);
+    if (-1 == msgsnd(MSG_STATS_METADATA_ID, &stats_size, msg_size, 0)) { FUNC_PERROR(); }
     user_stats[i]->nof_waiting_times = wait_time_index[i];
     user_stats[i]->mtype = curr_mtype;
     user_stats[i]->failed_serv = rem_serv_req[i];
     msg_size = sizeof(UserStats) + sizeof(int) * wait_time_index[i] - sizeof(long);
-    msgsnd(MSG_STATS_DATA_ID, user_stats[i], msg_size, 0);
+    if (-1 == msgsnd(MSG_STATS_DATA_ID, user_stats[i], msg_size, IPC_NOWAIT)) { FUNC_PERROR(); }
     log_trace("user: %d S send_stats -> serv: %d mtype: %d completed: %d fail: %d count: %d", id, i,
               stats_size.mtype, user_stats[i]->completed_serv, user_stats[i]->failed_serv,
               wait_time_index[i]);

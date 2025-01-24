@@ -32,6 +32,7 @@ void setup(char arg_1[])
   sem_config();
   shm_config();
   msg_config();
+  if (id % 10 == 0) { log_info("Users initialization..."); }
 }
 
 void start(void)

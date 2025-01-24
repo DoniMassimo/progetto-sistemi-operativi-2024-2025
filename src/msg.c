@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include "ftok_key.h"
 #include "config.h"
+#include "struct.h"
 #include "macros.h"
 #include "msg.h"
 
@@ -85,8 +86,13 @@ void MSG_NOTIFY_CLOCK_ID_config(void)
 
 void MSG_STATS_DATA_ID_init(void)
 {
+  size_t new_size = 1024 * 10;
+  struct msqid_ds buf;
   MSG_STATS_DATA_ID = msgget(MSG_STATS_DATA_KEY, 0666 | IPC_CREAT);
   if (-1 == MSG_STATS_DATA_ID) { FUNC_PERROR(); }
+  if (msgctl(MSG_STATS_DATA_ID, IPC_STAT, &buf) == -1) { FUNC_PERROR(); }
+  buf.msg_qbytes = new_size;
+  if (msgctl(MSG_STATS_DATA_ID, IPC_SET, &buf) == -1) { FUNC_PERROR(); }
 }
 
 void MSG_STATS_DATA_ID_config(void)
@@ -97,8 +103,13 @@ void MSG_STATS_DATA_ID_config(void)
 
 void MSG_STATS_METADATA_ID_init(void)
 {
+  size_t new_size = sizeof(StatsSize) * 30;
+  struct msqid_ds buf;
   MSG_STATS_METADATA_ID = msgget(MSG_STATS_METADATA_KEY, 0666 | IPC_CREAT);
   if (-1 == MSG_STATS_METADATA_ID) { FUNC_PERROR(); }
+  if (msgctl(MSG_STATS_METADATA_ID, IPC_STAT, &buf) == -1) { FUNC_PERROR(); }
+  buf.msg_qbytes = new_size;
+  if (msgctl(MSG_STATS_METADATA_ID, IPC_SET, &buf) == -1) { FUNC_PERROR(); }
 }
 
 void MSG_STATS_METADATA_ID_config(void)

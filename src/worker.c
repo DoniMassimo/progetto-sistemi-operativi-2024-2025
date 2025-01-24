@@ -160,9 +160,13 @@ void provide_service(ServiceReq* service_req)
   timer_req.sem_count = 0;
   timer_req.info = id;
   add_deliv_time(serv_dur);
-  size_t msg_size = get_notifc_size(TIMER_REQ);
-  if (-1 == msgsnd(MSG_NOTIFY_CLOCK_ID, &timer_req, msg_size, 0)) { FUNC_PERROR(); }
-  lock_sem(sem_timer_id, 0);
+  // size_t msg_size = get_notifc_size(TIMER_REQ);
+  // if (-1 == msgsnd(MSG_NOTIFY_CLOCK_ID, &timer_req, msg_size, 0)) { FUNC_PERROR(); }
+  // lock_sem(sem_timer_id, 0);
+  struct timespec req;
+  req.tv_sec = 0;
+  req.tv_nsec = (long int)N_NANO_SECS * serv_dur;
+  if (nanosleep(&req, NULL) == -1) { FUNC_PERROR(); }
   send_service_resp(service_req);
 }
 

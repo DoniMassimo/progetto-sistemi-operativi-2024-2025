@@ -249,7 +249,7 @@ void print_daily_stats(int curr_day)
   calc_stats();
   for (int j = 0; j < SERV_NUM; j++)
   {
-    puts("\n");
+    puts("\n\n");
     log_info("Day %d, Service %s: ", curr_day + 1, service_names[j]);
     log_info("Numero di utenti serviti totali nella simulazione: %d",
              calendar_stats[curr_day][j].nof_served_user);
@@ -274,7 +274,7 @@ void print_daily_stats(int curr_day)
 void print_general_stats(int curr_day)
 {
   calc_stats();
-  puts("\n");
+  puts("\n\n");
   log_info("Day %d, General stats:", curr_day + 1);
   log_info("Total Number of Served Users: %d", total_served_users);
   log_info("Average Served Users per day: %f", (float)total_served_users / (float)(curr_day + 1));

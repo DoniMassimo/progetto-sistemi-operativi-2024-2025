@@ -184,6 +184,7 @@ void start(int day_count)
   }
   if (-1 == lock_sem_val(SEM_PROC_READY_ID, 0, START_SEM_COUNT)) { FUNC_PERROR(); }
   if (-1 == set_sem_val(SEM_START_ID, 0, START_SEM_COUNT)) { FUNC_PERROR(); }
+  if (0 == day_count) { log_info("Simulation started"); }
 }
 
 int main(int argc, char* argv[])
@@ -208,10 +209,17 @@ int main(int argc, char* argv[])
     {
       if (-1 == release_sem(SEM_STOP_SIM_EXPLODE_ID, 0)) { FUNC_PERROR(); }
       if (-1 == release_sem_val(SEM_CLOCK_ADD_USERS_ID, 0, 1)) { FUNC_PERROR(); }
-      if (-1 == lock_sem(SEM_DAY_END_ID, 0)) { FUNC_PERROR(); }
-      if (-1 == wait_zero_sem(SEM_DAY_END_ID, 0)) { FUNC_PERROR(); }
-      if (-1 == lock_sem_val(SEM_PROC_READY_ID, 0, START_SEM_COUNT)) { FUNC_PERROR(); }
-      if (-1 == set_sem_val(SEM_START_ID, 0, START_SEM_COUNT)) { FUNC_PERROR(); }
+      if (day_count + 1 == SIM_DURATION)
+      {
+        release_sem_val(SEM_PROC_CAN_DIE_ID, 0, START_SEM_COUNT);
+      }
+      else
+      {
+        if (-1 == lock_sem(SEM_DAY_END_ID, 0)) { FUNC_PERROR(); }
+        if (-1 == wait_zero_sem(SEM_DAY_END_ID, 0)) { FUNC_PERROR(); }
+        if (-1 == lock_sem_val(SEM_PROC_READY_ID, 0, START_SEM_COUNT)) { FUNC_PERROR(); }
+        if (-1 == set_sem_val(SEM_START_ID, 0, START_SEM_COUNT)) { FUNC_PERROR(); }
+      }
       sim_explode = 1;
       break;
     }
@@ -219,7 +227,7 @@ int main(int argc, char* argv[])
   }
   clock_t end_time = clock();
   double elapsed_time = ((double)(end_time - start_time) / CLOCKS_PER_SEC) * 1000;
-  release_sem_val(SEM_PROC_CAN_DIE_ID, 0, START_SEM_COUNT);
+  if (0 == sim_explode) { release_sem_val(SEM_PROC_CAN_DIE_ID, 0, START_SEM_COUNT); }
   for (size_t i = 0; i < nof_proc; i++)
   {
     int status;
