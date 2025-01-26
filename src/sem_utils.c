@@ -139,7 +139,7 @@ int release_range_sem(int semid, int start_count, int end_count)
   struct sembuf sops[sem_count];
   for (short unsigned int i = 0; i < sem_count; i++)
   {
-    sops[i].sem_num = start_count + i;
+    sops[i].sem_num = (short unsigned int)start_count + i;
     sops[i].sem_op = 1;
     sops[i].sem_flg = 0;
   }

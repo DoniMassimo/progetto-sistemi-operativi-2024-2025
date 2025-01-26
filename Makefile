@@ -1,6 +1,6 @@
 CC = gcc
 all: bin/manager_main bin/worker_main bin/clock_main bin/user_main bin/ticket_dispenser_main bin/add_users_main
-CFLAGS = -g -O0 -Wall -Wextra -Wpedantic -Wconversion -Wstrict-prototypes -Wsign-conversion -D_GNU_SOURCE -Iinclude/
+CFLAGS = -g -Wall -Wextra -Wpedantic -Wconversion -Wstrict-prototypes -Wsign-conversion -D_GNU_SOURCE -Iinclude/
 
 INCLUDES = include/*.h
 

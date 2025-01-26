@@ -50,7 +50,6 @@ void user_clear_msg_queue(void)
   if (msgctl(MSG_NOTIFY_USER_IDS[id], IPC_STAT, &buf) == -1) { FUNC_PERROR(); }
   if (buf.msg_qnum > 0)
   {
-    MesType notification = get_notifications(&get_notf_param);
     log_fatal("user: %d -> Unexpected msg", id);
     MSG_ERROR("Unexpected msg");
   }

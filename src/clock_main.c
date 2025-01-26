@@ -60,7 +60,7 @@ void start(void)
 
 void core(void)
 {
-  int* min_count = (int*)shmat(SHM_SEATS_INFO_ID, NULL, 0);
+  int* min_count = (int*)shmat(SHM_MIN_COUNT_ID, NULL, 0);
   if ((int*)-1 == (int*)min_count) { FUNC_PERROR(); }
   if (-1 == lock_sem(SEMRP_MIN_COUNT_ID.sem_writer_id, 0)) { FUNC_PERROR(); }
   *min_count = 0;

@@ -153,16 +153,7 @@ void provide_service(ServiceReq* service_req)
   serv_dur = min_dur + rand() % (max_dur - min_dur + 1);
   log_trace("worker: %d service_req -> duration: %d, serv: %d, user: %d", id, serv_dur,
             service_req->serv, service_req->user_sem_count);
-  TimerReq timer_req = {0};
-  timer_req.mtype = TIMER_REQ;
-  timer_req.time = serv_dur;
-  timer_req.sem_id = sem_timer_id;
-  timer_req.sem_count = 0;
-  timer_req.info = id;
   add_deliv_time(serv_dur);
-  // size_t msg_size = get_notifc_size(TIMER_REQ);
-  // if (-1 == msgsnd(MSG_NOTIFY_CLOCK_ID, &timer_req, msg_size, 0)) { FUNC_PERROR(); }
-  // lock_sem(sem_timer_id, 0);
   struct timespec req;
   req.tv_sec = 0;
   req.tv_nsec = (long int)N_NANO_SECS * serv_dur;

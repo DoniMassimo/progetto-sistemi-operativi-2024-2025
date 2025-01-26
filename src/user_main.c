@@ -76,7 +76,7 @@ void core(void)
         log_trace("user: %d S service_req -> serv: %d worker: %d", id, ticket_resp->serv,
                   ticket_resp->worker_sem_count);
         send_serv_request(ticket_resp);
-        int* min_count = (int*)shmat(SHM_SEATS_INFO_ID, NULL, 0);
+        int* min_count = (int*)shmat(SHM_MIN_COUNT_ID, NULL, 0);
         if ((int*)-1 == (int*)min_count) { FUNC_PERROR(); }
         lock_reader_RP(SEMRP_MIN_COUNT_ID);
         serv_req_time = *min_count;
