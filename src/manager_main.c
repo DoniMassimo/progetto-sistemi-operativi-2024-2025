@@ -141,13 +141,13 @@ void init_ticket_dispenser(void)
 void init_processes(void)
 {
   init_workers();
-  log_info("Workers initialization completed");
+  log_trace("Workers initialization completed");
   init_clock();
-  log_info("Clock initialization completed");
+  log_trace("Clock initialization completed");
   init_users();
-  log_info("Users initialization completed");
+  log_trace("Users initialization completed");
   init_ticket_dispenser();
-  log_info("Ticket Dispenser initialization completed");
+  log_trace("Ticket Dispenser initialization completed");
 }
 
 void setup(void)
@@ -184,7 +184,7 @@ void start(int day_count)
   }
   if (-1 == lock_sem_val(SEM_PROC_READY_ID, 0, START_SEM_COUNT)) { FUNC_PERROR(); }
   if (-1 == set_sem_val(SEM_START_ID, 0, START_SEM_COUNT)) { FUNC_PERROR(); }
-  if (0 == day_count) { log_info("Simulation started"); }
+  if (0 == day_count) { log_trace("Simulation started"); }
 }
 
 int main(int argc, char* argv[])
@@ -201,8 +201,7 @@ int main(int argc, char* argv[])
     log_trace("\n");
     start(day_count);
     int nof_failed_serv = get_stats(NOF_USERS * SERV_NUM + NOF_WORKERS, day_count);
-    print_daily_stats(day_count);
-    print_general_stats(day_count);
+    print_stats(day_count);
     if (nof_failed_serv > EXPLODE_THRESHOLD)
     {
       if (-1 == release_sem(SEM_STOP_SIM_EXPLODE_ID, 0)) { FUNC_PERROR(); }
@@ -223,7 +222,7 @@ int main(int argc, char* argv[])
     }
     day_count++;
   }
-  save_stats();
+  // save_stats();
   if (0 == sim_explode) { release_sem_val(SEM_PROC_CAN_DIE_ID, 0, START_SEM_COUNT); }
   for (size_t i = 0; i < nof_proc; i++)
   {
@@ -238,12 +237,12 @@ int main(int argc, char* argv[])
   if (0 == sim_explode)
   {
     puts("\n");
-    log_info("Cause of termination of simulation: timeout");
+    log_info("Causa di terminazione: timeout");
   }
   else
   {
     puts("\n");
-    log_info("Cause of termination of simulation: explode");
+    log_info("Causa di terminazione: explode");
   }
   return 0;
 }

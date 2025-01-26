@@ -70,9 +70,9 @@ void core(void)
   req.tv_nsec = (long int)N_NANO_SECS;
   while (*min_count < (60 * 8))
   {
-    if (120 == *min_count) { log_info("10 AM"); }
-    else if (240 == *min_count) { log_info("Midday"); }
-    else if (360 == *min_count) { log_info("2 PM"); }
+    if (120 == *min_count) { log_trace("10 AM"); }
+    else if (240 == *min_count) { log_trace("Midday"); }
+    else if (360 == *min_count) { log_trace("2 PM"); }
     send_user_notific(*min_count);
     send_worker_pause(*min_count);
     if (-1 == lock_sem(SEMRP_MIN_COUNT_ID.sem_writer_id, 0)) { FUNC_PERROR(); }
