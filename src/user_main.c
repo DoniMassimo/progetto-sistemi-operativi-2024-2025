@@ -88,10 +88,10 @@ void core(void)
     }
     else if (SERVICE_RESP == notification)
     {
-      int* min_count = (int*)shmat(SHM_SEATS_INFO_ID, NULL, 0);
+      int* min_count = (int*)shmat(SHM_MIN_COUNT_ID, NULL, 0);
       if ((int*)-1 == (int*)min_count) { FUNC_PERROR(); }
       lock_reader_RP(SEMRP_MIN_COUNT_ID);
-      serv_req_time = serv_req_time - *min_count;
+      serv_req_time = *min_count - serv_req_time;
       release_reader_RP(SEMRP_MIN_COUNT_ID);
       if (-1 == shmdt(min_count)) { FUNC_PERROR(); }
       log_trace("user: %d R service_resp-> risposta servizio", id);

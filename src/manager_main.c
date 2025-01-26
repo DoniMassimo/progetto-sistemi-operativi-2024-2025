@@ -195,13 +195,11 @@ int main(int argc, char* argv[])
   setup();
   int day_count = 0;
   int sim_explode = 0;
-  clock_t start_time = 0;
   while (1)
   {
     if (day_count >= SIM_DURATION) { break; }
     log_trace("\n");
     start(day_count);
-    if (0 == day_count) { start_time = clock(); }
     int nof_failed_serv = get_stats(NOF_USERS * SERV_NUM + NOF_WORKERS, day_count);
     print_daily_stats(day_count);
     print_general_stats(day_count);
@@ -225,8 +223,7 @@ int main(int argc, char* argv[])
     }
     day_count++;
   }
-  clock_t end_time = clock();
-  double elapsed_time = ((double)(end_time - start_time) / CLOCKS_PER_SEC) * 1000;
+  save_stats();
   if (0 == sim_explode) { release_sem_val(SEM_PROC_CAN_DIE_ID, 0, START_SEM_COUNT); }
   for (size_t i = 0; i < nof_proc; i++)
   {
@@ -248,6 +245,5 @@ int main(int argc, char* argv[])
     puts("\n");
     log_info("Cause of termination of simulation: explode");
   }
-  log_info("executionn times: %f", elapsed_time);
   return 0;
 }
