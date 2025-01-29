@@ -107,6 +107,7 @@ typedef struct
 {
   long mtype;
   Service serv;
+  int user_id;
   int completed_serv;
   int failed_serv;
   size_t nof_waiting_times;

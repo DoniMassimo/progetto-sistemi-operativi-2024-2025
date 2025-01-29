@@ -32,7 +32,7 @@ void setup(char arg_1[])
   sem_config();
   shm_config();
   msg_config();
-  if (id % 10 == 0) { log_info("Users initialization..."); }
+  if (id % 10 == 0) { log_trace("Users initialization..."); }
 }
 
 void start(void)
@@ -94,7 +94,7 @@ void core(void)
       serv_req_time = *min_count - serv_req_time;
       release_reader_RP(SEMRP_MIN_COUNT_ID);
       if (-1 == shmdt(min_count)) { FUNC_PERROR(); }
-      log_trace("user: %d R service_resp-> risposta servizio", id);
+      log_trace("user: %d R service_resp -> dur: %d", id, serv_req_time);
       ServiceResp* service_resp = (ServiceResp*)notifc;
       if (0 == service_resp->data) { MSG_ERROR("Expecting 1"); }
       get_notf_param.can_skip = 0;

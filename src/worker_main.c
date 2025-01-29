@@ -40,7 +40,7 @@ void setup(char arg_1[], char arg_2[], char arg_3[], char arg_4[])
   key_t key = ftok("/", 333 + id);
   sem_timer_id = semget(key, 1, IPC_CREAT | 0666);
   nof_pause_rem = NOF_PAUSE;
-  if (id % 10 == 0) { log_info("Workers initialization..."); }
+  if (id % 10 == 0) { log_trace("Workers initialization..."); }
 }
 
 void start(void)

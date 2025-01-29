@@ -65,11 +65,14 @@ void core(void)
   if (-1 == lock_sem(SEMRP_MIN_COUNT_ID.sem_writer_id, 0)) { FUNC_PERROR(); }
   *min_count = 0;
   if (-1 == release_sem(SEMRP_MIN_COUNT_ID.sem_writer_id, 0)) { FUNC_PERROR(); }
-  struct timespec req;
+  struct timespec req, start, end;
+  long elapsed_time, sleep_time;
   req.tv_sec = 0;
   req.tv_nsec = (long int)N_NANO_SECS;
   while (*min_count < (60 * 8))
   {
+    clock_gettime(CLOCK_MONOTONIC, &start);
+
     if (120 == *min_count) { log_trace("10 AM"); }
     else if (240 == *min_count) { log_trace("Midday"); }
     else if (360 == *min_count) { log_trace("2 PM"); }
@@ -78,7 +81,16 @@ void core(void)
     if (-1 == lock_sem(SEMRP_MIN_COUNT_ID.sem_writer_id, 0)) { FUNC_PERROR(); }
     (*min_count)++;
     if (-1 == release_sem(SEMRP_MIN_COUNT_ID.sem_writer_id, 0)) { FUNC_PERROR(); }
-    if (nanosleep(&req, NULL) == -1) { FUNC_PERROR(); }
+
+    clock_gettime(CLOCK_MONOTONIC, &end);
+    elapsed_time = (end.tv_sec - start.tv_sec) * 1000000000L + (end.tv_nsec - start.tv_nsec);
+    sleep_time = N_NANO_SECS - elapsed_time;
+    if (sleep_time > 0)
+    {
+      req.tv_nsec = sleep_time;
+      nanosleep(&req, NULL);
+    }
+    // if (nanosleep(&req, NULL) == -1) { FUNC_PERROR(); }
   }
   clear_calendar();
   send_msg_day_ended();

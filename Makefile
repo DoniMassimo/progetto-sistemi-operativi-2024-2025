@@ -32,6 +32,3 @@ bin/add_users_main: build/add_users_main.o build/sem_utils.o $(PROJ_DEPS)
 clean:
 	rm -f build/* bin/*
 
-#build/tests/%.o: tests/%.c $(COMMON_DEPS)
-#	$(CC) $(CFLAGS) -c $< -o $@
-

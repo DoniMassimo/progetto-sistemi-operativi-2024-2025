@@ -22,11 +22,12 @@
 pid_t* all_proc_pid = NULL;
 size_t nof_proc = 0;
 int user_added = 0;
+int assigned_serv_seats[SERV_NUM];
+int assigned_worker[SERV_NUM];
 
 void init_workers(void)
 {
   if (NOF_WORKERS < 1) { return; }
-  int assigned_worker[SERV_NUM];
   utils_assign_count_array(assigned_worker, SERV_NUM, NOF_WORKERS);
   for (int i = 0; i < SERV_NUM; i++)
   {
@@ -161,7 +162,6 @@ void setup(void)
   sem_init();
   shm_init();
   msg_init();
-  int assigned_serv_seats[SERV_NUM];
   utils_assign_count_array(assigned_serv_seats, SERV_NUM, NOF_WORKER_SEATS);
   seats_init_resources(assigned_serv_seats);
   init_processes();
@@ -182,6 +182,8 @@ void start(int day_count)
     init_new_users(day_count);
     release_sem_val(SEM_CLOCK_ADD_USERS_ID, 0, 2);
   }
+  utils_assign_count_array(assigned_serv_seats, SERV_NUM, NOF_WORKER_SEATS);
+  seats_init_resources(assigned_serv_seats);
   if (-1 == lock_sem_val(SEM_PROC_READY_ID, 0, START_SEM_COUNT)) { FUNC_PERROR(); }
   if (-1 == set_sem_val(SEM_START_ID, 0, START_SEM_COUNT)) { FUNC_PERROR(); }
   if (0 == day_count) { log_trace("Simulation started"); }
@@ -201,7 +203,7 @@ int main(int argc, char* argv[])
     log_trace("\n");
     start(day_count);
     int nof_failed_serv = get_stats(NOF_USERS * SERV_NUM + NOF_WORKERS, day_count);
-    print_stats(day_count);
+    print_save_stats(day_count, assigned_serv_seats, assigned_worker);
     if (nof_failed_serv > EXPLODE_THRESHOLD)
     {
       if (-1 == release_sem(SEM_STOP_SIM_EXPLODE_ID, 0)) { FUNC_PERROR(); }

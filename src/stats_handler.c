@@ -46,6 +46,8 @@ int get_stats(int nof_msg, int curr_day)
 {
   int bound_deliv_time = 0;
   int count_failed_serv = 0;
+  int stats_fetched[NOF_USERS];
+  memset(stats_fetched, 0, sizeof(int) * NOF_USERS);
   for (int i = 0; i < nof_msg; i++)
   {
     StatsSize stats_size;
@@ -66,12 +68,13 @@ int get_stats(int nof_msg, int curr_day)
         FUNC_PERROR();
         free(user_stats);
       }
-      if (user_stats->completed_serv > 0)
+      if (user_stats->completed_serv > 0 && 0 == stats_fetched[user_stats->user_id])
       {
         calendar_stats[curr_day][user_stats->serv].nof_served_user++;
+        stats_fetched[user_stats->user_id] = 1;
       }
-      calendar_stats[curr_day][user_stats->serv].nof_delivered_serv = user_stats->completed_serv;
-      calendar_stats[curr_day][user_stats->serv].nof_failedserv = user_stats->failed_serv;
+      calendar_stats[curr_day][user_stats->serv].nof_delivered_serv += user_stats->completed_serv;
+      calendar_stats[curr_day][user_stats->serv].nof_failedserv += user_stats->failed_serv;
       count_failed_serv += user_stats->failed_serv;
       int new_nof_wait_time = calendar_stats[curr_day][user_stats->serv].nof_wait_time +
                               (int)user_stats->nof_waiting_times;
@@ -130,83 +133,70 @@ int get_stats(int nof_msg, int curr_day)
   return count_failed_serv;
 }
 
-// void save_stats(void)
-// {
-//   FILE* stats_file = fopen("stats.csv", "w");
-//   if (NULL == stats_file) { FUNC_PERROR(); }
-//
-//   fprintf(stats_file, "Day,Service,Field,Value\n");
-//
-//   for (int i = 0; i < SIM_DURATION; i++)
-//   {
-//     for (int j = 0; j < SERV_NUM; j++)
-//     {
-//       fprintf(stats_file, "%d,%s,1,%d\n", i + 1, service_names[j],
-//               calendar_stats[i][j].nof_served_user);
-//       fprintf(stats_file, "%d,%s,2,%f\n", i + 1, service_names[j],
-//               (float)calendar_stats[i][j].nof_served_user / (float)(i + 1));
-//       fprintf(stats_file, "%d,%s,3,%d\n", i + 1, service_names[j],
-//               calendar_stats[i][j].nof_delivered_serv);
-//       fprintf(stats_file, "%d,%s,4,%d\n", i + 1, service_names[j],
-//               calendar_stats[i][j].nof_failedserv);
-//       fprintf(stats_file, "%d,%s,5,%f\n", i + 1, service_names[j],
-//               (float)calendar_stats[i][j].nof_delivered_serv / (float)(i + 1));
-//       fprintf(stats_file, "%d,%s,6,%f\n", i + 1, service_names[j],
-//               (float)calendar_stats[i][j].nof_failedserv / (float)(i + 1));
-//       fprintf(stats_file, "%d,%s,8,%f\n", i + 1, service_names[j], avg_wait_time_per_day);
-//       fprintf(stats_file, "%d,%s,10,%f\n", i + 1, service_names[j], avg_deliv_time_per_day);
-//       fprintf(stats_file, "%d,%s,11,%d\n", i + 1, service_names[j],
-//               calendar_stats[i][j].nof_active_worker);
-//       fprintf(stats_file, "%d,%s,13,%d\n", i + 1, service_names[j],
-//       calendar_stats[i][j].nof_pause); fprintf(stats_file, "%d,%s,14,%f\n", i + 1,
-//       service_names[j],
-//               calendar_stats[i][j].worker_seat_frac);
-//     }
-//   }
-//
-//   // Statistiche generali
-//   fprintf(stats_file, "Total,generale,1,%d\n", total_served_users);
-//   fprintf(stats_file, "Total,generale,2,%f\n", (float)total_served_users / (float)total_days);
-//   fprintf(stats_file, "Total,generale,3,%d\n", total_delivered_services);
-//   fprintf(stats_file, "Total,generale,4,%d\n", total_failed_services);
-//   fprintf(stats_file, "Total,generale,5,%f\n", (float)total_delivered_services /
-//   (float)total_days); fprintf(stats_file, "Total,generale,6,%f\n", (float)total_failed_services /
-//   (float)total_days); fprintf(stats_file, "Total,generale,7,%f\n", avg_wait_time_general);
-//   fprintf(stats_file, "Total,generale,9,%f\n", avg_deliv_time_general);
-//   fprintf(stats_file, "Total,generale,12,%d\n", total_active_workers);
-//   fprintf(stats_file, "Total,generale,13,%d\n", total_pauses);
-//
-//   fclose(stats_file);
-// }
+void save_stats(GeneralStats* stats, Service serv, int curr_day, int first, int general)
+{
+  FILE* stats_file = fopen("stats.csv", "a");
+  if (NULL == stats_file) { FUNC_PERROR(); }
+  if (1 == first) { fprintf(stats_file, "Day,Service,Field,Value\n"); }
+  fprintf(stats_file, "%d,%s,1,%d\n", curr_day, (!general) ? service_names[serv] : "general",
+          stats->serv_user_count_tot);
+  fprintf(stats_file, "%d,%s,2,%f\n", curr_day, (!general) ? service_names[serv] : "general",
+          stats->avg_serv_user_count);
+  fprintf(stats_file, "%d,%s,3,%d\n", curr_day, (!general) ? service_names[serv] : "general",
+          stats->serv_deliv_count_tot);
+  fprintf(stats_file, "%d,%s,4,%d\n", curr_day, (!general) ? service_names[serv] : "general",
+          stats->serv_fail_count_tot);
+  fprintf(stats_file, "%d,%s,5,%f\n", curr_day, (!general) ? service_names[serv] : "general",
+          stats->avg_serv_deliv_count);
+  fprintf(stats_file, "%d,%s,6,%f\n", curr_day, (!general) ? service_names[serv] : "general",
+          stats->avg_serv_fail_count);
+  fprintf(stats_file, "%d,%s,7,%f\n", curr_day, (!general) ? service_names[serv] : "general",
+          stats->avg_user_wait);
+  fprintf(stats_file, "%d,%s,8,%f\n", curr_day, (!general) ? service_names[serv] : "general",
+          stats->avg_user_wait_today);
+  fprintf(stats_file, "%d,%s,9,%f\n", curr_day, (!general) ? service_names[serv] : "general",
+          stats->avg_serv_deliv_time);
+  fprintf(stats_file, "%d,%s,10,%f\n", curr_day, (!general) ? service_names[serv] : "general",
+          stats->avg_serv_deliv_time_today);
+  if (1 == general)
+  {
+    fprintf(stats_file, "%d,%s,11,%d\n", curr_day, "general", stats->active_worker_count_daily);
+    fprintf(stats_file, "%d,%s,12,%d\n", curr_day, "general", stats->active_worker_count_tot);
+    fprintf(stats_file, "%d,%s,13,%f\n", curr_day, "general", stats->avg_pause_count);
+    fprintf(stats_file, "%d,%s,14,%d\n", curr_day, "general", stats->pause_count_tot);
+    fprintf(stats_file, "%d,%s,15,%f\n", curr_day, "general", stats->worker_seat_frac);
+  }
+  fclose(stats_file);
+}
 
 void calc_serv_stats(GeneralStats* general_stats, Service serv, int curr_day,
                      int* nof_avg_user_wait, int* nof_avg_serv_deliv_time)
 {
-  for (int i = 0; i < curr_day; i++)
+  for (int i = 0; i < curr_day + 1; i++)
   {
     general_stats->serv_user_count_tot += calendar_stats[i][serv].nof_served_user;
     general_stats->serv_deliv_count_tot += calendar_stats[i][serv].nof_delivered_serv;
     general_stats->serv_fail_count_tot += calendar_stats[i][serv].nof_failedserv;
     general_stats->active_worker_count_tot += calendar_stats[i][serv].nof_active_worker;
     general_stats->pause_count_tot += calendar_stats[i][serv].nof_pause;
-    if (i == (curr_day - 1))
+    if (i == (curr_day))
     {
       general_stats->active_worker_count_daily = calendar_stats[i][serv].nof_active_worker;
     }
+    *nof_avg_user_wait += calendar_stats[i][serv].nof_wait_time;
     for (int j = 0; j < calendar_stats[i][serv].nof_wait_time; j++)
     {
-      *nof_avg_user_wait += calendar_stats[i][serv].nof_wait_time;
       general_stats->avg_user_wait += (float)calendar_stats[i][serv].wait_time[j];
-      if (i == (curr_day - 1))
+      if (i == (curr_day))
       {
         general_stats->avg_user_wait_today += (float)calendar_stats[i][serv].wait_time[j];
       }
     }
+    *nof_avg_serv_deliv_time += calendar_stats[i][serv].nof_deliv_time;
     for (int j = 0; j < calendar_stats[i][serv].nof_deliv_time; j++)
     {
-      *nof_avg_serv_deliv_time = calendar_stats[i][serv].nof_deliv_time;
       general_stats->avg_serv_deliv_time += (float)calendar_stats[i][serv].deliv_time[j];
-      if (i == (curr_day - 1))
+      if (i == (curr_day))
       {
         general_stats->avg_serv_deliv_time_today += (float)calendar_stats[i][serv].deliv_time[j];
       }
@@ -267,24 +257,29 @@ void print_struct_stats(GeneralStats* stats)
            stats->avg_serv_deliv_time);
   log_info("Tempo medio di erogazione dei servizi nella giornata: %f",
            stats->avg_serv_deliv_time_today);
+  log_info("Rapporto fra operatori disponibili e sportelli esistenti: %f", stats->worker_seat_frac);
 }
 
-void print_stats(int curr_day)
+void print_save_stats(int curr_day, int* assigned_serv_seats, int* assigned_worker)
 {
+  int first = 1;
   for (int i = 0; i < SERV_NUM; i++)
   {
     GeneralStats* stats = calc_stats((Service*)&i, 1, curr_day);
-    log_info("Giorno %d, Servizio %s: ", curr_day + 1, service_names[i]);
+    stats->worker_seat_frac = (float)assigned_worker[i] / (float)assigned_serv_seats[i];
+    log_info("Giorno %d, Servizio %s (%d): ", curr_day + 1, service_names[i], i);
     print_struct_stats(stats);
     printf("\n\n");
-    fflush(stdout);
+    save_stats(stats, (Service)i, curr_day, first, 0);
     free(stats);
+    first = 0;
   }
   Service servs[] = {
       SEND_PICK_PARC, SEND_LET_REG,   WDRAWALS_DEPOSIT,
       PAY_POST_BULL,  PURCH_FIN_PROD, PURCH_WATCH_BRAC,
   };
   GeneralStats* gen_stats = calc_stats(servs, SERV_NUM, curr_day);
+  gen_stats->worker_seat_frac =  NOF_WORKERS / NOF_WORKER_SEATS;
   log_info("Giorno %d, Statistiche generali: ", curr_day + 1);
   print_struct_stats(gen_stats);
   log_info("Numero di operatori attivi durante la giornata: %d",
@@ -294,6 +289,6 @@ void print_stats(int curr_day)
   log_info("Numero medio di pause effettuate nella giornata: %f", gen_stats->avg_pause_count);
   log_info("Totale di pause effettuate durante la simulazione: %d", gen_stats->pause_count_tot);
   printf("\n\n");
-  fflush(stdout);
+  save_stats(gen_stats, 0, curr_day, first, 1);
   free(gen_stats);
 }

@@ -90,6 +90,7 @@ void send_user_stats(void)
     user_stats[i]->nof_waiting_times = wait_time_index[i];
     user_stats[i]->mtype = curr_mtype;
     user_stats[i]->failed_serv = rem_serv_req[i];
+    user_stats[i]->user_id = id;
     msg_size = sizeof(UserStats) + sizeof(int) * wait_time_index[i] - sizeof(long);
     if (-1 == msgsnd(MSG_STATS_DATA_ID, user_stats[i], msg_size, IPC_NOWAIT)) { FUNC_PERROR(); }
     log_trace("user: %d S send_stats -> serv: %d mtype: %d completed: %d fail: %d count: %d", id, i,
