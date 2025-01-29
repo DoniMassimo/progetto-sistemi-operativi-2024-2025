@@ -84,13 +84,12 @@ void core(void)
 
     clock_gettime(CLOCK_MONOTONIC, &end);
     elapsed_time = (end.tv_sec - start.tv_sec) * 1000000000L + (end.tv_nsec - start.tv_nsec);
-    sleep_time = N_NANO_SECS - elapsed_time;
+    sleep_time = (long)N_NANO_SECS - elapsed_time;
     if (sleep_time > 0)
     {
       req.tv_nsec = sleep_time;
       nanosleep(&req, NULL);
     }
-    // if (nanosleep(&req, NULL) == -1) { FUNC_PERROR(); }
   }
   clear_calendar();
   send_msg_day_ended();

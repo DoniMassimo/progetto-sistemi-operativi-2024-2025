@@ -12,4 +12,5 @@ output_test.txt
 typescript
 .vscode/
 src/stats.csv
+*.csv
 stats.csv

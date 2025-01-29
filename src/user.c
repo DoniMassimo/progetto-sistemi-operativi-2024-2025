@@ -187,8 +187,10 @@ void setup_clock_notifc(void)
   }
   memset(rem_serv_req, 0, sizeof(rem_serv_req));
   int nof_req = (rand() % N_REQUESTS) + 1;
-  Service serv_req[nof_req];
-  int all_req_times[nof_req];
+  Service* serv_req = (Service*)calloc((size_t)nof_req, sizeof(Service));
+  if (NULL == serv_req) { FUNC_PERROR(); }
+  int* all_req_times = (int*)calloc((size_t)nof_req, sizeof(int));
+  if (NULL == all_req_times) { FUNC_PERROR(); }
   for (int i = 0; i < nof_req; i++)
   {
     serv_req[i] = (Service)(rand() % SERV_NUM);
@@ -198,4 +200,6 @@ void setup_clock_notifc(void)
   int opt_time = find_best_time(req_time, serv_req, nof_req);
   calc_times_from_serv(all_req_times, serv_req, opt_time, nof_req);
   send_notific_clock(all_req_times, serv_req, nof_req);
+  free(serv_req);
+  free(all_req_times);
 }

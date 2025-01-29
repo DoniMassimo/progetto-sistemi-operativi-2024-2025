@@ -108,19 +108,23 @@ int release_sem_val(int semid, int sem_num, int val)
 
 int release_all_sem(int semid, int sem_count)
 {
-  struct sembuf sops[sem_count];
+  struct sembuf* sops = (struct sembuf*)calloc((size_t)sem_count, sizeof(struct sembuf));
+  if (NULL == sops) { FUNC_PERROR(); }
   for (short unsigned int i = 0; i < sem_count; i++)
   {
     sops[i].sem_num = i;
     sops[i].sem_op = 1;
     sops[i].sem_flg = 0;
   }
-  return semop(semid, sops, (short unsigned int)sem_count);
+  int sem_res = semop(semid, sops, (short unsigned int)sem_count);
+  free(sops);
+  return sem_res;
 }
 
 int release_all_sem_excl(int semid, int sem_count, int excluded)
 {
-  struct sembuf sops[sem_count - 1];
+  struct sembuf* sops = (struct sembuf*)calloc((size_t)(sem_count - 1), sizeof(struct sembuf));
+  if (NULL == sops) { FUNC_PERROR(); }
   int curr_index = 0;
   for (short unsigned int i = 0; i < sem_count; i++)
   {
@@ -130,50 +134,64 @@ int release_all_sem_excl(int semid, int sem_count, int excluded)
     sops[curr_index].sem_flg = 0;
     curr_index++;
   }
-  return semop(semid, sops, (short unsigned int)sem_count - 1);
+  int sem_res = semop(semid, sops, (short unsigned int)sem_count - 1);
+  free(sops);
+  return sem_res;
 }
 
 int release_range_sem(int semid, int start_count, int end_count)
 {
   int sem_count = end_count - start_count;
-  struct sembuf sops[sem_count];
+  struct sembuf* sops = (struct sembuf*)calloc((size_t)sem_count, sizeof(struct sembuf));
+  if (NULL == sops) { FUNC_PERROR(); }
   for (short unsigned int i = 0; i < sem_count; i++)
   {
     sops[i].sem_num = (short unsigned int)start_count + i;
     sops[i].sem_op = 1;
     sops[i].sem_flg = 0;
   }
-  return semop(semid, sops, (short unsigned int)sem_count);
+  int sem_res = semop(semid, sops, (short unsigned int)sem_count);
+  free(sops);
+  return sem_res;
 }
 
 int init_all_sem_one(int semid, int sem_count)
 {
   union semun arg;
-  unsigned short values[sem_count];
+  unsigned short* values = (unsigned short*)calloc((size_t)sem_count, sizeof(unsigned short));
+  if (NULL == values) { FUNC_PERROR(); }
   memset(values, 1, sizeof(unsigned short) * (unsigned short)sem_count);
   arg.array = values;
-  return semctl(semid, 0, SETALL, arg);
+  int sem_res = semctl(semid, 0, SETALL, arg);
+  free(values);
+  return sem_res;
 }
 
 int init_all_sem_zero(int semid, int sem_count)
 {
   union semun arg;
-  unsigned short values[sem_count];
+  unsigned short* values = (unsigned short*)calloc((size_t)sem_count, sizeof(unsigned short));
+  if (NULL == values) { FUNC_PERROR(); }
   memset(values, 0, sizeof(unsigned short) * (unsigned short)sem_count);
   arg.array = values;
-  return semctl(semid, 0, SETALL, arg);
+  int sem_res = semctl(semid, 0, SETALL, arg);
+  free(values);
+  return sem_res;
 }
 
 int lock_all_sem(int semid, int sem_count)
 {
-  struct sembuf sops[sem_count];
+  struct sembuf* sops = (struct sembuf*)calloc((size_t)sem_count, sizeof(struct sembuf));
+  if (NULL == sops) { FUNC_PERROR(); }
   for (short unsigned int i = 0; i < sem_count; i++)
   {
     sops[i].sem_num = i;
     sops[i].sem_op = -1;
     sops[i].sem_flg = 0;
   }
-  return semop(semid, sops, (short unsigned int)sem_count);
+  int sem_res = semop(semid, sops, (short unsigned int)sem_count);
+  free(sops);
+  return sem_res;
 }
 
 int get_sem_value(int semid, int sem_count)
