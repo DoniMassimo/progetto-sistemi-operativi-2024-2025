@@ -117,7 +117,7 @@ void set_pause_time(void)
   if (nof_pause_rem > 0)
   {
     int random_num = rand() % 100;
-    if (random_num < 30)
+    if (random_num < 10)
     {
       int random_time = rand() % ((60 * 8) - 120);
       random_time = random_time + 60;

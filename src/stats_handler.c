@@ -180,7 +180,7 @@ void calc_serv_stats(GeneralStats* general_stats, Service serv, int curr_day,
     general_stats->pause_count_tot += calendar_stats[i][serv].nof_pause;
     if (i == (curr_day))
     {
-      general_stats->active_worker_count_daily = calendar_stats[i][serv].nof_active_worker;
+      general_stats->active_worker_count_daily += calendar_stats[i][serv].nof_active_worker;
     }
     *nof_avg_user_wait += calendar_stats[i][serv].nof_wait_time;
     for (int j = 0; j < calendar_stats[i][serv].nof_wait_time; j++)
