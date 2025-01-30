@@ -134,6 +134,11 @@ int get_stats(int nof_msg, int curr_day)
 
 void save_stats(GeneralStats* stats, Service serv, int curr_day, int first, int general)
 {
+  if (1 == first)
+  {
+    FILE* file = fopen("stats.csv", "w");
+    fclose(file);
+  }
   FILE* stats_file = fopen("stats.csv", "a");
   if (NULL == stats_file) { FUNC_PERROR(); }
   if (1 == first) { fprintf(stats_file, "Day,Service,Field,Value\n"); }
@@ -259,9 +264,9 @@ void print_struct_stats(GeneralStats* stats)
   log_info("Rapporto fra operatori disponibili e sportelli esistenti: %f", stats->worker_seat_frac);
 }
 
+int first = 1;
 void print_save_stats(int curr_day, int* assigned_serv_seats, int* assigned_worker)
 {
-  int first = 1;
   for (int i = 0; i < SERV_NUM; i++)
   {
     GeneralStats* stats = calc_stats((Service*)&i, 1, curr_day);
@@ -288,6 +293,6 @@ void print_save_stats(int curr_day, int* assigned_serv_seats, int* assigned_work
   log_info("Numero medio di pause effettuate nella giornata: %f", gen_stats->avg_pause_count);
   log_info("Totale di pause effettuate durante la simulazione: %d", gen_stats->pause_count_tot);
   printf("\n\n");
-  save_stats(gen_stats, 0, curr_day, first, 1);
+  save_stats(gen_stats, 0, curr_day, 0, 1);
   free(gen_stats);
 }
