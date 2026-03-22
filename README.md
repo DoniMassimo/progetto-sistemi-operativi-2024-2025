@@ -1,6 +1,6 @@
 # Progetto Sistemi Operativi 2024-2025
 
-(Consigliata la visione della documentazione tramite il file pdf `README.pdf`)
+Consegna del progetto: Progetto_SO_2024_25.pdf
 
 ##  Autori
 
